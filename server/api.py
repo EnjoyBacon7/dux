@@ -1,10 +1,10 @@
 from fastapi import APIRouter, UploadFile, File
 from server.methods.upload import upload_file
 
-router = APIRouter()
+router = APIRouter(tags=["General"])
 
 
-@router.get("/healthcheck")
+@router.get("/healthcheck", summary="Health check")
 def read_root():
     """
     Healthcheck endpoint to verify that the application is running.
@@ -15,7 +15,7 @@ def read_root():
     return "OK"
 
 
-@router.post("/upload")
+@router.post("/upload", summary="Upload file")
 async def upload_endpoint(file: UploadFile = File(...)):
     """
     Upload endpoint to handle file uploads.
