@@ -8,10 +8,7 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    UPLOAD_DIR=/app/uploads \
-    HOST=0.0.0.0 \
-    PORT=8000
+ENV PYTHONUNBUFFERED=1
 
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
@@ -26,8 +23,5 @@ COPY static ./static
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
-# Expose the port
-EXPOSE 8000
-
 # Run the application
-CMD ["uv", "run", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uv run uvicorn server.app:app --host 0.0.0.0 --port 8080"]
