@@ -1,0 +1,15 @@
+services:
+  dux:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dux-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped
