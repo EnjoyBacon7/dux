@@ -1,15 +1,64 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: dux-db
+    environment:
+      - POSTGRES_DB=dux
+      - POSTGRES_USER=dux_user
+      - POSTGRES_PASSWORD=dux_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dux_user -d dux"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   dux:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: dux-app
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
-      - "8000:8000"
+      - "8080:8080"
     volumes:
       - ./uploads:/app/uploads
     environment:
       - UPLOAD_DIR=/app/uploads
-      - HOST=0.0.0.0
-      - PORT=8000
+      - DATABASE_URL=postgresql://dux_user:dux_password@db:5432/dux
+      # Session Configuration (IMPORTANT: Change SESSION_SECRET in production!)
+      - SESSION_SECRET=${SESSION_SECRET:-change-this-in-production-use-env-file}
+      - SESSION_COOKIE_NAME=dux_session
+      - SESSION_MAX_AGE=86400
+      - SESSION_COOKIE_SECURE=true
+      - SESSION_COOKIE_HTTPONLY=true
+      - SESSION_COOKIE_SAMESITE=lax
+      # CORS Configuration
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8080}
+      - CORS_ALLOW_CREDENTIALS=true
+      # WebAuthn/Passkey Configuration
+      - RP_ID=${RP_ID:-localhost}
+      - RP_NAME=${RP_NAME:-Dux}
+      - ORIGIN=${ORIGIN:-http://localhost:8080}
+      # Security Settings
+      - MAX_LOGIN_ATTEMPTS=5
+      - LOCKOUT_DURATION_MINUTES=15
+      - CHALLENGE_TIMEOUT_MINUTES=5
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_PER_MINUTE=60
+      # Password Policy
+      - PASSWORD_MIN_LENGTH=12
+      - PASSWORD_REQUIRE_UPPERCASE=true
+      - PASSWORD_REQUIRE_LOWERCASE=true
+      - PASSWORD_REQUIRE_DIGIT=true
+      - PASSWORD_REQUIRE_SPECIAL=true
     restart: unless-stopped
+
+volumes:
+  postgres_data:
