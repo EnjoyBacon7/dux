@@ -47,131 +47,77 @@ const AuthPage: React.FC = () => {
     };
 
     return (
-        <div style={{ maxWidth: 400, margin: "2rem auto", padding: 24, border: "1px solid #eee", borderRadius: 8 }}>
-            <h1 style={{ textAlign: "center" }}>Authentication</h1>
+        <div className="nb-page nb-card">
+            <h1 className="nb-center" style={{ marginTop: 0 }}>Authentication</h1>
 
-            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            <div className="nb-tabs" style={{ marginBottom: '1rem' }}>
                 <button
                     onClick={() => setMode("password")}
-                    style={{
-                        flex: 1,
-                        padding: "8px 0",
-                        background: mode === "password" ? "#1976d2" : "#eee",
-                        color: mode === "password" ? "white" : "#333",
-                        border: "none",
-                        borderRadius: 4,
-                        fontWeight: 600,
-                        cursor: "pointer"
-                    }}>
-                    Password
-                </button>
+                    className={`nb-btn nb-tab ${mode === 'password' ? 'nb-btn--accent' : 'nb-btn--ghost'}`}
+                    type="button"
+                >Password</button>
                 <button
                     onClick={() => setMode("passkey")}
-                    style={{
-                        flex: 1,
-                        padding: "8px 0",
-                        background: mode === "passkey" ? "#1976d2" : "#eee",
-                        color: mode === "passkey" ? "white" : "#333",
-                        border: "none",
-                        borderRadius: 4,
-                        fontWeight: 600,
-                        cursor: "pointer"
-                    }}>
-                    Passkey
-                </button>
+                    className={`nb-btn nb-tab ${mode === 'passkey' ? 'nb-btn--accent' : 'nb-btn--ghost'}`}
+                    type="button"
+                >Passkey</button>
             </div>
 
             {mode === "password" ? (
-                <form style={{ display: "flex", flexDirection: "column", gap: 16 }} onSubmit={handlePasswordSubmit}>
+                <form className="nb-form" onSubmit={handlePasswordSubmit}>
                     <input
+                        className="nb-input"
                         type="text"
                         placeholder="Username"
                         value={username}
                         onChange={e => setUsername(e.target.value.trim())}
                         required
-                        style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd" }}
                     />
                     <input
+                        className="nb-input"
                         type="password"
                         placeholder="Password"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                         required
-                        style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd" }}
                     />
                     <button
                         type="submit"
                         disabled={loading}
-                        style={{
-                            padding: "8px 0",
-                            background: loading ? "#aaa" : "#1976d2",
-                            color: "white",
-                            border: "none",
-                            borderRadius: 4,
-                            fontWeight: 600,
-                            cursor: loading ? "not-allowed" : "pointer"
-                        }}>
-                        {loading ? (isRegistering ? "Registering..." : "Logging in...") : (isRegistering ? "Register" : "Login")}
-                    </button>
+                        className={`nb-btn ${loading ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
+                    >{loading ? (isRegistering ? "Registering..." : "Logging in...") : (isRegistering ? "Register" : "Login")}</button>
                     <button
                         type="button"
-                        onClick={() => {
-                            setIsRegistering(!isRegistering);
-                            clearError();
-                        }}
-                        style={{
-                            padding: "6px 0",
-                            background: "transparent",
-                            color: "#1976d2",
-                            border: "none",
-                            textDecoration: "underline",
-                            cursor: "pointer"
-                        }}>
-                        {isRegistering ? "Already have an account? Login" : "Need an account? Register"}
-                    </button>
+                        onClick={() => { setIsRegistering(!isRegistering); clearError(); }}
+                        className="nb-btn nb-btn--ghost"
+                    >{isRegistering ? "Already have an account? Login" : "Need an account? Register"}</button>
                 </form>
             ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div className="nb-form">
                     <input
+                        className="nb-input"
                         type="text"
                         placeholder="Username"
                         value={username}
                         onChange={e => setUsername(e.target.value.trim())}
                         required
-                        style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd" }}
                     />
                     <button
                         onClick={handlePasskeyLogin}
                         disabled={loading || !username}
-                        style={{
-                            padding: "8px 0",
-                            background: (loading || !username) ? "#aaa" : "#1976d2",
-                            color: "white",
-                            border: "none",
-                            borderRadius: 4,
-                            fontWeight: 600,
-                            cursor: (loading || !username) ? "not-allowed" : "pointer"
-                        }}>
-                        {loading ? "Authenticating..." : "Login with Passkey"}
-                    </button>
+                        className={`nb-btn ${loading || !username ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
+                        type="button"
+                    >{loading ? "Authenticating..." : "Login with Passkey"}</button>
                     <button
                         onClick={handlePasskeyRegister}
                         disabled={loading || !username}
-                        style={{
-                            padding: "8px 0",
-                            background: (loading || !username) ? "#aaa" : "#2e7d32",
-                            color: "white",
-                            border: "none",
-                            borderRadius: 4,
-                            fontWeight: 600,
-                            cursor: (loading || !username) ? "not-allowed" : "pointer"
-                        }}>
-                        {loading ? "Registering..." : "Register New Passkey"}
-                    </button>
+                        className={`nb-btn ${loading || !username ? 'nb-btn--ghost' : 'nb-btn--success'}`}
+                        type="button"
+                    >{loading ? "Registering..." : "Register New Passkey"}</button>
                 </div>
             )}
 
-            {error && <div style={{ color: 'red', marginTop: 16 }}>{error}</div>}
+            {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
         </div>
     );
 };

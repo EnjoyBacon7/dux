@@ -14,7 +14,7 @@ const Home: React.FC = () => {
 
     if (loading) {
         return (
-            <div style={{ maxWidth: 600, margin: "2rem auto", padding: 24, textAlign: "center" }}>
+            <div className="nb-page nb-card nb-center nb-card--muted">
                 <p>Loading...</p>
             </div>
         );
@@ -25,34 +25,18 @@ const Home: React.FC = () => {
     }
 
     return (
-        <div style={{ maxWidth: 600, margin: "2rem auto", padding: 24, border: "1px solid #eee", borderRadius: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                <h1 style={{ margin: 0 }}>Welcome to Dux</h1>
-                <button
-                    onClick={signOut}
-                    style={{
-                        padding: "8px 16px",
-                        background: "#d32f2f",
-                        color: "white",
-                        border: "none",
-                        borderRadius: 4,
-                        fontWeight: 600,
-                        cursor: "pointer"
-                    }}>
-                    Logout
-                </button>
-            </div>
-
-            <div style={{ padding: 20, background: "#f5f5f5", borderRadius: 8, marginBottom: 24 }}>
-                <p style={{ margin: 0, fontSize: 18 }}>
-                    Logged in as: <strong>{user.username}</strong>
-                </p>
-            </div>
-
-            <div style={{ marginTop: 24 }}>
-                <p style={{ color: "#666" }}>
-                    You are now authenticated and can access protected features.
-                </p>
+        <div className="nb-page nb-stack">
+            <div className="nb-card">
+                <div className="nb-spread nb-gap-sm" style={{ marginBottom: '1rem' }}>
+                    <h1 style={{ margin: 0 }}>Welcome to Dux</h1>
+                    <button onClick={signOut} className="nb-btn nb-btn--danger">Logout</button>
+                </div>
+                <div className="nb-card nb-card--muted" style={{ padding: '1rem', marginBottom: '1rem' }}>
+                    <p style={{ margin: 0, fontSize: '1.1rem' }}>
+                        Logged in as: <strong>{user.username}</strong>
+                    </p>
+                </div>
+                <p className="nb-text-dim">You are now authenticated and can access protected features.</p>
             </div>
         </div>
     );

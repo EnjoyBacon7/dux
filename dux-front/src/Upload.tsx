@@ -38,21 +38,21 @@ const Upload: React.FC = () => {
     };
 
     return (
-        <div style={{ maxWidth: 400, margin: "2rem auto", padding: 24, border: "1px solid #eee", borderRadius: 8 }}>
-            <h1 style={{ textAlign: "center" }}>Dux File Upload</h1>
-            <form style={{ display: "flex", flexDirection: "column", gap: 16 }} onSubmit={handleSubmit}>
+        <div className="nb-page nb-card">
+            <h1 className="nb-center" style={{ marginTop: 0 }}>Dux File Upload</h1>
+            <form className="nb-form" onSubmit={handleSubmit}>
                 <input
                     type="file"
                     ref={fileInputRef}
-                    style={{ marginBottom: 12 }}
+                    className="nb-file"
                     disabled={uploading}
                 />
-                <button type="submit" style={{ padding: "8px 0", background: uploading ? "#aaa" : "#1976d2", color: "white", border: "none", borderRadius: 4, fontWeight: 600 }} disabled={uploading}>
+                <button type="submit" className={`nb-btn ${uploading ? 'nb-btn--ghost' : 'nb-btn--accent'}`} disabled={uploading}>
                     {uploading ? "Uploading..." : "Upload"}
                 </button>
             </form>
-            {success && <div style={{ color: 'green', marginTop: 16 }}>{success}</div>}
-            {error && <div style={{ color: 'red', marginTop: 16 }}>{error}</div>}
+            {success && <div className="nb-alert nb-alert--success nb-mt">{success}</div>}
+            {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
         </div>
     );
 };
