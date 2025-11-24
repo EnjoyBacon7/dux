@@ -6,7 +6,7 @@ on:
       - main
       - api
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
     branches:
       - main
