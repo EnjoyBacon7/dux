@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./contexts/useAuth";
+import { useLanguage } from "./contexts/useLanguage";
 import Header from "./components/Header";
 
 const AuthPage: React.FC = () => {
@@ -9,6 +10,7 @@ const AuthPage: React.FC = () => {
     const [isRegistering, setIsRegistering] = useState(false);
 
     const { signIn, signUp, signInWithPasskey, registerPasskey, loading, error, clearError } = useAuth();
+    const { t } = useLanguage();
 
     const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,19 +53,19 @@ const AuthPage: React.FC = () => {
         <>
             <Header />
             <div className="nb-page nb-card">
-                <h1 className="nb-center" style={{ marginTop: 0 }}>Authentication</h1>
+                <h1 className="nb-center" style={{ marginTop: 0 }}>{t('auth.title')}</h1>
 
                 <div className="nb-tabs" style={{ marginBottom: '1rem' }}>
                     <button
                         onClick={() => setMode("password")}
                         className={`nb-btn nb-tab ${mode === 'password' ? 'nb-btn--accent' : 'nb-btn--ghost'}`}
                         type="button"
-                    >Password</button>
+                    >{t('auth.password')}</button>
                     <button
                         onClick={() => setMode("passkey")}
                         className={`nb-btn nb-tab ${mode === 'passkey' ? 'nb-btn--accent' : 'nb-btn--ghost'}`}
                         type="button"
-                    >Passkey</button>
+                    >{t('auth.passkey')}</button>
                 </div>
 
                 {mode === "password" ? (
@@ -71,7 +73,7 @@ const AuthPage: React.FC = () => {
                         <input
                             className="nb-input"
                             type="text"
-                            placeholder="Username"
+                            placeholder={t('auth.username')}
                             value={username}
                             onChange={e => setUsername(e.target.value.trim())}
                             required
@@ -79,7 +81,7 @@ const AuthPage: React.FC = () => {
                         <input
                             className="nb-input"
                             type="password"
-                            placeholder="Password"
+                            placeholder={t('auth.password.placeholder')}
                             value={password}
                             onChange={e => setPassword(e.target.value)}
                             required
@@ -88,19 +90,19 @@ const AuthPage: React.FC = () => {
                             type="submit"
                             disabled={loading}
                             className={`nb-btn ${loading ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
-                        >{loading ? (isRegistering ? "Registering..." : "Logging in...") : (isRegistering ? "Register" : "Login")}</button>
+                        >{loading ? (isRegistering ? t('auth.registering') : t('auth.logging_in')) : (isRegistering ? t('auth.register') : t('auth.login'))}</button>
                         <button
                             type="button"
                             onClick={() => { setIsRegistering(!isRegistering); clearError(); }}
                             className="nb-btn nb-btn--ghost"
-                        >{isRegistering ? "Already have an account? Login" : "Need an account? Register"}</button>
+                        >{isRegistering ? t('auth.already_account') : t('auth.need_account')}</button>
                     </form>
                 ) : (
                     <div className="nb-form">
                         <input
                             className="nb-input"
                             type="text"
-                            placeholder="Username"
+                            placeholder={t('auth.username')}
                             value={username}
                             onChange={e => setUsername(e.target.value.trim())}
                             required
@@ -110,13 +112,13 @@ const AuthPage: React.FC = () => {
                             disabled={loading || !username}
                             className={`nb-btn ${loading || !username ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
                             type="button"
-                        >{loading ? "Authenticating..." : "Login with Passkey"}</button>
+                        >{loading ? t('auth.authenticating') : t('auth.passkey.login')}</button>
                         <button
                             onClick={handlePasskeyRegister}
                             disabled={loading || !username}
                             className={`nb-btn ${loading || !username ? 'nb-btn--ghost' : 'nb-btn--success'}`}
                             type="button"
-                        >{loading ? "Registering..." : "Register New Passkey"}</button>
+                        >{loading ? t('auth.registering') : t('auth.passkey.register')}</button>
                     </div>
                 )}
 
