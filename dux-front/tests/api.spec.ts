@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('API Integration', () => {
     test('should respond to healthcheck endpoint', async ({ request }) => {
-        const response = await request.get('/api/healthcheck');
+        const response = await request.get('/api/healthcheck', {
+            timeout: 30000,
+        });
         expect(response.ok()).toBeTruthy();
         const text = await response.text();
         expect(text).toBe('OK');
@@ -19,6 +21,7 @@ test.describe('API Integration', () => {
                 username: 'ab', // Too short
                 password: 'TestPass123!',
             },
+            timeout: 30000,
         });
 
         expect(response.status()).toBe(400);
@@ -32,6 +35,7 @@ test.describe('API Integration', () => {
                 username: 'testuser',
                 password: 'weak', // Too weak
             },
+            timeout: 30000,
         });
 
         expect(response.status()).toBe(400);

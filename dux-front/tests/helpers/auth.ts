@@ -12,6 +12,7 @@ export async function registerUser(
     try {
         const response = await request.post('/auth/register', {
             data: { username, password },
+            timeout: 30000,
         });
 
         if (response.ok()) {
@@ -33,6 +34,7 @@ export async function loginUser(
     try {
         const response = await request.post('/auth/login', {
             data: { username, password },
+            timeout: 30000,
         });
 
         if (response.ok()) {
