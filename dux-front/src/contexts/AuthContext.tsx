@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 interface User {
     username: string;
     user_id?: number;
+    first_name?: string;
+    last_name?: string;
+    title?: string;
+    profile_picture?: string;
 }
 
 interface AuthContextType {
@@ -148,8 +152,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 body: JSON.stringify({ username, password }),
             });
             if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.detail || "Login failed");
+                const err = await res.json().catch(() => ({ detail: "Login failed" }));
+                throw new Error(err.detail || err.message || "Login failed");
             }
             await checkAuth();
             navigate("/");
@@ -174,8 +178,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 body: JSON.stringify({ username, password }),
             });
             if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.detail || "Registration failed");
+                const err = await res.json().catch(() => ({ detail: "Registration failed" }));
+                throw new Error(err.detail || err.message || "Registration failed");
             }
             return;
         } catch (err) {
@@ -199,7 +203,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),
             });
-            if (!optionsRes.ok) throw new Error("Failed to get authentication options");
+            if (!optionsRes.ok) {
+                const err = await optionsRes.json().catch(() => ({ detail: "Failed to get authentication options" }));
+                throw new Error(err.detail || err.message || "Failed to get authentication options");
+            }
             const options = toRequestOptions(await optionsRes.json());
 
             // Use WebAuthn API to get credential
@@ -276,7 +283,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),
             });
-            if (!optionsRes.ok) throw new Error("Failed to get registration options");
+            if (!optionsRes.ok) {
+                const err = await optionsRes.json().catch(() => ({ detail: "Failed to get registration options" }));
+                throw new Error(err.detail || err.message || "Failed to get registration options");
+            }
             const options = toCreationOptions(await optionsRes.json());
 
             // Use WebAuthn API to create credential

@@ -1,32 +1,110 @@
-/* Neo Brutalism Style Sheet
-   Loud colors, thick borders, flat surfaces, slight offset shadows.
-   Utility classes provided for rapid composition. */
-
 :root {
+    /* ===== CUSTOMIZABLE VARIABLES ===== */
+    --theme: light;
+
+    /* ===== THEME COLORS ===== */
     --nb-bg: #fffef8;
     --nb-bg-alt: #ffeec2;
     --nb-bg-muted: #f4f4f4;
     --nb-fg: #111;
-    --nb-accent: #ff0066;
-    --nb-accent-alt: #0057ff;
+    --nb-shadow-color: #111;
+
+    /* ===== ACCENT COLORS ===== */
+    --nb-accent: #9120fb;
+    --nb-accent-alt: #ca85e7;
     --nb-success: #00c853;
     --nb-danger: #ff2b2b;
     --nb-warning: #ffdd00;
+
+    /* ===== LAYOUT & STYLING ===== */
     --nb-radius: 14px;
-    --nb-border: 3px;
-    --nb-shadow: 6px 6px 0 0 #111;
+    --nb-border: 1px;
+    --shadow-offset: 3px;
+    --nb-shadow: var(--shadow-offset) var(--shadow-offset) 0 0 var(--nb-shadow-color);
+    --nb-shadow-sm: calc(var(--shadow-offset) * 0.67) calc(var(--shadow-offset) * 0.67) 0 0 var(--nb-shadow-color);
+    --nb-shadow-xs: calc(var(--shadow-offset) * 0.33) calc(var(--shadow-offset) * 0.33) 0 0 var(--nb-shadow-color);
     --nb-font-stack: 'JetBrains Mono', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
     --nb-transition: .18s cubic-bezier(.25, .8, .25, 1);
+
+    /* ===== LIGHT MODE SPECIFIC ===== */
+    --nb-input-bg: #fff;
+    --nb-input-focus-bg: #fffbe6;
+    --nb-btn-ghost-bg: #fff;
+    --nb-alert-danger-bg: #ffe4e4;
+    --nb-alert-success-bg: #e2ffe9;
+    --nb-card-bg: var(--nb-bg-alt);
+    --nb-card-muted-bg: var(--nb-bg-muted);
 }
 
-@media (prefers-color-scheme: dark) {
+/* ===== LIGHT MODE (DEFAULT) ===== */
+@media (prefers-color-scheme: light) {
     :root {
+        --theme: light;
+        --nb-bg: #fffef8;
+        --nb-bg-alt: #ffeec2;
+        --nb-bg-muted: #f4f4f4;
+        --nb-fg: #111;
+        --nb-shadow-color: #111;
+        --nb-input-bg: #fff;
+        --nb-input-focus-bg: #fffbe6;
+        --nb-btn-ghost-bg: #fff;
+        --nb-alert-danger-bg: #ffe4e4;
+        --nb-alert-success-bg: #e2ffe9;
+        --nb-card-bg: var(--nb-bg-alt);
+        --nb-card-muted-bg: var(--nb-bg-muted);
+    }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --theme: dark;
         --nb-bg: #121212;
         --nb-bg-alt: #1e1e1e;
         --nb-bg-muted: #222;
         --nb-fg: #fafafa;
-        --nb-shadow: 6px 6px 0 0 #fafafa;
+        --nb-shadow-color: #fafafa;
+        --nb-input-bg: #181818;
+        --nb-input-focus-bg: #222;
+        --nb-btn-ghost-bg: #181818;
+        --nb-alert-danger-bg: #ffe4e4;
+        --nb-alert-success-bg: #e2ffe9;
+        --nb-card-bg: #1f1f1f;
+        --nb-card-muted-bg: #262626;
     }
+}
+
+/* ===== MANUAL THEME OVERRIDES ===== */
+:root[data-theme="dark"] {
+    --theme: dark;
+    --nb-bg: #121212;
+    --nb-bg-alt: #1e1e1e;
+    --nb-bg-muted: #222;
+    --nb-fg: #fafafa;
+    --nb-shadow-color: #fafafa;
+    --nb-input-bg: #181818;
+    --nb-input-focus-bg: #222;
+    --nb-btn-ghost-bg: #181818;
+    --nb-alert-danger-bg: #ffe4e4;
+    --nb-alert-success-bg: #e2ffe9;
+    --nb-card-bg: #1f1f1f;
+    --nb-card-muted-bg: #262626;
+}
+
+:root[data-theme="light"] {
+    --theme: light;
+    --nb-bg: #fffef8;
+    --nb-bg-alt: #ffeec2;
+    --nb-bg-muted: #f4f4f4;
+    --nb-fg: #111;
+    --nb-shadow-color: #111;
+    --nb-input-bg: #fff;
+    --nb-input-focus-bg: #fffbe6;
+    --nb-btn-ghost-bg: #fff;
+    --nb-alert-danger-bg: #ffe4e4;
+    --nb-alert-success-bg: #e2ffe9;
+    --nb-card-bg: var(--nb-bg-alt);
+    --nb-card-muted-bg: var(--nb-bg-muted);
 }
 
 * {
@@ -93,7 +171,7 @@ a:hover {
 }
 
 .nb-card {
-    background: var(--nb-bg-alt);
+    background: var(--nb-card-bg);
     border: var(--nb-border) solid var(--nb-fg);
     border-radius: var(--nb-radius);
     padding: 1.75rem 1.5rem 1.5rem;
@@ -102,7 +180,7 @@ a:hover {
 }
 
 .nb-card--muted {
-    background: var(--nb-bg-muted);
+    background: var(--nb-card-muted-bg);
 }
 
 .nb-card--flat {
@@ -115,7 +193,7 @@ a:hover {
     border-radius: var(--nb-radius);
     padding: .85rem 1rem;
     font-weight: 600;
-    box-shadow: 4px 4px 0 0 var(--nb-fg);
+    box-shadow: var(--nb-shadow-sm);
 }
 
 /* Buttons */
@@ -130,7 +208,7 @@ a:hover {
     cursor: pointer;
     font-size: .95rem;
     letter-spacing: .5px;
-    box-shadow: 4px 4px 0 0 var(--nb-fg);
+    box-shadow: var(--nb-shadow-sm);
     transition: var(--nb-transition);
     display: inline-flex;
     align-items: center;
@@ -139,20 +217,20 @@ a:hover {
 }
 
 .nb-btn:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 var(--nb-fg);
+    transform: translate(calc(var(--shadow-offset) * -0.33), calc(var(--shadow-offset) * -0.33));
+    box-shadow: var(--nb-shadow);
 }
 
 .nb-btn:active {
     transform: translate(0, 0);
-    box-shadow: 2px 2px 0 0 var(--nb-fg);
+    box-shadow: var(--nb-shadow-xs);
 }
 
 .nb-btn:disabled {
     opacity: .55;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 4px 4px 0 0 var(--nb-fg);
+    box-shadow: var(--nb-shadow-sm);
 }
 
 .nb-btn--danger {
@@ -160,7 +238,7 @@ a:hover {
 }
 
 .nb-btn--ghost {
-    background: #fff;
+    background: var(--nb-btn-ghost-bg);
     color: var(--nb-fg);
 }
 
@@ -181,13 +259,13 @@ a:hover {
     font-size: .95rem;
     border: var(--nb-border) solid var(--nb-fg);
     border-radius: var(--nb-radius);
-    background: #fff;
-    box-shadow: 3px 3px 0 0 var(--nb-fg);
+    background: var(--nb-input-bg);
+    box-shadow: var(--nb-shadow-sm);
 }
 
 .nb-input:focus {
     outline: none;
-    background: #fffbe6;
+    background: var(--nb-input-focus-bg);
 }
 
 /* Alerts */
@@ -196,16 +274,16 @@ a:hover {
     font-weight: 600;
     border: var(--nb-border) solid var(--nb-fg);
     border-radius: var(--nb-radius);
-    box-shadow: 3px 3px 0 0 var(--nb-fg);
+    box-shadow: var(--nb-shadow-sm);
 }
 
 .nb-alert--danger {
-    background: #ffe4e4;
+    background: var(--nb-alert-danger-bg);
     color: var(--nb-danger);
 }
 
 .nb-alert--success {
-    background: #e2ffe9;
+    background: var(--nb-alert-success-bg);
     color: var(--nb-success);
 }
 
@@ -284,27 +362,189 @@ a:hover {
     animation: nbPop .35s ease;
 }
 
-/* Dark overrides for some contrasts */
+/* Header */
+.nb-header {
+    background: var(--nb-card-bg);
+    border-bottom: var(--nb-border) solid var(--nb-fg);
+    box-shadow: 0 var(--shadow-offset) 0 0 var(--nb-shadow-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nb-header-content {
+    width: min(100% - 2rem, 1200px);
+    margin-inline: auto;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Theme Selector */
+.nb-theme-selector {
+    display: flex;
+    gap: 0;
+    background: var(--nb-bg);
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    overflow: hidden;
+    box-shadow: var(--nb-shadow-xs);
+    transition: var(--nb-transition);
+}
+
+.nb-theme-selector:hover {
+    transform: translate(calc(var(--shadow-offset) * -0.33), calc(var(--shadow-offset) * -0.33));
+    box-shadow: var(--nb-shadow-sm);
+}
+
+.nb-theme-btn {
+    appearance: none;
+    background: transparent;
+    border: none;
+    border-right: var(--nb-border) solid var(--nb-fg);
+    padding: .7rem .9rem;
+    cursor: pointer;
+    transition: var(--nb-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nb-fg);
+}
+
+.nb-theme-btn:last-child {
+    border-right: none;
+}
+
+.nb-theme-btn:hover {
+    background: var(--nb-bg-muted);
+}
+
+.nb-theme-btn:active {
+    transform: scale(0.95);
+}
+
+.nb-theme-btn--active {
+    background: var(--nb-accent-alt);
+    color: #fff;
+    font-weight: 700;
+}
+
+.nb-theme-btn--active:hover {
+    background: var(--nb-accent-alt);
+    color: #fff;
+}
+
+/* Logout Button */
+.nb-logout-btn {
+    appearance: none;
+    background: var(--nb-danger);
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    padding: .7rem .9rem;
+    cursor: pointer;
+    transition: var(--nb-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: var(--nb-shadow-xs);
+}
+
+.nb-logout-btn:hover {
+    transform: translate(calc(var(--shadow-offset) * -0.33), calc(var(--shadow-offset) * -0.33));
+    box-shadow: var(--nb-shadow-sm);
+}
+
+.nb-logout-btn:active {
+    transform: scale(0.95);
+}
+
+/* Account Card */
+.nb-account-card-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nb-account-avatar {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+}
+
+.nb-account-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--nb-radius);
+    border: var(--nb-border) solid var(--nb-fg);
+    object-fit: cover;
+    box-shadow: var(--nb-shadow-sm);
+}
+
+.nb-account-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--nb-accent-alt);
+    border-radius: var(--nb-radius);
+    border: var(--nb-border) solid var(--nb-fg);
+    box-shadow: var(--nb-shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0;
+}
+
+.nb-account-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.nb-account-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    display: flex;
+    gap: .5rem;
+    color: var(--nb-fg);
+}
+
+.nb-account-first-name,
+.nb-account-last-name,
+.nb-account-username {
+    color: var(--nb-fg);
+}
+
+.nb-account-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--nb-fg);
+    opacity: .8;
+}
+
+.nb-account-username-small {
+    font-size: .9rem;
+    font-weight: 500;
+    color: var(--nb-fg);
+    opacity: .6;
+}
+
+/* Dark mode colors are now handled via CSS variables at the top */
 @media (prefers-color-scheme: dark) {
-    .nb-card {
-        background: #1f1f1f;
-    }
 
-    .nb-card--muted {
-        background: #262626;
-    }
-
-    .nb-input,
-    .nb-file {
-        background: #181818;
+    :root:not([data-theme]) .nb-input,
+    :root:not([data-theme]) .nb-file {
         color: var(--nb-fg);
     }
+}
 
-    .nb-input:focus {
-        background: #222;
-    }
-
-    .nb-btn--ghost {
-        background: #181818;
-    }
+:root[data-theme="dark"] .nb-input,
+:root[data-theme="dark"] .nb-file {
+    color: var(--nb-fg);
 }

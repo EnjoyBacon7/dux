@@ -5,6 +5,7 @@ from slowapi.util import get_remote_address
 
 from server.database import get_db_session
 from server.config import settings
+from server.models import User
 from server.methods.passkey_auth import (
     get_passkey_register_options,
     verify_passkey_registration,
@@ -41,7 +42,12 @@ async def password_register(data: PasswordRegisterRequest, request: Request, db:
     Returns:
         dict: Registration result
     """
-    return await register_user_with_password(data, db)
+    try:
+        return await register_user_with_password(data, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 
 @router.post("/login", summary="Login with password")
@@ -56,7 +62,12 @@ async def password_login(data: PasswordLoginRequest, request: Request, db: Sessi
     Returns:
         dict: Authentication result with user info
     """
-    return await login_user_with_password(data, request, db)
+    try:
+        return await login_user_with_password(data, request, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 
 # Passkey Authentication
@@ -73,7 +84,12 @@ async def passkey_register_options(data: PasskeyRegisterOptionsRequest, request:
     Returns:
         dict: WebAuthn registration options
     """
-    return await get_passkey_register_options(data, db)
+    try:
+        return await get_passkey_register_options(data, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate registration options: {str(e)}")
 
 
 @router.post("/passkey/register-verify", summary="Verify passkey registration")
@@ -89,7 +105,12 @@ async def passkey_register_verify(data: PasskeyRegisterVerifyRequest, request: R
     Returns:
         dict: Registration result
     """
-    return await verify_passkey_registration(data, db)
+    try:
+        return await verify_passkey_registration(data, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Passkey registration verification failed: {str(e)}")
 
 
 @router.post("/passkey/login-options", summary="Get passkey login options")
@@ -105,7 +126,12 @@ async def passkey_login_options(
     Returns:
         dict: WebAuthn authentication options
     """
-    return await get_passkey_login_options(data, db)
+    try:
+        return await get_passkey_login_options(data, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate login options: {str(e)}")
 
 
 @router.post("/passkey/login-verify", summary="Verify passkey login")
@@ -121,25 +147,44 @@ async def passkey_login_verify(
     Returns:
         dict: Authentication result
     """
-    return await verify_passkey_login(data, request, db)
+    try:
+        return await verify_passkey_login(data, request, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Passkey login verification failed: {str(e)}")
 
 
 # Session Management
 @router.get("/me", summary="Get current user")
-async def get_current_user(request: Request):
+async def get_current_user(request: Request, db: Session = Depends(get_db_session)):
     """
     Get the currently logged-in user's information.
 
     Returns:
         dict: User info if logged in, otherwise 401
     """
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        if "username" not in request.session:
+            raise HTTPException(status_code=401, detail="Not authenticated")
 
-    return {
-        "username": request.session["username"],
-        "user_id": request.session.get("user_id")
-    }
+        # Fetch full user data from database
+        user = db.query(User).filter(User.username == request.session["username"]).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {
+            "username": user.username,
+            "user_id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "title": user.title,
+            "profile_picture": user.profile_picture
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch user data: {str(e)}")
 
 
 @router.post("/logout", summary="Logout")
@@ -150,5 +195,8 @@ async def logout(request: Request):
     Returns:
         dict: Logout success message
     """
-    request.session.clear()
-    return {"success": True, "message": "Logged out successfully"}
+    try:
+        request.session.clear()
+        return {"success": True, "message": "Logged out successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")

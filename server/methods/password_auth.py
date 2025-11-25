@@ -25,8 +25,9 @@ async def register_user_with_password(request: PasswordRegisterRequest, db: Sess
     Register a new user with username and password
     """
     try:
-        username = request.username
-        password = request.password
+        # Sanitize inputs
+        username = request.username.strip() if request.username else ""
+        password = request.password if request.password else ""
 
         # Validate username
         is_valid, error_msg = validate_username(username)
@@ -80,8 +81,14 @@ async def login_user_with_password(request: PasswordLoginRequest, req: Request, 
     Authenticate user with username and password
     """
     try:
-        username = request.username
-        password = request.password
+        # Sanitize inputs
+        username = request.username.strip() if request.username else ""
+        password = request.password if request.password else ""
+
+        # Validate username format
+        is_valid, error_msg = validate_username(username)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
 
         # Get user from database
         user = db.query(User).filter(User.username == username).first()

@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/useAuth";
+import Header from "./components/Header";
+import AccountCard from "./components/AccountCard";
 
 const Home: React.FC = () => {
     const navigate = useNavigate();
-    const { user, loading, signOut } = useAuth();
+    const { user, loading } = useAuth();
 
     useEffect(() => {
         if (!loading && !user) {
@@ -25,20 +27,22 @@ const Home: React.FC = () => {
     }
 
     return (
-        <div className="nb-page nb-stack">
-            <div className="nb-card">
-                <div className="nb-spread nb-gap-sm" style={{ marginBottom: '1rem' }}>
-                    <h1 style={{ margin: 0 }}>Welcome to Dux</h1>
-                    <button onClick={signOut} className="nb-btn nb-btn--danger">Logout</button>
+        <>
+            <Header />
+            <div className="nb-page nb-stack">
+                <AccountCard 
+                    username={user.username}
+                    firstName={user.first_name}
+                    lastName={user.last_name}
+                    title={user.title}
+                    profilePicture={user.profile_picture}
+                />
+                <div className="nb-card">
+                    <h1 style={{ margin: '0 0 1rem 0' }}>Welcome to Dux</h1>
+                    <p className="nb-text-dim">You are now authenticated and can access protected features.</p>
                 </div>
-                <div className="nb-card nb-card--muted" style={{ padding: '1rem', marginBottom: '1rem' }}>
-                    <p style={{ margin: 0, fontSize: '1.1rem' }}>
-                        Logged in as: <strong>{user.username}</strong>
-                    </p>
-                </div>
-                <p className="nb-text-dim">You are now authenticated and can access protected features.</p>
             </div>
-        </div>
+        </>
     );
 };
 

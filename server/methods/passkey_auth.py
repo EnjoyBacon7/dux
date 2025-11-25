@@ -65,7 +65,8 @@ async def get_passkey_register_options(request: PasskeyRegisterOptionsRequest, d
     Generate WebAuthn registration options for a new passkey using py_webauthn
     """
     try:
-        username = request.username
+        # Sanitize input
+        username = request.username.strip() if request.username else ""
 
         # Validate username
         is_valid, error_msg = validate_username(username)
@@ -127,6 +128,8 @@ async def get_passkey_register_options(request: PasskeyRegisterOptionsRequest, d
         # Convert to JSON-serializable format
         return options_to_json(options)
 
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to generate registration options: {str(e)}")
@@ -137,8 +140,14 @@ async def verify_passkey_registration(request: PasskeyRegisterVerifyRequest, db:
     Verify and store a new passkey credential using py_webauthn
     """
     try:
-        username = request.username
+        # Sanitize input
+        username = request.username.strip() if request.username else ""
         credential = request.credential
+
+        # Validate username
+        is_valid, error_msg = validate_username(username)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
 
         # Check if user exists
         user = db.query(User).filter(User.username == username).first()
@@ -218,6 +227,8 @@ async def verify_passkey_registration(request: PasskeyRegisterVerifyRequest, db:
     except HTTPException:
         # Bubble up handled API errors
         raise
+    except HTTPException:
+        raise
     except IntegrityError:
         # Unique constraint violations (e.g., credential already exists)
         db.rollback()
@@ -234,7 +245,13 @@ async def get_passkey_login_options(request: PasskeyLoginOptionsRequest, db: Ses
     Generate WebAuthn authentication options for passkey login using py_webauthn
     """
     try:
-        username = request.username
+        # Sanitize input
+        username = request.username.strip() if request.username else ""
+
+        # Validate username
+        is_valid, error_msg = validate_username(username)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
 
         # Clean up expired challenges
         cleanup_expired_challenges(db)
@@ -290,8 +307,14 @@ async def verify_passkey_login(request: PasskeyLoginVerifyRequest, req: Request,
     Verify a passkey authentication attempt using py_webauthn
     """
     try:
-        username = request.username
+        # Sanitize input
+        username = request.username.strip() if request.username else ""
         credential = request.credential
+
+        # Validate username
+        is_valid, error_msg = validate_username(username)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
 
         # Verify user exists
         user = db.query(User).filter(User.username == username).first()

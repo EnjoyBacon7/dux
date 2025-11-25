@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./contexts/useAuth";
+import Header from "./components/Header";
 
 const AuthPage: React.FC = () => {
     const [username, setUsername] = useState("");
@@ -47,78 +48,81 @@ const AuthPage: React.FC = () => {
     };
 
     return (
-        <div className="nb-page nb-card">
-            <h1 className="nb-center" style={{ marginTop: 0 }}>Authentication</h1>
+        <>
+            <Header />
+            <div className="nb-page nb-card">
+                <h1 className="nb-center" style={{ marginTop: 0 }}>Authentication</h1>
 
-            <div className="nb-tabs" style={{ marginBottom: '1rem' }}>
-                <button
-                    onClick={() => setMode("password")}
-                    className={`nb-btn nb-tab ${mode === 'password' ? 'nb-btn--accent' : 'nb-btn--ghost'}`}
-                    type="button"
-                >Password</button>
-                <button
-                    onClick={() => setMode("passkey")}
-                    className={`nb-btn nb-tab ${mode === 'passkey' ? 'nb-btn--accent' : 'nb-btn--ghost'}`}
-                    type="button"
-                >Passkey</button>
-            </div>
-
-            {mode === "password" ? (
-                <form className="nb-form" onSubmit={handlePasswordSubmit}>
-                    <input
-                        className="nb-input"
-                        type="text"
-                        placeholder="Username"
-                        value={username}
-                        onChange={e => setUsername(e.target.value.trim())}
-                        required
-                    />
-                    <input
-                        className="nb-input"
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        required
-                    />
+                <div className="nb-tabs" style={{ marginBottom: '1rem' }}>
                     <button
-                        type="submit"
-                        disabled={loading}
-                        className={`nb-btn ${loading ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
-                    >{loading ? (isRegistering ? "Registering..." : "Logging in...") : (isRegistering ? "Register" : "Login")}</button>
-                    <button
+                        onClick={() => setMode("password")}
+                        className={`nb-btn nb-tab ${mode === 'password' ? 'nb-btn--accent' : 'nb-btn--ghost'}`}
                         type="button"
-                        onClick={() => { setIsRegistering(!isRegistering); clearError(); }}
-                        className="nb-btn nb-btn--ghost"
-                    >{isRegistering ? "Already have an account? Login" : "Need an account? Register"}</button>
-                </form>
-            ) : (
-                <div className="nb-form">
-                    <input
-                        className="nb-input"
-                        type="text"
-                        placeholder="Username"
-                        value={username}
-                        onChange={e => setUsername(e.target.value.trim())}
-                        required
-                    />
+                    >Password</button>
                     <button
-                        onClick={handlePasskeyLogin}
-                        disabled={loading || !username}
-                        className={`nb-btn ${loading || !username ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
+                        onClick={() => setMode("passkey")}
+                        className={`nb-btn nb-tab ${mode === 'passkey' ? 'nb-btn--accent' : 'nb-btn--ghost'}`}
                         type="button"
-                    >{loading ? "Authenticating..." : "Login with Passkey"}</button>
-                    <button
-                        onClick={handlePasskeyRegister}
-                        disabled={loading || !username}
-                        className={`nb-btn ${loading || !username ? 'nb-btn--ghost' : 'nb-btn--success'}`}
-                        type="button"
-                    >{loading ? "Registering..." : "Register New Passkey"}</button>
+                    >Passkey</button>
                 </div>
-            )}
 
-            {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
-        </div>
+                {mode === "password" ? (
+                    <form className="nb-form" onSubmit={handlePasswordSubmit}>
+                        <input
+                            className="nb-input"
+                            type="text"
+                            placeholder="Username"
+                            value={username}
+                            onChange={e => setUsername(e.target.value.trim())}
+                            required
+                        />
+                        <input
+                            className="nb-input"
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`nb-btn ${loading ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
+                        >{loading ? (isRegistering ? "Registering..." : "Logging in...") : (isRegistering ? "Register" : "Login")}</button>
+                        <button
+                            type="button"
+                            onClick={() => { setIsRegistering(!isRegistering); clearError(); }}
+                            className="nb-btn nb-btn--ghost"
+                        >{isRegistering ? "Already have an account? Login" : "Need an account? Register"}</button>
+                    </form>
+                ) : (
+                    <div className="nb-form">
+                        <input
+                            className="nb-input"
+                            type="text"
+                            placeholder="Username"
+                            value={username}
+                            onChange={e => setUsername(e.target.value.trim())}
+                            required
+                        />
+                        <button
+                            onClick={handlePasskeyLogin}
+                            disabled={loading || !username}
+                            className={`nb-btn ${loading || !username ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
+                            type="button"
+                        >{loading ? "Authenticating..." : "Login with Passkey"}</button>
+                        <button
+                            onClick={handlePasskeyRegister}
+                            disabled={loading || !username}
+                            className={`nb-btn ${loading || !username ? 'nb-btn--ghost' : 'nb-btn--success'}`}
+                            type="button"
+                        >{loading ? "Registering..." : "Register New Passkey"}</button>
+                    </div>
+                )}
+
+                {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
+            </div>
+        </>
     );
 };
 

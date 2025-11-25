@@ -15,6 +15,12 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     is_active = Column(Boolean, default=True)
 
+    # Profile information
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    title = Column(String, nullable=True)
+    profile_picture = Column(String, nullable=True)  # URL or path to profile picture
+
     # Account security
     failed_login_attempts = Column(Integer, default=0)
     locked_until = Column(DateTime(timezone=True), nullable=True)

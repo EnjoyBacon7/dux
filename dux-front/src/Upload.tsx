@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import Header from "./components/Header";
 
 const Upload: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -38,22 +39,25 @@ const Upload: React.FC = () => {
     };
 
     return (
-        <div className="nb-page nb-card">
-            <h1 className="nb-center" style={{ marginTop: 0 }}>Dux File Upload</h1>
-            <form className="nb-form" onSubmit={handleSubmit}>
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="nb-file"
-                    disabled={uploading}
-                />
-                <button type="submit" className={`nb-btn ${uploading ? 'nb-btn--ghost' : 'nb-btn--accent'}`} disabled={uploading}>
-                    {uploading ? "Uploading..." : "Upload"}
-                </button>
-            </form>
-            {success && <div className="nb-alert nb-alert--success nb-mt">{success}</div>}
-            {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
-        </div>
+        <>
+            <Header />
+            <div className="nb-page nb-card">
+                <h1 className="nb-center" style={{ marginTop: 0 }}>Dux File Upload</h1>
+                <form className="nb-form" onSubmit={handleSubmit}>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="nb-file"
+                        disabled={uploading}
+                    />
+                    <button type="submit" className={`nb-btn ${uploading ? 'nb-btn--ghost' : 'nb-btn--accent'}`} disabled={uploading}>
+                        {uploading ? "Uploading..." : "Upload"}
+                    </button>
+                </form>
+                {success && <div className="nb-alert nb-alert--success nb-mt">{success}</div>}
+                {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
+            </div>
+        </>
     );
 };
 

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     upload_dir: str = "./uploads"
+    debug: bool = False  # Set to True to show detailed error messages
 
     # Session Configuration
     session_secret: str
