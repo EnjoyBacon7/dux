@@ -29,9 +29,19 @@ limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
+# Helper function to conditionally apply rate limiting
+def apply_rate_limit(limit: str):
+    """Apply rate limiting decorator only if rate limiting is enabled"""
+    def decorator(func):
+        if settings.rate_limit_enabled:
+            return limiter.limit(limit)(func)
+        return func
+    return decorator
+
+
 # Password Authentication
 @router.post("/register", summary="Register with password")
-@limiter.limit("5/minute")
+@apply_rate_limit("5/minute")
 async def password_register(data: PasswordRegisterRequest, request: Request, db: Session = Depends(get_db_session)):
     """
     Register a new user with username and password.
@@ -40,7 +50,7 @@ async def password_register(data: PasswordRegisterRequest, request: Request, db:
 
 
 @router.post("/login", summary="Login with password")
-@limiter.limit("10/minute")
+@apply_rate_limit("10/minute")
 async def password_login(data: PasswordLoginRequest, request: Request, db: Session = Depends(get_db_session)):
     """
     Authenticate user with username and password.
@@ -50,7 +60,7 @@ async def password_login(data: PasswordLoginRequest, request: Request, db: Sessi
 
 # Passkey Authentication
 @router.post("/passkey/register-options", summary="Get passkey registration options")
-@limiter.limit("5/minute")
+@apply_rate_limit("5/minute")
 async def passkey_register_options(data: PasskeyRegisterOptionsRequest, request: Request,
                                    db: Session = Depends(get_db_session)):
     """
@@ -60,7 +70,7 @@ async def passkey_register_options(data: PasskeyRegisterOptionsRequest, request:
 
 
 @router.post("/passkey/register-verify", summary="Verify passkey registration")
-@limiter.limit("5/minute")
+@apply_rate_limit("5/minute")
 async def passkey_register_verify(data: PasskeyRegisterVerifyRequest, request: Request,
                                   db: Session = Depends(get_db_session)):
     """
@@ -70,7 +80,7 @@ async def passkey_register_verify(data: PasskeyRegisterVerifyRequest, request: R
 
 
 @router.post("/passkey/login-options", summary="Get passkey login options")
-@limiter.limit("10/minute")
+@apply_rate_limit("10/minute")
 async def passkey_login_options(
         data: PasskeyLoginOptionsRequest, request: Request, db: Session = Depends(get_db_session)):
     """
@@ -80,7 +90,7 @@ async def passkey_login_options(
 
 
 @router.post("/passkey/login-verify", summary="Verify passkey login")
-@limiter.limit("10/minute")
+@apply_rate_limit("10/minute")
 async def passkey_login_verify(
         data: PasskeyLoginVerifyRequest, request: Request, db: Session = Depends(get_db_session)):
     """
