@@ -20,6 +20,7 @@ class User(Base):
     last_name = Column(String, nullable=True)
     title = Column(String, nullable=True)
     profile_picture = Column(String, nullable=True)  # URL or path to profile picture
+    linkedin_id = Column(String, nullable=True, unique=True)  # LinkedIn user ID for OAuth tracking
 
     # Account security
     failed_login_attempts = Column(Integer, default=0)

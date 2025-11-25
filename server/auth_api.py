@@ -142,3 +142,114 @@ async def logout(request: Request):
     """Log out the current user by clearing the session."""
     request.session.clear()
     return {"success": True, "message": "Logged out successfully"}
+
+
+# LinkedIn OAuth Endpoints
+
+@router.get("/linkedin/authorize", summary="Initiate LinkedIn OAuth")
+@apply_rate_limit("10/minute")
+async def linkedin_authorize(request: Request):
+    """
+    Generate LinkedIn OAuth authorization URL for login/signup.
+    No authentication required - this is used to authenticate with LinkedIn.
+    """
+    from server.methods.linkedin_oauth import generate_authorization_url
+
+    # Generate authorization URL (no user_id needed)
+    authorization_url = generate_authorization_url()
+
+    return {"authorization_url": authorization_url}
+
+
+@router.post("/linkedin/callback", summary="LinkedIn OAuth callback")
+@apply_rate_limit("10/minute")
+async def linkedin_callback(request: Request, db: Session = Depends(get_db_session)):
+    """
+    Handle LinkedIn OAuth callback for login/signup.
+    Creates new user or logs in existing user based on LinkedIn profile.
+    """
+    from server.methods.linkedin_oauth import (
+        exchange_code_for_token,
+        get_linkedin_profile,
+        validate_state
+    )
+
+    # Get code and state from request body
+    body = await request.json()
+    code = body.get("code")
+    state = body.get("state")
+
+    if not code:
+        raise HTTPException(status_code=400, detail="Authorization code is required")
+    
+    if not state:
+        raise HTTPException(status_code=400, detail="State parameter is required")
+    
+    # Validate state for CSRF protection
+    if not validate_state(state):
+        raise HTTPException(status_code=400, detail="Invalid state parameter")
+
+    try:
+        # Exchange code for access token
+        access_token = await exchange_code_for_token(code)
+
+        # Get LinkedIn profile data
+        profile_data = await get_linkedin_profile(access_token)
+        
+        linkedin_id = profile_data.get('linkedin_id')
+        if not linkedin_id:
+            raise HTTPException(status_code=400, detail="LinkedIn profile ID not found")
+
+        # Check if user exists with this LinkedIn ID
+        user = db.query(User).filter(User.linkedin_id == linkedin_id).first()
+
+        if user:
+            # Existing user - log them in
+            request.session["username"] = user.username
+            message = "Logged in successfully"
+        else:
+            # New user - create account
+            # Generate username from LinkedIn profile
+            base_username = profile_data.get('first_name', '').lower() + profile_data.get('last_name', '').lower()
+            base_username = ''.join(c for c in base_username if c.isalnum())
+            
+            # Ensure username is unique
+            username = base_username
+            counter = 1
+            while db.query(User).filter(User.username == username).first():
+                username = f"{base_username}{counter}"
+                counter += 1
+
+            # Create new user
+            user = User(
+                username=username,
+                linkedin_id=linkedin_id,
+                first_name=profile_data.get('first_name'),
+                last_name=profile_data.get('last_name'),
+                profile_picture=profile_data.get('profile_picture'),
+                password_hash=None  # No password for LinkedIn-only users
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+            # Log the new user in
+            request.session["username"] = user.username
+            message = "Account created and logged in successfully"
+
+        return {
+            "success": True,
+            "message": message,
+            "user": {
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "profile_picture": user.profile_picture
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to authenticate with LinkedIn: {str(e)}")
