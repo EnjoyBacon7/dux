@@ -70,6 +70,7 @@ jobs:
           RP_NAME: Dux Test
           ORIGIN: http://localhost:8080
           UPLOAD_DIR: ./uploads
+          RATE_LIMIT_ENABLED: false
         run: |
           mkdir -p uploads
           uvicorn server.app:app --host 0.0.0.0 --port 8080 &
@@ -90,13 +91,7 @@ jobs:
           curl -v http://localhost:8080/api/healthcheck || exit 1
 
           # Give database migrations time to complete
-          sleep 5
-
-          # Warmup requests to ensure all endpoints are ready
-          echo "Warming up server endpoints..."
-          curl -s http://localhost:8080/api/healthcheck || true
-          curl -s -X POST http://localhost:8080/auth/register -H "Content-Type: application/json" -d '{"username":"warmup","password":"Warmup123!"}' || true
-          sleep 2
+          sleep 3
 
       - name: Install Playwright Browsers
         working-directory: ./dux-front

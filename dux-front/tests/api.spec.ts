@@ -7,7 +7,7 @@ test.describe('API Integration', () => {
         });
         expect(response.ok()).toBeTruthy();
         const text = await response.text();
-        expect(text).toBe('OK');
+        expect(text).toBe('"OK"'); // FastAPI returns JSON string
     });
 
     test('should return 401 for /auth/me when not authenticated', async ({ request }) => {
