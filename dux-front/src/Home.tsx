@@ -1,32 +1,12 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import { useAuth } from "./contexts/useAuth";
 import { useLanguage } from "./contexts/useLanguage";
-import Header from "./components/Header";
-import AccountCard from "./components/AccountCard";
+import { Header, AccountCard } from "./components";
 
 const Home: React.FC = () => {
-    const navigate = useNavigate();
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
     const { t } = useLanguage();
-
-    useEffect(() => {
-        if (!loading && !user) {
-            navigate("/login");
-        }
-    }, [user, loading, navigate]);
-
-    if (loading) {
-        return (
-            <div className="nb-page nb-card nb-center nb-card--muted">
-                <p>{t('home.loading')}</p>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return null;
-    }
+    if (!user) return null; // Guard: page is wrapped by RequireAuth
 
     return (
         <>
