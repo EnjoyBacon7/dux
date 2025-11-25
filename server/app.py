@@ -23,6 +23,8 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 app = FastAPI()
 
 # Global exception handler for unhandled exceptions
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """
@@ -38,6 +40,8 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 # Exception handler for HTTPException
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """
@@ -78,9 +82,9 @@ app.add_middleware(
 async def startup_event():
     init_db()
 
-# Mount API routes with /api prefix
+# Mount API routes
 app.include_router(api_router, prefix="/api")
-app.include_router(auth_router, prefix="/api")
+app.include_router(auth_router)
 
 # Get the parent directory (project root)
 BASE_DIR = Path(__file__).resolve().parent.parent

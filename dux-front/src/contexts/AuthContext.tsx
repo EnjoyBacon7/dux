@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const checkAuth = useCallback(async () => {
         try {
-            const res = await fetch("/api/auth/me");
+            const res = await fetch("/auth/me");
             if (res.ok) {
                 const data = await res.json();
                 setUser(data);
@@ -163,7 +163,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             username = sanitizeUsername(username);
 
-            const res = await fetch("/api/auth/login", {
+            const res = await fetch("/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
@@ -188,7 +188,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             username = sanitizeUsername(username);
 
-            const res = await fetch("/api/auth/register", {
+            const res = await fetch("/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
@@ -213,7 +213,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             username = sanitizeUsername(username);
 
             // Get authentication options from server
-            const optionsRes = await fetch("/api/auth/passkey/login-options", {
+            const optionsRes = await fetch("/auth/passkey/login-options", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),
@@ -247,7 +247,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             };
 
             // Verify credential with server
-            const verifyRes = await fetch("/api/auth/passkey/login-verify", {
+            const verifyRes = await fetch("/auth/passkey/login-verify", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ credential: credentialData, username }),
@@ -279,7 +279,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             // Get registration options from server
-            const optionsRes = await fetch("/api/auth/passkey/register-options", {
+            const optionsRes = await fetch("/auth/passkey/register-options", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),
@@ -311,7 +311,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             };
 
             // Register credential with server
-            const registerRes = await fetch("/api/auth/passkey/register-verify", {
+            const registerRes = await fetch("/auth/passkey/register-verify", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ credential: credentialData, username }),
@@ -334,7 +334,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const signOut = useCallback(async () => {
         setError(null);
         try {
-            await fetch("/api/auth/logout", { method: "POST" });
+            await fetch("/auth/logout", { method: "POST" });
             setUser(null);
             navigate("/login");
         } catch (err) {
