@@ -71,7 +71,8 @@ async def passkey_register_verify(data: PasskeyRegisterVerifyRequest, request: R
 
 @router.post("/passkey/login-options", summary="Get passkey login options")
 @limiter.limit("10/minute")
-async def passkey_login_options(data: PasskeyLoginOptionsRequest, request: Request, db: Session = Depends(get_db_session)):
+async def passkey_login_options(
+        data: PasskeyLoginOptionsRequest, request: Request, db: Session = Depends(get_db_session)):
     """
     Get WebAuthn authentication options for passkey login.
     """
@@ -80,7 +81,8 @@ async def passkey_login_options(data: PasskeyLoginOptionsRequest, request: Reque
 
 @router.post("/passkey/login-verify", summary="Verify passkey login")
 @limiter.limit("10/minute")
-async def passkey_login_verify(data: PasskeyLoginVerifyRequest, request: Request, db: Session = Depends(get_db_session)):
+async def passkey_login_verify(
+        data: PasskeyLoginVerifyRequest, request: Request, db: Session = Depends(get_db_session)):
     """
     Verify a passkey authentication attempt.
     """

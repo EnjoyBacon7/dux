@@ -171,7 +171,9 @@ async def verify_passkey_registration(request: PasskeyRegisterVerifyRequest, db:
         db.flush()
 
     # Normalize credential_id as hex string
-    credential_id_hex = verification.credential_id.hex() if isinstance(verification.credential_id, (bytes, bytearray)) else str(verification.credential_id)
+    credential_id_hex = verification.credential_id.hex() if isinstance(
+        verification.credential_id, (bytes, bytearray)) else str(
+        verification.credential_id)
 
     # Prevent duplicate registration
     if db.query(PasskeyCredential).filter(PasskeyCredential.credential_id == credential_id_hex).first():
@@ -179,7 +181,9 @@ async def verify_passkey_registration(request: PasskeyRegisterVerifyRequest, db:
 
     # Store credential
     aaguid_value = verification.aaguid if hasattr(verification, 'aaguid') else None
-    aaguid_str = aaguid_value.hex() if isinstance(aaguid_value, (bytes, bytearray)) else (str(aaguid_value) if aaguid_value else None)
+    aaguid_str = aaguid_value.hex() if isinstance(
+        aaguid_value, (bytes, bytearray)) else (
+        str(aaguid_value) if aaguid_value else None)
 
     passkey_cred = PasskeyCredential(
         user_id=user.id,
@@ -291,12 +295,12 @@ async def verify_passkey_login(request: PasskeyLoginVerifyRequest, req: Request,
     pad = len(b64) % 4
     if pad:
         b64 += '=' * (4 - pad)
-    
+
     try:
         cred_id_bytes = _b64.b64decode(b64)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid credential id encoding")
-    
+
     credential_id_hex = cred_id_bytes.hex()
 
     passkey_cred = db.query(PasskeyCredential).filter(

@@ -23,6 +23,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
 app = FastAPI()
 
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Catch all unhandled exceptions and return proper JSON response"""
@@ -34,6 +35,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             "message": str(exc) if settings.debug else "Internal server error"
         }
     )
+
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
@@ -66,6 +68,7 @@ app.add_middleware(
     https_only=settings.session_cookie_secure,
 )
 
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize database on startup"""
@@ -80,6 +83,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Mount frontend static files
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
