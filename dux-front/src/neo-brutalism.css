@@ -1,6 +1,4 @@
 :root {
-    /* ===== CUSTOMIZABLE VARIABLES ===== */
-    --theme: light;
 
     /* ===== THEME COLORS ===== */
     --nb-bg: #fffef8;
@@ -36,24 +34,6 @@
     --nb-card-muted-bg: var(--nb-bg-muted);
 }
 
-/* ===== LIGHT MODE (DEFAULT) ===== */
-@media (prefers-color-scheme: light) {
-    :root {
-        --theme: light;
-        --nb-bg: #fffef8;
-        --nb-bg-alt: #ffeec2;
-        --nb-bg-muted: #f4f4f4;
-        --nb-fg: #111;
-        --nb-shadow-color: #111;
-        --nb-input-bg: #fff;
-        --nb-input-focus-bg: #fffbe6;
-        --nb-btn-ghost-bg: #fff;
-        --nb-alert-danger-bg: #ffe4e4;
-        --nb-alert-success-bg: #e2ffe9;
-        --nb-card-bg: var(--nb-bg-alt);
-        --nb-card-muted-bg: var(--nb-bg-muted);
-    }
-}
 
 /* ===== DARK MODE ===== */
 @media (prefers-color-scheme: dark) {
@@ -91,21 +71,6 @@
     --nb-card-muted-bg: #262626;
 }
 
-:root[data-theme="light"] {
-    --theme: light;
-    --nb-bg: #fffef8;
-    --nb-bg-alt: #ffeec2;
-    --nb-bg-muted: #f4f4f4;
-    --nb-fg: #111;
-    --nb-shadow-color: #111;
-    --nb-input-bg: #fff;
-    --nb-input-focus-bg: #fffbe6;
-    --nb-btn-ghost-bg: #fff;
-    --nb-alert-danger-bg: #ffe4e4;
-    --nb-alert-success-bg: #e2ffe9;
-    --nb-card-bg: var(--nb-bg-alt);
-    --nb-card-muted-bg: var(--nb-bg-muted);
-}
 
 * {
     box-sizing: border-box;
@@ -425,18 +390,13 @@ a:hover {
     transform: scale(0.95);
 }
 
-.nb-theme-btn--active {
+.nb-theme-btn--active,
+.nb-theme-btn--active:hover {
     background: var(--nb-accent-alt);
     color: #fff;
     font-weight: 700;
 }
 
-.nb-theme-btn--active:hover {
-    background: var(--nb-accent-alt);
-    color: #fff;
-}
-
-/* Logout Button */
 .nb-logout-btn {
     appearance: none;
     background: var(--nb-danger);
@@ -515,12 +475,6 @@ a:hover {
     color: var(--nb-fg);
 }
 
-.nb-account-first-name,
-.nb-account-last-name,
-.nb-account-username {
-    color: var(--nb-fg);
-}
-
 .nb-account-title {
     font-size: 1rem;
     font-weight: 600;
@@ -535,7 +489,6 @@ a:hover {
     opacity: .6;
 }
 
-/* Dark mode colors are now handled via CSS variables at the top */
 @media (prefers-color-scheme: dark) {
 
     :root:not([data-theme]) .nb-input,
