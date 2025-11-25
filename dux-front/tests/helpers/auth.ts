@@ -83,7 +83,7 @@ export async function loginAsTestUser(
     password?: string
 ): Promise<void> {
     const testUsername = username || `testuser_${Date.now()}`;
-    const testPassword = password || 'TestPass123!@#';
+    const testPassword = password || 'StrongT3st!P@ssword';
 
     await page.goto('/login');
     await page.getByPlaceholder(/username/i).fill(testUsername);
@@ -103,8 +103,13 @@ export async function logout(page: Page): Promise<void> {
 }
 
 export function generateTestCredentials(): { username: string; password: string } {
+    // Generate password using timestamp + random to avoid sequential patterns
+    const timestamp = Date.now().toString();
+    const random1 = Math.random().toString(36).substring(2, 6);
+    const random2 = Math.random().toString(36).substring(2, 5);
+    
     return {
         username: `test_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-        password: `Test${Math.random().toString(36).substring(2)}!A1`,
+        password: `Secure${random1.toUpperCase()}${timestamp.substring(timestamp.length - 3)}${random2}!@Pass`,
     };
 }

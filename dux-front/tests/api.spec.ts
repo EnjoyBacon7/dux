@@ -19,7 +19,7 @@ test.describe('API Integration', () => {
         const response = await request.post('/auth/register', {
             data: {
                 username: 'ab', // Too short
-                password: 'TestPass123!',
+                password: 'StrongT3st!P@ss',
             },
             timeout: 30000,
         });

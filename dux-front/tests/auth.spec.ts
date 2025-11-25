@@ -56,7 +56,7 @@ test.describe('Authentication', () => {
     test('should attempt password registration with valid credentials', async ({ page }) => {
         // Generate unique username for this test
         const username = `testuser_${Date.now()}`;
-        const password = 'TestPass123!@#';
+        const password = 'StrongT3st!P@ssword';
 
         // Switch to register mode
         await page.getByRole('button', { name: /need an account/i }).click();

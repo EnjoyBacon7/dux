@@ -39,7 +39,7 @@ test.describe('Complete Auth Flow', () => {
     });
 
     test('should enforce username requirements', async ({ request }) => {
-        const password = 'ValidPass123!@#';
+        const password = 'StrongT3st!P@ssword';
 
         // Test short username
         const shortUsername = await registerUser(request, 'ab', password);
