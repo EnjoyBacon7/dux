@@ -1,17 +1,18 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
-from server.api import router as api_router
-from server.auth_api import router as auth_router
-from server.database import init_db
-from server.config import settings
 from starlette.middleware.sessions import SessionMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import logging
+
+from server.api import router as api_router
+from server.auth_api import router as auth_router
+from server.database import init_db
+from server.config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,14 +23,9 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
 app = FastAPI()
 
-# Global exception handler for unhandled exceptions
-
-
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """
-    Catch all unhandled exceptions and return a proper JSON response
-    """
+    """Catch all unhandled exceptions and return proper JSON response"""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=500,
@@ -39,14 +35,9 @@ async def global_exception_handler(request: Request, exc: Exception):
         }
     )
 
-# Exception handler for HTTPException
-
-
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    """
-    Handle HTTPException properly
-    """
+    """Handle HTTPException properly"""
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail}
@@ -75,26 +66,24 @@ app.add_middleware(
     https_only=settings.session_cookie_secure,
 )
 
-# Initialize database on startup
-
-
 @app.on_event("startup")
 async def startup_event():
+    """Initialize database on startup"""
     init_db()
 
 # Mount API routes
 app.include_router(api_router, prefix="/api")
 app.include_router(auth_router)
 
-# Get the parent directory (project root)
+# Get project root directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Mount the frontend static files
+# Mount frontend static files
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
-
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
+    """Serve React SPA for all routes"""
     index_path = BASE_DIR / "static" / "index.html"
     with open(index_path, "r", encoding="utf-8") as f:
         html_content = f.read()
