@@ -4,42 +4,15 @@ import { Page, APIRequestContext } from '@playwright/test';
  * Helper functions for authentication in tests
  */
 
-/**
- * Retry wrapper with exponential backoff
- */
-async function retryWithBackoff<T>(
-    fn: () => Promise<T>,
-    maxRetries: number = 3,
-    initialDelay: number = 1000
-): Promise<T> {
-    let lastError: Error | undefined;
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-            return await fn();
-        } catch (error) {
-            lastError = error as Error;
-            if (attempt < maxRetries - 1) {
-                const delay = initialDelay * Math.pow(2, attempt);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
-    }
-
-    throw lastError;
-}
-
 export async function registerUser(
     request: APIRequestContext,
     username: string,
     password: string
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        const response = await retryWithBackoff(async () => {
-            return await request.post('/auth/register', {
-                data: { username, password },
-                timeout: 30000,
-            });
+        const response = await request.post('/auth/register', {
+            data: { username, password },
+            timeout: 30000,
         });
 
         if (response.ok()) {
@@ -59,11 +32,9 @@ export async function loginUser(
     password: string
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        const response = await retryWithBackoff(async () => {
-            return await request.post('/auth/login', {
-                data: { username, password },
-                timeout: 30000,
-            });
+        const response = await request.post('/auth/login', {
+            data: { username, password },
+            timeout: 30000,
         });
 
         if (response.ok()) {
