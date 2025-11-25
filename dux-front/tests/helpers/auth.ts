@@ -1,0 +1,79 @@
+import { Page, APIRequestContext } from '@playwright/test';
+
+/**
+ * Helper functions for authentication in tests
+ */
+
+export async function registerUser(
+    request: APIRequestContext,
+    username: string,
+    password: string
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const response = await request.post('/auth/register', {
+            data: { username, password },
+        });
+
+        if (response.ok()) {
+            return { success: true };
+        } else {
+            const data = await response.json();
+            return { success: false, error: data.detail };
+        }
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function loginUser(
+    request: APIRequestContext,
+    username: string,
+    password: string
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const response = await request.post('/auth/login', {
+            data: { username, password },
+        });
+
+        if (response.ok()) {
+            return { success: true };
+        } else {
+            const data = await response.json();
+            return { success: false, error: data.detail };
+        }
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function loginAsTestUser(
+    page: Page,
+    username?: string,
+    password?: string
+): Promise<void> {
+    const testUsername = username || `testuser_${Date.now()}`;
+    const testPassword = password || 'TestPass123!@#';
+
+    await page.goto('/login');
+    await page.getByPlaceholder(/username/i).fill(testUsername);
+    await page.getByPlaceholder(/password/i).fill(testPassword);
+    await page.getByRole('button', { name: /^login$/i }).click();
+
+    // Wait for navigation or error
+    await page.waitForTimeout(1000);
+}
+
+export async function logout(page: Page): Promise<void> {
+    const logoutButton = page.getByTitle(/logout/i);
+    if (await logoutButton.isVisible()) {
+        await logoutButton.click();
+        await page.waitForURL('/login');
+    }
+}
+
+export function generateTestCredentials(): { username: string; password: string } {
+    return {
+        username: `test_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        password: `Test${Math.random().toString(36).substring(2)}!A1`,
+    };
+}
