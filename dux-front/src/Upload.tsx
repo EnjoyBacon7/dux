@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { useLanguage } from "./contexts/useLanguage";
-import Header from "./components/Header";
+import { Header } from "./components";
 
 const Upload: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);

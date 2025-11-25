@@ -40,6 +40,24 @@ const base64urlToArrayBuffer = (base64url: string): ArrayBuffer => {
     return bytes.buffer;
 };
 
+// Helper: ArrayBuffer -> base64url
+const arrayBufferToBase64url = (buffer: ArrayBuffer): string => {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+};
+
+// Helper: sanitize username to printable ASCII
+const sanitizeUsername = (value: string): string => {
+    return value.trim().replace(/[^\x20-\x7E]/g, '');
+};
+
 // Types for JSON payloads from backend
 type RequestOptionsJSON = {
     challenge: string;
@@ -143,8 +161,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setError(null);
         setLoading(true);
         try {
-            // Sanitize username
-            username = username.trim().replace(/[^\x20-\x7E]/g, '');
+            username = sanitizeUsername(username);
 
             const res = await fetch("/api/auth/login", {
                 method: "POST",
@@ -169,8 +186,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setError(null);
         setLoading(true);
         try {
-            // Sanitize username
-            username = username.trim().replace(/[^\x20-\x7E]/g, '');
+            username = sanitizeUsername(username);
 
             const res = await fetch("/api/auth/register", {
                 method: "POST",
@@ -194,8 +210,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setError(null);
         setLoading(true);
         try {
-            // Sanitize username
-            username = username.trim().replace(/[^\x20-\x7E]/g, '');
+            username = sanitizeUsername(username);
 
             // Get authentication options from server
             const optionsRes = await fetch("/api/auth/passkey/login-options", {
@@ -217,19 +232,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (!credential || !credential.response) throw new Error("No credential received");
 
             const response = credential.response as AuthenticatorAssertionResponse;
-
-            // Helper function to convert ArrayBuffer to base64url
-            const arrayBufferToBase64url = (buffer: ArrayBuffer): string => {
-                const bytes = new Uint8Array(buffer);
-                let binary = '';
-                for (let i = 0; i < bytes.length; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return btoa(binary)
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=/g, '');
-            };
 
             // Convert credential data to base64url (URL-safe base64)
             const credentialData = {
@@ -270,8 +272,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setError(null);
         setLoading(true);
         try {
-            // Sanitize username
-            username = username.trim().replace(/[^\x20-\x7E]/g, '');
+            username = sanitizeUsername(username);
 
             if (!username) {
                 throw new Error("Please enter a username");
@@ -297,19 +298,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (!credential || !credential.response) throw new Error("No credential created");
 
             const response = credential.response as AuthenticatorAttestationResponse;
-
-            // Helper function to convert ArrayBuffer to base64url
-            const arrayBufferToBase64url = (buffer: ArrayBuffer): string => {
-                const bytes = new Uint8Array(buffer);
-                let binary = '';
-                for (let i = 0; i < bytes.length; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return btoa(binary)
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=/g, '');
-            };
 
             // Convert credential data to base64url (URL-safe base64)
             const credentialData = {

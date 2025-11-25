@@ -1,14 +1,8 @@
-import React, { createContext, useState } from "react";
+import React, { useState } from "react";
+import { LanguageContext } from "./LanguageCore";
+import type { Language } from "./LanguageCore";
 
-type Language = 'en' | 'es' | 'fr' | 'de' | 'pt' | 'auto';
-
-interface Translations {
-    [key: string]: {
-        [lang: string]: string;
-    };
-}
-
-const translations: Translations = {
+const translations: { [key: string]: { [lang: string]: string } } = {
     // Header
     'app.name': {
         en: 'Dux',
@@ -145,13 +139,6 @@ const translations: Translations = {
         de: 'Konto',
         pt: 'Conta'
     },
-    'home.loading': {
-        en: 'Loading...',
-        es: 'Cargando...',
-        fr: 'Chargement...',
-        de: 'Laden...',
-        pt: 'Carregando...'
-    },
     // Upload Page
     'upload.title': {
         en: 'Dux File Upload',
@@ -206,13 +193,7 @@ const translations: Translations = {
     }
 };
 
-interface LanguageContextType {
-    language: Language;
-    setLanguage: (lang: Language) => void;
-    t: (key: string) => string;
-}
-
-export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+// LanguageContext is now defined and exported from LanguageCore.ts
 
 const detectBrowserLanguage = (): Exclude<Language, 'auto'> => {
     const browserLang = navigator.language.split('-')[0];

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/useAuth";
 import { useLanguage } from "./contexts/useLanguage";
-import Header from "./components/Header";
+import { Header } from "./components";
 
 const AuthPage: React.FC = () => {
     const [username, setUsername] = useState("");
@@ -9,8 +10,16 @@ const AuthPage: React.FC = () => {
     const [mode, setMode] = useState<"password" | "passkey">("password");
     const [isRegistering, setIsRegistering] = useState(false);
 
-    const { signIn, signUp, signInWithPasskey, registerPasskey, loading, error, clearError } = useAuth();
+    const { signIn, signUp, signInWithPasskey, registerPasskey, loading, error, clearError, user } = useAuth();
     const { t } = useLanguage();
+    const navigate = useNavigate();
+
+    // If already logged in, redirect away from login page
+    useEffect(() => {
+        if (user) {
+            navigate("/");
+        }
+    }, [user, navigate]);
 
     const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
