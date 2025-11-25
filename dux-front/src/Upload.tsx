@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useLanguage } from "./contexts/useLanguage";
 import Header from "./components/Header";
 
 const Upload: React.FC = () => {
@@ -6,6 +7,7 @@ const Upload: React.FC = () => {
     const [uploading, setUploading] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const { t } = useLanguage();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,7 +44,7 @@ const Upload: React.FC = () => {
         <>
             <Header />
             <div className="nb-page nb-card">
-                <h1 className="nb-center" style={{ marginTop: 0 }}>Dux File Upload</h1>
+                <h1 className="nb-center" style={{ marginTop: 0 }}>{t('upload.title')}</h1>
                 <form className="nb-form" onSubmit={handleSubmit}>
                     <input
                         type="file"
@@ -51,7 +53,7 @@ const Upload: React.FC = () => {
                         disabled={uploading}
                     />
                     <button type="submit" className={`nb-btn ${uploading ? 'nb-btn--ghost' : 'nb-btn--accent'}`} disabled={uploading}>
-                        {uploading ? "Uploading..." : "Upload"}
+                        {uploading ? t('upload.uploading') : t('upload.button')}
                     </button>
                 </form>
                 {success && <div className="nb-alert nb-alert--success nb-mt">{success}</div>}

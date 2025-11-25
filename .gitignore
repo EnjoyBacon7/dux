@@ -5,3 +5,4 @@ uploads
 *.log
 htmlcov
 .VSCodeCounter
+static

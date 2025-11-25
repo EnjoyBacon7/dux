@@ -1,4 +1,5 @@
 import React from "react";
+import { useLanguage } from "../contexts/useLanguage";
 
 interface AccountCardProps {
     username: string;
@@ -8,13 +9,15 @@ interface AccountCardProps {
     profilePicture?: string;
 }
 
-const AccountCard: React.FC<AccountCardProps> = ({ 
-    username, 
-    firstName, 
-    lastName, 
+const AccountCard: React.FC<AccountCardProps> = ({
+    username,
+    firstName,
+    lastName,
     title,
-    profilePicture 
+    profilePicture
 }) => {
+    const { t } = useLanguage();
+
     // Generate initials from first and last name, or username
     const getInitials = () => {
         if (firstName && lastName) {
@@ -28,7 +31,7 @@ const AccountCard: React.FC<AccountCardProps> = ({
 
     return (
         <div className="nb-card">
-            <h2 style={{ margin: '0 0 1rem 0' }}>Account</h2>
+            <h2 style={{ margin: '0 0 1rem 0' }}>{t('home.account')}</h2>
             <div className="nb-account-card-content">
                 <div className="nb-account-avatar">
                     {profilePicture ? (
