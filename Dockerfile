@@ -30,9 +30,6 @@ COPY server ./server
 # Copy frontend build to static
 COPY --from=frontend-build /frontend/dist ./static
 
-# Copy any static files (e.g., fallback index.html)
-COPY static ./static
-
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
