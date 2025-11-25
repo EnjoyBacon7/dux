@@ -13,7 +13,7 @@ async function retryWithBackoff<T>(
     initialDelay: number = 1000
 ): Promise<T> {
     let lastError: Error | undefined;
-    
+
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
             return await fn();
@@ -25,7 +25,7 @@ async function retryWithBackoff<T>(
             }
         }
     }
-    
+
     throw lastError;
 }
 
