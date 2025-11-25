@@ -107,7 +107,7 @@ export function generateTestCredentials(): { username: string; password: string 
     const timestamp = Date.now().toString();
     const random1 = Math.random().toString(36).substring(2, 6);
     const random2 = Math.random().toString(36).substring(2, 5);
-    
+
     return {
         username: `test_${Date.now()}_${Math.random().toString(36).substring(7)}`,
         password: `Secure${random1.toUpperCase()}${timestamp.substring(timestamp.length - 3)}${random2}!@Pass`,
