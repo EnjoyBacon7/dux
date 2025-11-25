@@ -79,13 +79,13 @@ const Header: React.FC = () => {
     return (
         <div className="nb-header">
             <div className="nb-header-content">
-                <button 
+                <button
                     onClick={() => navigate('/')}
-                    style={{ 
-                        margin: 0, 
-                        background: 'none', 
-                        border: 'none', 
-                        padding: 0, 
+                    style={{
+                        margin: 0,
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
                         cursor: 'pointer',
                         font: 'inherit',
                         color: 'inherit'
