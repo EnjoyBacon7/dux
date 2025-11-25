@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * See https://playwright.dev/docs/test-configuration.
+ * Playwright E2E Test Configuration
+ * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
     testDir: './tests',
@@ -10,9 +11,11 @@ export default defineConfig({
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
     reporter: process.env.CI ? 'github' : 'html',
-    timeout: 60000,
+
+    // Timeouts
+    timeout: 60000, // 60s per test
     expect: {
-        timeout: 15000,
+        timeout: 15000, // 15s for assertions
     },
 
     use: {
@@ -23,6 +26,7 @@ export default defineConfig({
         navigationTimeout: 30000,
     },
 
+    // Test against multiple browsers
     projects: [
         {
             name: 'chromium',
@@ -37,10 +41,4 @@ export default defineConfig({
             use: { ...devices['Desktop Safari'] },
         },
     ],
-
-    webServer: process.env.CI ? undefined : {
-        command: 'npm run preview',
-        url: 'http://localhost:8080',
-        reuseExistingServer: !process.env.CI,
-    },
 });
