@@ -75,8 +75,22 @@ jobs:
           uvicorn server.app:app --host 0.0.0.0 --port 8080 &
           echo $! > backend.pid
 
-          # Wait for server to be ready
-          timeout 30 bash -c 'until curl -f http://localhost:8080/api/healthcheck; do sleep 1; done'
+          # Wait for server to be ready with better logging
+          echo "Waiting for server to start..."
+          for i in {1..60}; do
+            if curl -f http://localhost:8080/api/healthcheck 2>/dev/null; then
+              echo "Server is ready!"
+              break
+            fi
+            echo "Attempt $i/60: Server not ready yet, waiting..."
+            sleep 1
+          done
+
+          # Verify server is actually responding
+          curl -v http://localhost:8080/api/healthcheck || exit 1
+
+          # Give database migrations time to complete
+          sleep 2
 
       - name: Install Playwright Browsers
         working-directory: ./dux-front
