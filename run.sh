@@ -69,6 +69,7 @@ cd dux-front
 npm install
 npm run build
 cd ..
+mkdir -p static
 rm -rf static/*
 cp -r dux-front/dist/* static/
 
