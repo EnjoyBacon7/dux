@@ -75,13 +75,13 @@ const AuthPage: React.FC = () => {
             }
 
             const data = await response.json();
-            
+
             // Open LinkedIn OAuth in a popup window
             const width = 600;
             const height = 700;
             const left = window.screen.width / 2 - width / 2;
             const top = window.screen.height / 2 - height / 2;
-            
+
             const popup = window.open(
                 data.authorization_url,
                 'LinkedIn Sign In',
@@ -91,12 +91,12 @@ const AuthPage: React.FC = () => {
             // Listen for OAuth callback
             const handleMessage = (event: MessageEvent) => {
                 if (event.origin !== window.location.origin) return;
-                
+
                 if (event.data.type === 'linkedin-oauth-success') {
                     setIsLinkedInLoading(false);
                     popup?.close();
                     window.removeEventListener('message', handleMessage);
-                    
+
                     // Refresh auth state and navigate to home
                     checkAuth();
                     navigate('/');
@@ -197,10 +197,10 @@ const AuthPage: React.FC = () => {
 
                 <div style={{ margin: '1.5rem 0', textAlign: 'center', position: 'relative' }}>
                     <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '1rem 0' }} />
-                    <span style={{ 
-                        position: 'absolute', 
-                        top: '50%', 
-                        left: '50%', 
+                    <span style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
                         transform: 'translate(-50%, -50%)',
                         background: 'var(--bg-color)',
                         padding: '0 1rem',

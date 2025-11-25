@@ -80,7 +80,7 @@ async def exchange_code_for_token(code: str) -> str:
             except Exception:
                 pass
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Failed to exchange code for token: {error_detail}"
             )
 

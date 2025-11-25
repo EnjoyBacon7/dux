@@ -181,10 +181,10 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db_sessi
 
     if not code:
         raise HTTPException(status_code=400, detail="Authorization code is required")
-    
+
     if not state:
         raise HTTPException(status_code=400, detail="State parameter is required")
-    
+
     # Validate state for CSRF protection
     if not validate_state(state):
         raise HTTPException(status_code=400, detail="Invalid state parameter")
@@ -195,7 +195,7 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db_sessi
 
         # Get LinkedIn profile data
         profile_data = await get_linkedin_profile(access_token)
-        
+
         linkedin_id = profile_data.get('linkedin_id')
         if not linkedin_id:
             raise HTTPException(status_code=400, detail="LinkedIn profile ID not found")
@@ -212,7 +212,7 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db_sessi
             # Generate username from LinkedIn profile
             base_username = profile_data.get('first_name', '').lower() + profile_data.get('last_name', '').lower()
             base_username = ''.join(c for c in base_username if c.isalnum())
-            
+
             # Ensure username is unique
             username = base_username
             counter = 1
