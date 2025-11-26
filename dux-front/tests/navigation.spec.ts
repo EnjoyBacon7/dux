@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loginAsTestUser, registerUser } from './helpers/auth';
 
 test.describe('Navigation', () => {
     test.beforeEach(async ({ page }) => {
@@ -7,6 +8,25 @@ test.describe('Navigation', () => {
 
     test('should display header on all pages', async ({ page }) => {
         await expect(page.getByRole('heading', { name: /dux/i })).toBeVisible();
+    });
+
+    test('should have correct page title', async ({ page }) => {
+        await page.goto('/');
+        await expect(page).toHaveTitle(/dux/i);
+    });
+});
+
+test.describe('Navigation - Settings Language and Theme', () => {
+    const testUsername = `navtest_${Date.now()}`;
+    const testPassword = 'Xk9#mP2$qL7@wR5!';
+
+    test.beforeAll(async ({ request }) => {
+        await registerUser(request, testUsername, testPassword);
+    });
+
+    test.beforeEach(async ({ page }) => {
+        await loginAsTestUser(page, testUsername, testPassword);
+        await page.goto('/settings');
     });
 
     test('should have language selector', async ({ page }) => {
@@ -30,22 +50,28 @@ test.describe('Navigation', () => {
     });
 
     test('should change language', async ({ page }) => {
-        const enButton = page.getByRole('button', { name: 'EN' });
-        const esButton = page.getByRole('button', { name: 'ES' });
+        const enButton = page.locator('button[title="EN"]').first();
+        const esButton = page.locator('button[title="ES"]').first();
 
         if (await enButton.isVisible()) {
             await enButton.click();
-            await expect(page.getByText(/authentication/i)).toBeVisible();
+            await expect(page.getByRole('heading', { name: /preferences/i })).toBeVisible();
         }
 
         if (await esButton.isVisible()) {
             await esButton.click();
-            await expect(page.getByText(/autenticación/i)).toBeVisible();
+            await expect(page.getByRole('heading', { name: /preferencias/i })).toBeVisible();
         }
     });
 
-    test('should have correct page title', async ({ page }) => {
-        await page.goto('/');
-        await expect(page).toHaveTitle(/dux/i);
+    test('should support Latin language', async ({ page }) => {
+        const laButton = page.getByRole('button', { name: 'LA' });
+
+        if (await laButton.isVisible()) {
+            await laButton.click();
+            // Check for Latin translation of "Preferences"
+            await expect(page.getByRole('heading', { name: /praeferentiae/i })).toBeVisible();
+        }
     });
 });
+
