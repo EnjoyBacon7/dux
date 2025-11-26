@@ -570,6 +570,161 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         fr: 'En utilisant ce service, vous acceptez notre',
         de: 'Durch die Nutzung dieses Dienstes stimmen Sie unserer zu',
         pt: 'Ao usar este serviço, você concorda com nossa'
+    },
+    // Account Settings
+    'settings.auth_methods': {
+        en: 'Authentication Methods',
+        es: 'Métodos de Autenticación',
+        fr: 'Méthodes d\'Authentification',
+        de: 'Authentifizierungsmethoden',
+        pt: 'Métodos de Autenticação'
+    },
+    'settings.auth_methods_desc': {
+        en: 'Add multiple authentication methods to your account for easier access.',
+        es: 'Agregue múltiples métodos de autenticación a su cuenta para facilitar el acceso.',
+        fr: 'Ajoutez plusieurs méthodes d\'authentification à votre compte pour un accès plus facile.',
+        de: 'Fügen Sie mehrere Authentifizierungsmethoden zu Ihrem Konto hinzu, um den Zugriff zu erleichtern.',
+        pt: 'Adicione vários métodos de autenticação à sua conta para facilitar o acesso.'
+    },
+    'settings.configured': {
+        en: 'Configured',
+        es: 'Configurado',
+        fr: 'Configuré',
+        de: 'Konfiguriert',
+        pt: 'Configurado'
+    },
+    'settings.not_configured': {
+        en: 'Not configured',
+        es: 'No configurado',
+        fr: 'Non configuré',
+        de: 'Nicht konfiguriert',
+        pt: 'Não configurado'
+    },
+    'settings.password_note': {
+        en: 'Set at registration',
+        es: 'Establecido en el registro',
+        fr: 'Défini lors de l\'inscription',
+        de: 'Bei der Registrierung festgelegt',
+        pt: 'Definido no registro'
+    },
+    'settings.add_passkey': {
+        en: 'Add Passkey',
+        es: 'Agregar Passkey',
+        fr: 'Ajouter Passkey',
+        de: 'Passkey Hinzufügen',
+        pt: 'Adicionar Passkey'
+    },
+    'settings.link_linkedin': {
+        en: 'Link LinkedIn',
+        es: 'Vincular LinkedIn',
+        fr: 'Lier LinkedIn',
+        de: 'LinkedIn Verknüpfen',
+        pt: 'Vincular LinkedIn'
+    },
+    'settings.passkey_added': {
+        en: 'Passkey added successfully!',
+        es: '¡Passkey agregado exitosamente!',
+        fr: 'Passkey ajouté avec succès!',
+        de: 'Passkey erfolgreich hinzugefügt!',
+        pt: 'Passkey adicionado com sucesso!'
+    },
+    'settings.passkey_add_failed': {
+        en: 'Failed to add passkey',
+        es: 'Error al agregar passkey',
+        fr: 'Échec de l\'ajout de passkey',
+        de: 'Passkey konnte nicht hinzugefügt werden',
+        pt: 'Falha ao adicionar passkey'
+    },
+    'settings.linkedin_linked': {
+        en: 'LinkedIn linked successfully!',
+        es: '¡LinkedIn vinculado exitosamente!',
+        fr: 'LinkedIn lié avec succès!',
+        de: 'LinkedIn erfolgreich verknüpft!',
+        pt: 'LinkedIn vinculado com sucesso!'
+    },
+    'settings.linkedin_link_failed': {
+        en: 'Failed to link LinkedIn',
+        es: 'Error al vincular LinkedIn',
+        fr: 'Échec de la liaison LinkedIn',
+        de: 'LinkedIn konnte nicht verknüpft werden',
+        pt: 'Falha ao vincular LinkedIn'
+    },
+    'settings.setup_password': {
+        en: 'Setup Password',
+        es: 'Configurar Contraseña',
+        fr: 'Configurer le Mot de Passe',
+        de: 'Passwort Einrichten',
+        pt: 'Configurar Senha'
+    },
+    'settings.password_requirements': {
+        en: 'Password must be at least 12 characters with uppercase, lowercase, number, and special character.',
+        es: 'La contraseña debe tener al menos 12 caracteres con mayúsculas, minúsculas, números y caracteres especiales.',
+        fr: 'Le mot de passe doit contenir au moins 12 caractères avec majuscules, minuscules, chiffres et caractères spéciaux.',
+        de: 'Das Passwort muss mindestens 12 Zeichen mit Groß-, Kleinbuchstaben, Zahlen und Sonderzeichen enthalten.',
+        pt: 'A senha deve ter pelo menos 12 caracteres com maiúsculas, minúsculas, números e caracteres especiais.'
+    },
+    'settings.new_password': {
+        en: 'New Password',
+        es: 'Nueva Contraseña',
+        fr: 'Nouveau Mot de Passe',
+        de: 'Neues Passwort',
+        pt: 'Nova Senha'
+    },
+    'settings.confirm_password': {
+        en: 'Confirm Password',
+        es: 'Confirmar Contraseña',
+        fr: 'Confirmer le Mot de Passe',
+        de: 'Passwort Bestätigen',
+        pt: 'Confirmar Senha'
+    },
+    'settings.setup': {
+        en: 'Setup',
+        es: 'Configurar',
+        fr: 'Configurer',
+        de: 'Einrichten',
+        pt: 'Configurar'
+    },
+    'settings.setting_up': {
+        en: 'Setting up...',
+        es: 'Configurando...',
+        fr: 'Configuration...',
+        de: 'Einrichten...',
+        pt: 'Configurando...'
+    },
+    'settings.cancel': {
+        en: 'Cancel',
+        es: 'Cancelar',
+        fr: 'Annuler',
+        de: 'Abbrechen',
+        pt: 'Cancelar'
+    },
+    'settings.password_set': {
+        en: 'Password set successfully!',
+        es: '¡Contraseña configurada exitosamente!',
+        fr: 'Mot de passe configuré avec succès!',
+        de: 'Passwort erfolgreich eingerichtet!',
+        pt: 'Senha configurada com sucesso!'
+    },
+    'settings.password_set_failed': {
+        en: 'Failed to set password',
+        es: 'Error al configurar contraseña',
+        fr: 'Échec de la configuration du mot de passe',
+        de: 'Passwort konnte nicht eingerichtet werden',
+        pt: 'Falha ao configurar senha'
+    },
+    'settings.passwords_dont_match': {
+        en: 'Passwords do not match',
+        es: 'Las contraseñas no coinciden',
+        fr: 'Les mots de passe ne correspondent pas',
+        de: 'Passwörter stimmen nicht überein',
+        pt: 'As senhas não coincidem'
+    },
+    'settings.password_too_short': {
+        en: 'Password must be at least 12 characters',
+        es: 'La contraseña debe tener al menos 12 caracteres',
+        fr: 'Le mot de passe doit contenir au moins 12 caractères',
+        de: 'Das Passwort muss mindestens 12 Zeichen enthalten',
+        pt: 'A senha deve ter pelo menos 12 caracteres'
     }
 };
 

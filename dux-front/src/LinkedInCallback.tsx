@@ -41,12 +41,22 @@ const LinkedInCallback: React.FC = () => {
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ detail: 'Failed to complete LinkedIn authentication' }));
-                    window.opener?.postMessage({
-                        type: 'linkedin-oauth-error',
-                        error: errorData.detail || 'Failed to complete LinkedIn authentication'
-                    }, window.location.origin);
-                    return;
+                    // If callback fails, try the link callback (for authenticated users)
+                    const linkResponse = await fetch('/auth/linkedin/link/callback', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ code, state })
+                    });
+
+                    if (!linkResponse.ok) {
+                        const errorData = await linkResponse.json().catch(() => ({ detail: 'Failed to complete LinkedIn authentication' }));
+                        window.opener?.postMessage({
+                            type: 'linkedin-oauth-error',
+                            error: errorData.detail || 'Failed to complete LinkedIn authentication'
+                        }, window.location.origin);
+                        return;
+                    }
                 }
 
                 // Success - notify parent window
