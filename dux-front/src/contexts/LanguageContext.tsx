@@ -18,6 +18,20 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Abmelden',
         pt: 'Sair'
     },
+    'header.menu': {
+        en: 'Menu',
+        es: 'Menú',
+        fr: 'Menu',
+        de: 'Menü',
+        pt: 'Menu'
+    },
+    'header.settings': {
+        en: 'Settings',
+        es: 'Configuración',
+        fr: 'Paramètres',
+        de: 'Einstellungen',
+        pt: 'Configurações'
+    },
     // Auth Page
     'auth.title': {
         en: 'Authentication',
@@ -725,6 +739,41 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         fr: 'Le mot de passe doit contenir au moins 12 caractères',
         de: 'Das Passwort muss mindestens 12 Zeichen enthalten',
         pt: 'A senha deve ter pelo menos 12 caracteres'
+    },
+    'preferences.title': {
+        en: 'Preferences',
+        es: 'Preferencias',
+        fr: 'Préférences',
+        de: 'Einstellungen',
+        pt: 'Preferências'
+    },
+    'preferences.language': {
+        en: 'Language',
+        es: 'Idioma',
+        fr: 'Langue',
+        de: 'Sprache',
+        pt: 'Idioma'
+    },
+    'preferences.theme': {
+        en: 'Theme',
+        es: 'Tema',
+        fr: 'Thème',
+        de: 'Theme',
+        pt: 'Tema'
+    },
+    'settings.page_title': {
+        en: 'Settings',
+        es: 'Configuración',
+        fr: 'Paramètres',
+        de: 'Einstellungen',
+        pt: 'Configurações'
+    },
+    'settings.page_description': {
+        en: 'Manage your account, authentication methods, and preferences.',
+        es: 'Administra tu cuenta, métodos de autenticación y preferencias.',
+        fr: 'Gérez votre compte, vos méthodes d\'authentification et vos préférences.',
+        de: 'Verwalten Sie Ihr Konto, Authentifizierungsmethoden und Einstellungen.',
+        pt: 'Gerencie sua conta, métodos de autenticação e preferências.'
     }
 };
 
