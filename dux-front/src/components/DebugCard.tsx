@@ -85,25 +85,25 @@ const DebugCard: React.FC = () => {
         <div style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem', fontWeight: '600' }}>{title}</h3>
             <div style={{ overflowX: 'auto' }}>
-                <table style={{ 
-                    width: '100%', 
+                <table style={{
+                    width: '100%',
                     borderCollapse: 'collapse',
                     border: '2px solid var(--nb-border)',
                     fontSize: '0.875rem'
                 }}>
                     <thead>
                         <tr style={{ backgroundColor: 'var(--nb-bg-dim)' }}>
-                            <th style={{ 
-                                padding: '0.5rem', 
-                                textAlign: 'left', 
+                            <th style={{
+                                padding: '0.5rem',
+                                textAlign: 'left',
                                 border: '1px solid var(--nb-border)',
                                 fontWeight: '600'
                             }}>
                                 Property
                             </th>
-                            <th style={{ 
-                                padding: '0.5rem', 
-                                textAlign: 'left', 
+                            <th style={{
+                                padding: '0.5rem',
+                                textAlign: 'left',
                                 border: '1px solid var(--nb-border)',
                                 fontWeight: '600'
                             }}>
@@ -114,15 +114,15 @@ const DebugCard: React.FC = () => {
                     <tbody>
                         {Object.entries(data).map(([key, value]) => (
                             <tr key={key}>
-                                <td style={{ 
-                                    padding: '0.5rem', 
+                                <td style={{
+                                    padding: '0.5rem',
                                     border: '1px solid var(--nb-border)',
                                     fontWeight: '500'
                                 }}>
                                     {key}
                                 </td>
-                                <td style={{ 
-                                    padding: '0.5rem', 
+                                <td style={{
+                                    padding: '0.5rem',
                                     border: '1px solid var(--nb-border)',
                                     fontFamily: 'monospace',
                                     wordBreak: 'break-all'
@@ -153,8 +153,8 @@ const DebugCard: React.FC = () => {
             <div style={{ marginBottom: '1.5rem' }}>
                 <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem', fontWeight: '600' }}>{title}</h3>
                 <div style={{ overflowX: 'auto' }}>
-                    <table style={{ 
-                        width: '100%', 
+                    <table style={{
+                        width: '100%',
                         borderCollapse: 'collapse',
                         border: '2px solid var(--nb-border)',
                         fontSize: '0.875rem'
@@ -162,9 +162,9 @@ const DebugCard: React.FC = () => {
                         <thead>
                             <tr style={{ backgroundColor: 'var(--nb-bg-dim)' }}>
                                 {columns.map(col => (
-                                    <th key={col} style={{ 
-                                        padding: '0.5rem', 
-                                        textAlign: 'left', 
+                                    <th key={col} style={{
+                                        padding: '0.5rem',
+                                        textAlign: 'left',
                                         border: '1px solid var(--nb-border)',
                                         fontWeight: '600'
                                     }}>
@@ -177,8 +177,8 @@ const DebugCard: React.FC = () => {
                             {items.map((item, idx) => (
                                 <tr key={idx}>
                                     {columns.map(col => (
-                                        <td key={col} style={{ 
-                                            padding: '0.5rem', 
+                                        <td key={col} style={{
+                                            padding: '0.5rem',
                                             border: '1px solid var(--nb-border)',
                                             fontFamily: col !== 'user_agent' ? 'monospace' : 'inherit',
                                             wordBreak: 'break-all',
@@ -198,9 +198,9 @@ const DebugCard: React.FC = () => {
 
     return (
         <div className="nb-card">
-            <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 marginBottom: '1rem'
             }}>
@@ -210,7 +210,7 @@ const DebugCard: React.FC = () => {
                         Detailed user data for debugging
                     </p>
                 </div>
-                <button 
+                <button
                     className="nb-btn nb-btn-sm"
                     onClick={fetchDebugInfo}
                     disabled={isLoading}
@@ -220,9 +220,9 @@ const DebugCard: React.FC = () => {
             </div>
 
             {error && (
-                <div style={{ 
-                    padding: '0.75rem', 
-                    backgroundColor: 'var(--nb-error-bg)', 
+                <div style={{
+                    padding: '0.75rem',
+                    backgroundColor: 'var(--nb-error-bg)',
                     border: '2px solid var(--nb-error)',
                     marginBottom: '1rem'
                 }}>
