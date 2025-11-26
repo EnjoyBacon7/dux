@@ -44,6 +44,9 @@ const PreferencesCard: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>(() => {
         return localStorage.getItem('theme') as 'light' | 'dark' | 'auto' || 'auto';
     });
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     useEffect(() => {
         applyTheme(theme);
@@ -55,13 +58,39 @@ const PreferencesCard: React.FC = () => {
         applyTheme(newTheme);
     };
 
-    const languages: Array<{ code: 'en' | 'es' | 'fr' | 'de' | 'pt' | 'auto'; label: string }> = [
+    const handleDeleteAccount = async () => {
+        setIsDeleting(true);
+        setDeleteError(null);
+
+        try {
+            const response = await fetch('/auth/account', {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                // Account deleted successfully, clear state and redirect
+                window.location.href = '/login';
+            } else {
+                const data = await response.json();
+                setDeleteError(data.detail || 'Failed to delete account');
+            }
+        } catch (error) {
+            setDeleteError('An error occurred while deleting your account');
+            console.error('Delete account error:', error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const languages: Array<{ code: 'en' | 'es' | 'fr' | 'de' | 'pt' | 'la' | 'auto'; label: string }> = [
         { code: 'auto', label: 'Auto' },
         { code: 'en', label: 'EN' },
         { code: 'es', label: 'ES' },
         { code: 'fr', label: 'FR' },
         { code: 'de', label: 'DE' },
         { code: 'pt', label: 'PT' },
+        { code: 'la', label: 'LA' },
     ];
 
     return (
@@ -112,6 +141,83 @@ const PreferencesCard: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Delete Account Section */}
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '2px solid var(--nb-border)' }}>
+                <h3 style={{ marginBottom: '0.5rem', fontSize: '1rem', color: 'var(--nb-error)' }}>
+                    {t('preferences.danger_zone')}
+                </h3>
+                <p style={{ fontSize: '0.875rem', color: 'var(--nb-text-dim)', marginBottom: '1rem' }}>
+                    {t('preferences.delete_warning')}
+                </p>
+                <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="nb-btn nb-btn--danger"
+                >
+                    {t('preferences.delete_account')}
+                </button>
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div className="nb-card" style={{
+                        maxWidth: '500px',
+                        margin: '1rem',
+                        position: 'relative'
+                    }}>
+                        <h2 style={{ marginTop: 0, color: 'var(--nb-error)' }}>
+                            {t('preferences.confirm_delete')}
+                        </h2>
+                        <p style={{ marginBottom: '1rem' }}>
+                            {t('preferences.confirm_delete_message')}
+                        </p>
+
+                        {deleteError && (
+                            <div style={{
+                                padding: '0.75rem',
+                                backgroundColor: 'var(--nb-error-bg)',
+                                border: '2px solid var(--nb-error)',
+                                marginBottom: '1rem',
+                                color: 'var(--nb-error)'
+                            }}>
+                                {deleteError}
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setDeleteError(null);
+                                }}
+                                className="nb-btn nb-btn-outline"
+                                disabled={isDeleting}
+                            >
+                                {t('common.cancel')}
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                className="nb-btn nb-btn--danger"
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? t('common.deleting') : t('preferences.delete_permanently')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

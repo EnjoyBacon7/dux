@@ -478,3 +478,34 @@ async def get_user_debug_info(request: Request, db: Session = Depends(get_db_ses
             "session_keys": list(request.session.keys())
         }
     }
+
+
+@router.delete("/account", summary="Delete user account")
+@apply_rate_limit("3/hour")
+async def delete_account(request: Request, db: Session = Depends(get_db_session)):
+    """
+    Delete the current user's account permanently.
+    This action cannot be undone and will remove all associated data.
+    """
+    if "username" not in request.session:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user = db.query(User).filter(User.username == request.session["username"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    try:
+        # Delete user (cascade will handle related records)
+        db.delete(user)
+        db.commit()
+
+        # Clear session
+        request.session.clear()
+
+        return {
+            "success": True,
+            "message": "Account deleted successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete account: {str(e)}")
