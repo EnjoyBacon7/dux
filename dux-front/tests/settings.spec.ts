@@ -39,7 +39,7 @@ test.describe('Settings Page', () => {
 
     test('should display debug card', async ({ page }) => {
         // Debug card should be visible
-        await expect(page.getByText(/debug information/i)).toBeVisible();
+        await expect(page.getByRole('heading', { name: /debug information/i })).toBeVisible();
 
         // Should have a refresh button
         await expect(page.getByRole('button', { name: /refresh/i })).toBeVisible();
