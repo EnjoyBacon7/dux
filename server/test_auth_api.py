@@ -1,19 +1,20 @@
 """
 Tests for authentication and user management endpoints.
 """
+
+import sys
+from pathlib import Path
+# Add parent directory to path to allow imports - MUST be first
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from server.models import Base
 from server.database import get_db_session
 from server.app import app
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from fastapi.testclient import TestClient
-import pytest
-import sys
-from pathlib import Path
-
-# Add parent directory to path to import server modules
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 # Create in-memory SQLite database for testing
