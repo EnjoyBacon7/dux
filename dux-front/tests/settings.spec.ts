@@ -16,6 +16,9 @@ test.describe('Settings Page', () => {
 
         // Navigate to settings page
         await page.goto('/settings');
+        
+        // Wait for page to be fully loaded
+        await expect(page.getByRole('heading', { name: /preferences/i })).toBeVisible();
     });
 
     test('should display settings page with preferences card', async ({ page }) => {
@@ -97,7 +100,11 @@ test.describe('Settings Page', () => {
     });
 
     test('should delete account button have danger styling', async ({ page }) => {
+        // Wait for danger zone to be visible
+        await expect(page.getByText(/danger zone/i)).toBeVisible();
+        
         const deleteButton = page.getByRole('button', { name: /delete account/i }).first();
+        await expect(deleteButton).toBeVisible();
 
         // Check if button has danger class
         await expect(deleteButton).toHaveClass(/nb-btn--danger/);

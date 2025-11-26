@@ -27,6 +27,9 @@ test.describe('Navigation - Settings Language and Theme', () => {
     test.beforeEach(async ({ page }) => {
         await loginAsTestUser(page, testUsername, testPassword);
         await page.goto('/settings');
+        
+        // Wait for page to be fully loaded
+        await expect(page.getByRole('heading', { name: /preferences/i })).toBeVisible();
     });
 
     test('should have language selector', async ({ page }) => {
