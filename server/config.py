@@ -63,6 +63,11 @@ class Settings(BaseSettings):
     password_require_digit: bool = True
     password_require_special: bool = True
 
+    # LinkedIn OAuth
+    linkedin_client_id: str = ""
+    linkedin_client_secret: str = ""
+    linkedin_redirect_uri: str = "http://localhost:5173/linkedin/callback"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

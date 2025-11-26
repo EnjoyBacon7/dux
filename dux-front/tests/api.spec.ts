@@ -1,13 +1,14 @@
 import { test, expect } from '@playwright/test';
 
+const API_TIMEOUT = 30000;
+const VALID_PASSWORD = 'StrongT3st!P@ss';
+
 test.describe('API Integration', () => {
     test('should respond to healthcheck endpoint', async ({ request }) => {
-        const response = await request.get('/api/healthcheck', {
-            timeout: 30000,
-        });
+        const response = await request.get('/api/healthcheck', { timeout: API_TIMEOUT });
+
         expect(response.ok()).toBeTruthy();
-        const text = await response.text();
-        expect(text).toBe('"OK"'); // FastAPI returns JSON string
+        expect(await response.text()).toBe('"OK"');
     });
 
     test('should return 401 for /auth/me when not authenticated', async ({ request }) => {
@@ -17,11 +18,8 @@ test.describe('API Integration', () => {
 
     test('should validate registration with invalid username', async ({ request }) => {
         const response = await request.post('/auth/register', {
-            data: {
-                username: 'ab', // Too short
-                password: 'StrongT3st!P@ss',
-            },
-            timeout: 30000,
+            data: { username: 'ab', password: VALID_PASSWORD },
+            timeout: API_TIMEOUT,
         });
 
         expect(response.status()).toBe(400);
@@ -31,11 +29,8 @@ test.describe('API Integration', () => {
 
     test('should validate registration with weak password', async ({ request }) => {
         const response = await request.post('/auth/register', {
-            data: {
-                username: 'testuser',
-                password: 'weak', // Too weak
-            },
-            timeout: 30000,
+            data: { username: 'testuser', password: 'weak' },
+            timeout: API_TIMEOUT,
         });
 
         expect(response.status()).toBe(400);
@@ -45,10 +40,7 @@ test.describe('API Integration', () => {
 
     test('should handle login with invalid credentials', async ({ request }) => {
         const response = await request.post('/auth/login', {
-            data: {
-                username: 'nonexistent_user',
-                password: 'WrongPassword123!',
-            },
+            data: { username: 'nonexistent_user', password: 'WrongPassword123!' },
         });
 
         expect(response.status()).toBe(401);
