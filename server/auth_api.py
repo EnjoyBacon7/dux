@@ -415,3 +415,66 @@ async def linkedin_link_callback(request: Request, db: Session = Depends(get_db_
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to link LinkedIn: {str(e)}")
+
+
+# Debug Endpoint
+
+@router.get("/debug/user-info", summary="Get all user debug information")
+async def get_user_debug_info(request: Request, db: Session = Depends(get_db_session)):
+    """
+    Get all user information for debugging purposes.
+    Returns comprehensive user data including auth methods, credentials, and login history.
+    """
+    if "username" not in request.session:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user = db.query(User).filter(User.username == request.session["username"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Get passkey credentials
+    passkeys = []
+    for credential in user.passkey_credentials:
+        passkeys.append({
+            "id": credential.id,
+            "credential_id": credential.credential_id[:16] + "...",
+            "sign_count": credential.sign_count,
+            "transports": credential.transports,
+            "created_at": credential.created_at.isoformat() if credential.created_at else None,
+            "last_used_at": credential.last_used_at.isoformat() if credential.last_used_at else None
+        })
+
+    # Get recent login attempts (last 10)
+    recent_logins = []
+    for attempt in sorted(user.login_attempts, key=lambda x: x.attempted_at, reverse=True)[:10]:
+        recent_logins.append({
+            "id": attempt.id,
+            "success": attempt.success,
+            "ip_address": attempt.ip_address,
+            "user_agent": attempt.user_agent,
+            "attempted_at": attempt.attempted_at.isoformat() if attempt.attempted_at else None
+        })
+
+    return {
+        "user_info": {
+            "id": user.id,
+            "username": user.username,
+            "has_password": bool(user.password_hash),
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+            "is_active": user.is_active,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "title": user.title,
+            "profile_picture": user.profile_picture,
+            "linkedin_id": user.linkedin_id,
+            "failed_login_attempts": user.failed_login_attempts,
+            "locked_until": user.locked_until.isoformat() if user.locked_until else None
+        },
+        "passkey_credentials": passkeys,
+        "recent_login_attempts": recent_logins,
+        "session_info": {
+            "username": request.session.get("username"),
+            "session_keys": list(request.session.keys())
+        }
+    }

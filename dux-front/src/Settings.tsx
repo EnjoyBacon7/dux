@@ -1,7 +1,7 @@
 import React from "react";
 import { useAuth } from "./contexts/useAuth";
 import { useLanguage } from "./contexts/useLanguage";
-import { Header, AccountSettings, PreferencesCard } from "./components";
+import { Header, AccountSettings, PreferencesCard, DebugCard } from "./components";
 
 const Settings: React.FC = () => {
     const { checkAuth } = useAuth();
@@ -17,6 +17,7 @@ const Settings: React.FC = () => {
                 </div>
                 <AccountSettings onUpdate={checkAuth} />
                 <PreferencesCard />
+                <DebugCard />
             </div>
         </>
     );
