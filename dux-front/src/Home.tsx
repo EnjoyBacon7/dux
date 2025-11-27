@@ -25,7 +25,7 @@ const Home: React.FC = () => {
                     <h1 style={{ margin: '0 0 1rem 0' }}>{t('home.welcome')}</h1>
                     <p className="nb-text-dim">{t('home.authenticated')}</p>
                     <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                        <button 
+                        <button
                             onClick={() => navigate('/jobs')}
                             className="nb-btn"
                         >

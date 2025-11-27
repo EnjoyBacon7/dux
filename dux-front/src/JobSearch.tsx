@@ -100,7 +100,7 @@ const JobSearch: React.FC = () => {
         return MOCK_JOBS.filter(job => {
             // Text search (title, company, description)
             const searchLower = searchQuery.toLowerCase();
-            const matchesSearch = !searchQuery || 
+            const matchesSearch = !searchQuery ||
                 job.title.toLowerCase().includes(searchLower) ||
                 job.company.toLowerCase().includes(searchLower) ||
                 job.description.toLowerCase().includes(searchLower);
@@ -134,7 +134,7 @@ const JobSearch: React.FC = () => {
         const now = new Date();
         const diffTime = Math.abs(now.getTime() - date.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 1) return t('jobs.posted_today');
         if (diffDays < 7) return t('jobs.posted_days_ago').replace('{days}', diffDays.toString());
         if (diffDays < 30) {
@@ -154,8 +154,8 @@ const JobSearch: React.FC = () => {
     return (
         <div style={{ width: '100%', margin: 0, padding: 0 }}>
             <Header />
-            <div style={{ 
-                display: 'grid', 
+            <div style={{
+                display: 'grid',
                 gridTemplateColumns: '320px 1fr',
                 gap: 0,
                 minHeight: 'calc(100vh - 60px)',
@@ -163,7 +163,7 @@ const JobSearch: React.FC = () => {
                 maxWidth: '100%'
             }}>
                 {/* Left Sidebar - Filters */}
-                <div style={{ 
+                <div style={{
                     padding: '1.5rem',
                     borderRight: 'var(--nb-border) solid var(--nb-fg)',
                     backgroundColor: 'var(--nb-bg)',
@@ -175,13 +175,13 @@ const JobSearch: React.FC = () => {
                     <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem' }}>
                         {t('jobs.title')}
                     </h2>
-                    
+
                     {/* Search and Filters */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {/* Search Input */}
                         <div>
-                            <label style={{ 
-                                display: 'block', 
+                            <label style={{
+                                display: 'block',
                                 marginBottom: '0.5rem',
                                 fontSize: '0.875rem',
                                 fontWeight: 600,
@@ -201,8 +201,8 @@ const JobSearch: React.FC = () => {
 
                         {/* Location Filter */}
                         <div>
-                            <label style={{ 
-                                display: 'block', 
+                            <label style={{
+                                display: 'block',
                                 marginBottom: '0.5rem',
                                 fontSize: '0.875rem',
                                 fontWeight: 600,
@@ -222,8 +222,8 @@ const JobSearch: React.FC = () => {
 
                         {/* Job Type Filter */}
                         <div>
-                            <label style={{ 
-                                display: 'block', 
+                            <label style={{
+                                display: 'block',
                                 marginBottom: '0.5rem',
                                 fontSize: '0.875rem',
                                 fontWeight: 600,
@@ -273,8 +273,8 @@ const JobSearch: React.FC = () => {
                         )}
 
                         {/* Results Count */}
-                        <div style={{ 
-                            marginTop: '1rem', 
+                        <div style={{
+                            marginTop: '1rem',
                             padding: '0.75rem',
                             backgroundColor: 'var(--nb-accent)',
                             border: 'var(--nb-border) solid var(--nb-fg)',
@@ -289,7 +289,7 @@ const JobSearch: React.FC = () => {
                 </div>
 
                 {/* Right Side - Job Listings */}
-                <div style={{ 
+                <div style={{
                     padding: '1.5rem',
                     overflowY: 'auto',
                     height: 'calc(100vh - 60px)'
@@ -316,8 +316,8 @@ const JobSearch: React.FC = () => {
                                                 </p>
                                             </div>
                                             {job.salary && (
-                                                <div style={{ 
-                                                    fontWeight: 600, 
+                                                <div style={{
+                                                    fontWeight: 600,
                                                     color: 'var(--nb-accent)',
                                                     textAlign: 'right',
                                                     fontSize: '1rem'
@@ -328,8 +328,8 @@ const JobSearch: React.FC = () => {
                                         </div>
 
                                         {/* Job Meta Info */}
-                                        <div style={{ 
-                                            display: 'flex', 
+                                        <div style={{
+                                            display: 'flex',
                                             flexWrap: 'wrap',
                                             gap: '0.75rem',
                                             fontSize: '0.875rem',
