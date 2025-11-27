@@ -1,7 +1,8 @@
-"""
+"""  
 LinkedIn OAuth integration
 """
 import secrets
+import time
 from typing import Dict, Optional
 from urllib.parse import urlencode
 import httpx
@@ -11,7 +12,22 @@ from server.config import settings
 
 
 # In-memory store for OAuth state (in production, use Redis or database)
+# Format: {state: {created_at: timestamp}}
 oauth_states: Dict[str, dict] = {}
+
+
+def cleanup_expired_states():
+    """
+    Remove expired OAuth states (older than 5 minutes)
+    Should be called periodically or before generating new states
+    """
+    current_time = time.time()
+    expired_states = [
+        state for state, data in oauth_states.items()
+        if current_time - data['created_at'] > 300
+    ]
+    for state in expired_states:
+        oauth_states.pop(state, None)
 
 
 def generate_authorization_url() -> str:
@@ -21,12 +37,15 @@ def generate_authorization_url() -> str:
     Returns:
         LinkedIn authorization URL
     """
+    # Clean up expired states before generating new one
+    cleanup_expired_states()
+    
     # Generate a random state parameter for CSRF protection
     state = secrets.token_urlsafe(32)
 
-    # Store state for validation in callback
+    # Store state with timestamp for validation in callback
     oauth_states[state] = {
-        'created_at': secrets.token_urlsafe(16)  # Simple timestamp placeholder
+        'created_at': time.time()
     }
 
     # LinkedIn OAuth parameters
@@ -137,6 +156,12 @@ def validate_state(state: str) -> bool:
         True if valid, False otherwise
     """
     if state not in oauth_states:
+        return False
+
+    # Check if state is expired (5 minutes)
+    state_data = oauth_states[state]
+    if time.time() - state_data['created_at'] > 300:
+        oauth_states.pop(state)
         return False
 
     oauth_states.pop(state)  # Remove state after validation

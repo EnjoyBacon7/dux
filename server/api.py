@@ -36,9 +36,19 @@ class ProfileSetupRequest(BaseModel):
     educations: List[EducationData] = []
 
 
-def get_current_user(request: Request, db: Session = Depends(get_db_session)):
+def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
     """
     Dependency to get the current authenticated user.
+    
+    Args:
+        request: FastAPI request object
+        db: Database session
+    
+    Returns:
+        User: The authenticated user object
+    
+    Raises:
+        HTTPException: If user is not authenticated or not found
     """
     if "username" not in request.session:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -51,7 +61,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)):
 
 
 @router.get("/healthcheck", summary="Health check")
-def read_root():
+def read_root() -> str:
     """
     Healthcheck endpoint to verify that the application is running.
 
@@ -67,7 +77,7 @@ async def upload_endpoint(
     file: UploadFile = File(...),
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
-):
+) -> dict:
     """
     Upload endpoint to handle file uploads (CV).
 
@@ -95,7 +105,7 @@ async def complete_profile_setup(
     data: ProfileSetupRequest,
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
-):
+) -> dict:
     """
     Complete user profile setup after registration.
 
@@ -157,4 +167,7 @@ async def complete_profile_setup(
 
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log error for debugging
+        import logging
+        logging.error(f"Profile setup failed for user {current_user.id}: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to complete profile setup")

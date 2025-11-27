@@ -180,6 +180,9 @@ async def setup_password(request: Request, db: Session = Depends(get_db_session)
     user.password_hash = argon2.hash(password)
     db.commit()
 
+    # Update session to ensure user_id is set
+    request.session["user_id"] = user.id
+
     return {
         "success": True,
         "message": "Password set successfully"
