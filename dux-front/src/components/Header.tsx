@@ -44,6 +44,9 @@ const Header: React.FC = () => {
         if (path === '/settings') {
             return t('header.settings');
         }
+        if (path === '/jobs') {
+            return t('jobs.title');
+        }
         return null;
     };
 
