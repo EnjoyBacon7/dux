@@ -1,10 +1,10 @@
 import React from "react";
 import { useAuth } from "./contexts/useAuth";
 import { useLanguage } from "./contexts/useLanguage";
-import { Header, AccountCard, AccountSettings } from "./components";
+import { Header, AccountCard } from "./components";
 
 const Home: React.FC = () => {
-    const { user, checkAuth } = useAuth();
+    const { user } = useAuth();
     const { t } = useLanguage();
     if (!user) return null; // Guard: page is wrapped by RequireAuth
 
@@ -19,7 +19,6 @@ const Home: React.FC = () => {
                     title={user.title}
                     profilePicture={user.profile_picture}
                 />
-                <AccountSettings onUpdate={checkAuth} />
                 <div className="nb-card">
                     <h1 style={{ margin: '0 0 1rem 0' }}>{t('home.welcome')}</h1>
                     <p className="nb-text-dim">{t('home.authenticated')}</p>

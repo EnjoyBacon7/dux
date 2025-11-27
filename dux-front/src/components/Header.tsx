@@ -1,33 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { useLanguage } from "../contexts/useLanguage";
 
-const SunIcon = () => (
+const SettingsIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
-        <circle cx="12" cy="12" r="4" />
-        <line x1="12" y1="1" x2="12" y2="3" />
-        <line x1="12" y1="21" x2="12" y2="23" />
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-        <line x1="1" y1="12" x2="3" y2="12" />
-        <line x1="21" y1="12" x2="23" y2="12" />
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-);
-
-const MoonIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-);
-
-const AutoIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <line x1="8" y1="21" x2="16" y2="21" />
-        <line x1="12" y1="17" x2="12" y2="21" />
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
     </svg>
 );
 
@@ -39,42 +18,46 @@ const LogoutIcon = () => (
     </svg>
 );
 
-const applyTheme = (selectedTheme: 'light' | 'dark' | 'auto') => {
-    const root = document.documentElement;
-
-    if (selectedTheme === 'auto') {
-        root.removeAttribute('data-theme');
-    } else {
-        root.setAttribute('data-theme', selectedTheme);
-    }
-};
-
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const { user, signOut } = useAuth();
-    const { language, setLanguage, t } = useLanguage();
-    const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>(() => {
-        return localStorage.getItem('theme') as 'light' | 'dark' | 'auto' || 'auto';
-    });
+    const { t } = useLanguage();
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        applyTheme(theme);
-    }, [theme]);
-
-    const handleThemeChange = (newTheme: 'light' | 'dark' | 'auto') => {
-        setTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
-        applyTheme(newTheme);
+    // Generate initials from user data
+    const getInitials = () => {
+        if (!user) return '';
+        if (user.first_name && user.last_name) {
+            return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
+        }
+        if (user.first_name) {
+            return user.first_name[0].toUpperCase();
+        }
+        return user.username.substring(0, 2).toUpperCase();
     };
 
-    const languages: Array<{ code: 'en' | 'es' | 'fr' | 'de' | 'pt' | 'auto'; label: string }> = [
-        { code: 'auto', label: 'Auto' },
-        { code: 'en', label: 'EN' },
-        { code: 'es', label: 'ES' },
-        { code: 'fr', label: 'FR' },
-        { code: 'de', label: 'DE' },
-        { code: 'pt', label: 'PT' },
-    ];
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        };
+
+        if (dropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [dropdownOpen]);
+
+    const handleLogout = async () => {
+        setDropdownOpen(false);
+        await signOut();
+    };
 
     return (
         <div className="nb-header">
@@ -94,47 +77,121 @@ const Header: React.FC = () => {
                     <h2 style={{ margin: 0 }}>{t('app.name')}</h2>
                 </button>
                 <div className="nb-row nb-gap-sm">
-                    {/* Language Selector */}
-                    <div className="nb-theme-selector">
-                        {languages.map((lang) => (
-                            <button
-                                key={lang.code}
-                                onClick={() => setLanguage(lang.code)}
-                                className={`nb-theme-btn ${language === lang.code ? 'nb-theme-btn--active' : ''}`}
-                                title={lang.code === 'auto' ? t('language.auto') : lang.label}
-                            >
-                                {lang.label}
-                            </button>
-                        ))}
-                    </div>
-                    {/* Theme Selector */}
-                    <div className="nb-theme-selector">
-                        <button
-                            onClick={() => handleThemeChange('light')}
-                            className={`nb-theme-btn ${theme === 'light' ? 'nb-theme-btn--active' : ''}`}
-                            title={t('theme.light')}
-                        >
-                            <SunIcon />
-                        </button>
-                        <button
-                            onClick={() => handleThemeChange('auto')}
-                            className={`nb-theme-btn ${theme === 'auto' ? 'nb-theme-btn--active' : ''}`}
-                            title={t('theme.auto')}
-                        >
-                            <AutoIcon />
-                        </button>
-                        <button
-                            onClick={() => handleThemeChange('dark')}
-                            className={`nb-theme-btn ${theme === 'dark' ? 'nb-theme-btn--active' : ''}`}
-                            title={t('theme.dark')}
-                        >
-                            <MoonIcon />
-                        </button>
-                    </div>
                     {user && (
-                        <button onClick={signOut} className="nb-logout-btn" title={t('header.logout')}>
-                            <LogoutIcon />
-                        </button>
+                        <div style={{ position: 'relative' }} ref={dropdownRef}>
+                            <button
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                                className="nb-logout-btn"
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    padding: 0,
+                                    borderRadius: '6px',
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: 'var(--nb-accent)',
+                                    border: 'var(--nb-border) solid var(--nb-fg)'
+                                }}
+                                title={t('header.menu')}
+                            >
+                                {user.profile_picture ? (
+                                    <img
+                                        src={user.profile_picture}
+                                        alt={user.username}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: 'var(--accent-color)',
+                                        color: 'white',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.875rem'
+                                    }}>
+                                        {getInitials()}
+                                    </div>
+                                )}
+                            </button>
+                            {dropdownOpen && (
+                                <div className="nb-card" style={{
+                                    position: 'absolute',
+                                    top: 'calc(100% + 0.5rem)',
+                                    right: 0,
+                                    minWidth: '150px',
+                                    zIndex: 1000,
+                                    padding: 0,
+                                    margin: 0
+                                }}>
+                                    <button
+                                        onClick={() => {
+                                            setDropdownOpen(false);
+                                            navigate('/settings');
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem 1rem',
+                                            border: 'none',
+                                            background: 'none',
+                                            textAlign: 'left',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            color: 'var(--nb-fg)',
+                                            fontSize: '0.875rem',
+                                            borderRadius: '4px',
+                                            transition: 'background-color 0.15s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(0, 0, 0, 0.05))';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        <SettingsIcon />
+                                        {t('header.settings')}
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem 1rem',
+                                            border: 'none',
+                                            background: 'none',
+                                            textAlign: 'left',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            color: 'var(--nb-fg)',
+                                            fontSize: '0.875rem',
+                                            borderRadius: '4px',
+                                            transition: 'background-color 0.15s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(0, 0, 0, 0.05))';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        <LogoutIcon />
+                                        {t('header.logout')}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
