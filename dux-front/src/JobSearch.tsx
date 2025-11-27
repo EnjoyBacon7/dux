@@ -152,9 +152,9 @@ const JobSearch: React.FC = () => {
     };
 
     return (
-        <div style={{ 
-            width: '100%', 
-            margin: 0, 
+        <div style={{
+            width: '100%',
+            margin: 0,
             padding: 0,
             minHeight: '100vh',
             backgroundColor: 'var(--nb-bg)'
