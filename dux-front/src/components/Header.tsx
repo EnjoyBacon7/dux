@@ -91,15 +91,15 @@ const Header: React.FC = () => {
                     </button>
                     {breadcrumb && (
                         <>
-                            <span style={{ 
-                                fontSize: '1.25rem', 
+                            <span style={{
+                                fontSize: '1.25rem',
                                 color: 'var(--nb-fg)',
                                 opacity: 0.5,
                                 userSelect: 'none'
                             }}>
                                 /
                             </span>
-                            <span style={{ 
+                            <span style={{
                                 fontSize: '1.25rem',
                                 fontWeight: 600,
                                 color: 'var(--nb-fg)'
