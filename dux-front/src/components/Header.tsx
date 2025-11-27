@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { useLanguage } from "../contexts/useLanguage";
 
@@ -20,6 +20,7 @@ const LogoutIcon = () => (
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, signOut } = useAuth();
     const { t } = useLanguage();
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -36,6 +37,17 @@ const Header: React.FC = () => {
         }
         return user.username.substring(0, 2).toUpperCase();
     };
+
+    // Get breadcrumb text based on current path
+    const getBreadcrumb = () => {
+        const path = location.pathname;
+        if (path === '/settings') {
+            return t('header.settings');
+        }
+        return null;
+    };
+
+    const breadcrumb = getBreadcrumb();
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -62,20 +74,41 @@ const Header: React.FC = () => {
     return (
         <div className="nb-header">
             <div className="nb-header-content">
-                <button
-                    onClick={() => navigate('/')}
-                    style={{
-                        margin: 0,
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        font: 'inherit',
-                        color: 'inherit'
-                    }}
-                >
-                    <h2 style={{ margin: 0 }}>{t('app.name')}</h2>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button
+                        onClick={() => navigate('/')}
+                        style={{
+                            margin: 0,
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            cursor: 'pointer',
+                            font: 'inherit',
+                            color: 'inherit'
+                        }}
+                    >
+                        <h2 style={{ margin: 0 }}>{t('app.name')}</h2>
+                    </button>
+                    {breadcrumb && (
+                        <>
+                            <span style={{ 
+                                fontSize: '1.25rem', 
+                                color: 'var(--nb-fg)',
+                                opacity: 0.5,
+                                userSelect: 'none'
+                            }}>
+                                /
+                            </span>
+                            <span style={{ 
+                                fontSize: '1.25rem',
+                                fontWeight: 600,
+                                color: 'var(--nb-fg)'
+                            }}>
+                                {breadcrumb}
+                            </span>
+                        </>
+                    )}
+                </div>
                 <div className="nb-row nb-gap-sm">
                     {user && (
                         <div style={{ position: 'relative' }} ref={dropdownRef}>
