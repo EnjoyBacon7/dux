@@ -39,14 +39,14 @@ class ProfileSetupRequest(BaseModel):
 def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
     """
     Dependency to get the current authenticated user.
-    
+
     Args:
         request: FastAPI request object
         db: Database session
-    
+
     Returns:
         User: The authenticated user object
-    
+
     Raises:
         HTTPException: If user is not authenticated or not found
     """

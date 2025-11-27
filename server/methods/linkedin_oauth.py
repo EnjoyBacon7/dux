@@ -39,7 +39,7 @@ def generate_authorization_url() -> str:
     """
     # Clean up expired states before generating new one
     cleanup_expired_states()
-    
+
     # Generate a random state parameter for CSRF protection
     state = secrets.token_urlsafe(32)
 
