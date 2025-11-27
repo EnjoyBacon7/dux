@@ -152,15 +152,22 @@ const JobSearch: React.FC = () => {
     };
 
     return (
-        <div style={{ width: '100%', margin: 0, padding: 0 }}>
+        <div style={{ 
+            width: '100%', 
+            margin: 0, 
+            padding: 0,
+            minHeight: '100vh',
+            backgroundColor: 'var(--nb-bg)'
+        }}>
             <Header />
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: '320px 1fr',
                 gap: 0,
                 minHeight: 'calc(100vh - 60px)',
-                width: '100vw',
-                maxWidth: '100%'
+                width: '100%',
+                maxWidth: '100%',
+                backgroundColor: 'var(--nb-bg)'
             }}>
                 {/* Left Sidebar - Filters */}
                 <div style={{

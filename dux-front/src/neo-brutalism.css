@@ -79,6 +79,8 @@
 html,
 body {
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -87,6 +89,12 @@ body {
     background: var(--nb-bg);
     color: var(--nb-fg);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+    min-height: 100vh;
+    background: var(--nb-bg);
 }
 
 h1,
