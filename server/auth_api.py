@@ -133,7 +133,8 @@ async def get_current_user(request: Request, db: Session = Depends(get_db_sessio
         "first_name": user.first_name,
         "last_name": user.last_name,
         "title": user.title,
-        "profile_picture": user.profile_picture
+        "profile_picture": user.profile_picture,
+        "profile_setup_completed": user.profile_setup_completed or False
     }
 
 

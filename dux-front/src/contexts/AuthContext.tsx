@@ -9,6 +9,7 @@ interface User {
     last_name?: string;
     title?: string;
     profile_picture?: string;
+    profile_setup_completed?: boolean;
 }
 
 interface AuthContextType {
