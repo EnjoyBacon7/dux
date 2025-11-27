@@ -2,6 +2,7 @@ import Upload from "./Upload";
 import AuthPage from "./AuthPage";
 import Home from "./Home";
 import Settings from "./Settings";
+import JobSearch from "./JobSearch";
 import LinkedInCallback from "./LinkedInCallback";
 import PrivacyPolicy from "./PrivacyPolicy";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -35,6 +36,7 @@ function App() {
                         <Route path="/login" element={<AuthPage />} />
                         <Route path="/upload" element={<RequireAuth><Upload /></RequireAuth>} />
                         <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+                        <Route path="/jobs" element={<RequireAuth><JobSearch /></RequireAuth>} />
                         <Route path="/linkedin/callback" element={<LinkedInCallback />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />

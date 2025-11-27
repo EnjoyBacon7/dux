@@ -282,6 +282,143 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Falha ao conectar ao LinkedIn',
         la: 'Conectio ad LinkedIn defecit'
     },
+    // Job Search
+    'jobs.title': {
+        en: 'Job Search',
+        es: 'Búsqueda de Empleo',
+        fr: 'Recherche d\'Emploi',
+        de: 'Stellensuche',
+        pt: 'Busca de Emprego',
+        la: 'Quaestio Operis'
+    },
+    'jobs.search_placeholder': {
+        en: 'Search by title, company, or keywords...',
+        es: 'Buscar por título, empresa o palabras clave...',
+        fr: 'Rechercher par titre, entreprise ou mots-clés...',
+        de: 'Nach Titel, Firma oder Stichwörtern suchen...',
+        pt: 'Pesquisar por título, empresa ou palavras-chave...',
+        la: 'Quaerere per titulum, societatem, vel verba clavis...'
+    },
+    'jobs.location_filter': {
+        en: 'Location',
+        es: 'Ubicación',
+        fr: 'Localisation',
+        de: 'Standort',
+        pt: 'Localização',
+        la: 'Locus'
+    },
+    'jobs.type_all': {
+        en: 'All Job Types',
+        es: 'Todos los Tipos',
+        fr: 'Tous les Types',
+        de: 'Alle Typen',
+        pt: 'Todos os Tipos',
+        la: 'Omnes Species'
+    },
+    'jobs.type_fulltime': {
+        en: 'Full-time',
+        es: 'Tiempo completo',
+        fr: 'Temps plein',
+        de: 'Vollzeit',
+        pt: 'Tempo integral',
+        la: 'Tempus Plenum'
+    },
+    'jobs.type_parttime': {
+        en: 'Part-time',
+        es: 'Tiempo parcial',
+        fr: 'Temps partiel',
+        de: 'Teilzeit',
+        pt: 'Meio período',
+        la: 'Tempus Partiale'
+    },
+    'jobs.type_contract': {
+        en: 'Contract',
+        es: 'Contrato',
+        fr: 'Contrat',
+        de: 'Vertrag',
+        pt: 'Contrato',
+        la: 'Contractus'
+    },
+    'jobs.type_internship': {
+        en: 'Internship',
+        es: 'Pasantía',
+        fr: 'Stage',
+        de: 'Praktikum',
+        pt: 'Estágio',
+        la: 'Tirocinium'
+    },
+    'jobs.remote_only': {
+        en: 'Remote only',
+        es: 'Solo remoto',
+        fr: 'À distance uniquement',
+        de: 'Nur Remote',
+        pt: 'Apenas remoto',
+        la: 'Longinquum solum'
+    },
+    'jobs.remote': {
+        en: 'Remote',
+        es: 'Remoto',
+        fr: 'À distance',
+        de: 'Remote',
+        pt: 'Remoto',
+        la: 'Longinquum'
+    },
+    'jobs.clear_filters': {
+        en: 'Clear all filters',
+        es: 'Limpiar filtros',
+        fr: 'Effacer les filtres',
+        de: 'Filter löschen',
+        pt: 'Limpar filtros',
+        la: 'Purgare colationes'
+    },
+    'jobs.results_count': {
+        en: '{count} jobs found',
+        es: '{count} empleos encontrados',
+        fr: '{count} emplois trouvés',
+        de: '{count} Stellen gefunden',
+        pt: '{count} vagas encontradas',
+        la: '{count} opera inventa'
+    },
+    'jobs.no_results': {
+        en: 'No jobs found matching your criteria',
+        es: 'No se encontraron empleos que coincidan',
+        fr: 'Aucun emploi trouvé correspondant',
+        de: 'Keine passenden Stellen gefunden',
+        pt: 'Nenhuma vaga encontrada',
+        la: 'Nulla opera inventa'
+    },
+    'jobs.apply': {
+        en: 'Apply Now',
+        es: 'Aplicar Ahora',
+        fr: 'Postuler Maintenant',
+        de: 'Jetzt Bewerben',
+        pt: 'Candidatar Agora',
+        la: 'Applicare Nunc'
+    },
+    'jobs.posted_today': {
+        en: 'Posted today',
+        es: 'Publicado hoy',
+        fr: 'Publié aujourd\'hui',
+        de: 'Heute veröffentlicht',
+        pt: 'Publicado hoje',
+        la: 'Hodie publicatum'
+    },
+    'jobs.posted_days_ago': {
+        en: 'Posted {days} days ago',
+        es: 'Publicado hace {days} días',
+        fr: 'Publié il y a {days} jours',
+        de: 'Vor {days} Tagen veröffentlicht',
+        pt: 'Publicado há {days} dias',
+        la: 'Ante {days} dies publicatum'
+    },
+    'jobs.posted_weeks_ago': {
+        en: 'Posted {weeks} weeks ago',
+        es: 'Publicado hace {weeks} semanas',
+        fr: 'Publié il y a {weeks} semaines',
+        de: 'Vor {weeks} Wochen veröffentlicht',
+        pt: 'Publicado há {weeks} semanas',
+        la: 'Ante {weeks} hebdomadas publicatum'
+    },
     // Privacy Policy
     'privacy.title': {
         en: 'Privacy Policy',
