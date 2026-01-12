@@ -800,9 +800,266 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         en: 'By using this service, you agree to our',
         es: 'Al usar este servicio, acepta nuestra',
         fr: 'En utilisant ce service, vous acceptez notre',
-        de: 'Durch die Nutzung dieses Dienstes stimmen Sie unserer zu',
+        de: 'Durch die Nutzung dieses Dienstes stimmen Sie unserer',
         pt: 'Ao usar este serviço, você concorda com nossa',
-        la: 'Hoc servitio utendo, consentis nostro'
+        la: 'Hoc servitio utendo, nostram consentis'
+    },
+    // Profile Setup
+    'setup.title': {
+        en: 'Complete Your Profile',
+        es: 'Completa Tu Perfil',
+        fr: 'Complétez Votre Profil',
+        de: 'Vervollständigen Sie Ihr Profil',
+        pt: 'Complete Seu Perfil',
+        la: 'Professionem Tuam Comple'
+    },
+    'setup.description': {
+        en: 'Help us understand your background better by completing your profile.',
+        es: 'Ayúdanos a entender mejor tu experiencia completando tu perfil.',
+        fr: 'Aidez-nous à mieux comprendre votre parcours en complétant votre profil.',
+        de: 'Helfen Sie uns, Ihren Hintergrund besser zu verstehen, indem Sie Ihr Profil vervollständigen.',
+        pt: 'Ajude-nos a entender melhor seu histórico completando seu perfil.',
+        la: 'Adiuva nos melius intellegere historiam tuam perficiendo professionem tuam.'
+    },
+    'setup.cv_upload': {
+        en: 'Upload Your CV',
+        es: 'Sube Tu CV',
+        fr: 'Téléchargez Votre CV',
+        de: 'Laden Sie Ihren Lebenslauf Hoch',
+        pt: 'Envie Seu Currículo',
+        la: 'Curriculum Vitae Tuum Transfere'
+    },
+    'setup.upload_cv': {
+        en: 'Upload CV',
+        es: 'Subir CV',
+        fr: 'Télécharger le CV',
+        de: 'Lebenslauf Hochladen',
+        pt: 'Enviar Currículo',
+        la: 'Transfere CV'
+    },
+    'setup.skip_cv': {
+        en: 'Skip for Now',
+        es: 'Omitir por Ahora',
+        fr: 'Passer pour le Moment',
+        de: 'Jetzt Überspringen',
+        pt: 'Pular por Enquanto',
+        la: 'Praeterire Nunc'
+    },
+    'setup.profile_info': {
+        en: 'Profile Information',
+        es: 'Información del Perfil',
+        fr: 'Informations de Profil',
+        de: 'Profilinformationen',
+        pt: 'Informações do Perfil',
+        la: 'Informationes Professionis'
+    },
+    'setup.headline': {
+        en: 'Professional Headline',
+        es: 'Título Profesional',
+        fr: 'Titre Professionnel',
+        de: 'Berufsbezeichnung',
+        pt: 'Título Profissional',
+        la: 'Titulus Professionalis'
+    },
+    'setup.location': {
+        en: 'Location',
+        es: 'Ubicación',
+        fr: 'Emplacement',
+        de: 'Standort',
+        pt: 'Localização',
+        la: 'Locus'
+    },
+    'setup.summary': {
+        en: 'Professional Summary',
+        es: 'Resumen Profesional',
+        fr: 'Résumé Professionnel',
+        de: 'Berufliche Zusammenfassung',
+        pt: 'Resumo Profissional',
+        la: 'Summarium Professionale'
+    },
+    'setup.summary_placeholder': {
+        en: 'Tell us about your professional background and goals...',
+        es: 'Cuéntanos sobre tu experiencia profesional y objetivos...',
+        fr: 'Parlez-nous de votre parcours professionnel et de vos objectifs...',
+        de: 'Erzählen Sie uns von Ihrem beruflichen Hintergrund und Ihren Zielen...',
+        pt: 'Conte-nos sobre sua experiência profissional e objetivos...',
+        la: 'Nobis narra de historia tua professionali et scopos...'
+    },
+    'setup.skills': {
+        en: 'Skills',
+        es: 'Habilidades',
+        fr: 'Compétences',
+        de: 'Fähigkeiten',
+        pt: 'Habilidades',
+        la: 'Artes'
+    },
+    'setup.add_skill': {
+        en: 'Add',
+        es: 'Añadir',
+        fr: 'Ajouter',
+        de: 'Hinzufügen',
+        pt: 'Adicionar',
+        la: 'Addere'
+    },
+    'setup.experience': {
+        en: 'Work Experience',
+        es: 'Experiencia Laboral',
+        fr: 'Expérience Professionnelle',
+        de: 'Berufserfahrung',
+        pt: 'Experiência Profissional',
+        la: 'Experientia Laboris'
+    },
+    'setup.company': {
+        en: 'Company',
+        es: 'Empresa',
+        fr: 'Entreprise',
+        de: 'Unternehmen',
+        pt: 'Empresa',
+        la: 'Societas'
+    },
+    'setup.job_title': {
+        en: 'Job Title',
+        es: 'Puesto',
+        fr: 'Poste',
+        de: 'Berufsbezeichnung',
+        pt: 'Cargo',
+        la: 'Titulus Officii'
+    },
+    'setup.start_date': {
+        en: 'Start Date',
+        es: 'Fecha de Inicio',
+        fr: 'Date de Début',
+        de: 'Startdatum',
+        pt: 'Data de Início',
+        la: 'Dies Initii'
+    },
+    'setup.end_date': {
+        en: 'End Date',
+        es: 'Fecha de Fin',
+        fr: 'Date de Fin',
+        de: 'Enddatum',
+        pt: 'Data de Término',
+        la: 'Dies Finis'
+    },
+    'setup.current_position': {
+        en: 'I currently work here',
+        es: 'Actualmente trabajo aquí',
+        fr: 'Je travaille actuellement ici',
+        de: 'Ich arbeite derzeit hier',
+        pt: 'Atualmente trabalho aqui',
+        la: 'Nunc hic laboro'
+    },
+    'setup.job_description': {
+        en: 'Job Description',
+        es: 'Descripción del Trabajo',
+        fr: 'Description du Poste',
+        de: 'Stellenbeschreibung',
+        pt: 'Descrição do Cargo',
+        la: 'Descriptio Officii'
+    },
+    'setup.add_experience': {
+        en: 'Add Another Experience',
+        es: 'Añadir Otra Experiencia',
+        fr: 'Ajouter une Autre Expérience',
+        de: 'Weitere Erfahrung Hinzufügen',
+        pt: 'Adicionar Outra Experiência',
+        la: 'Addere Aliam Experientiam'
+    },
+    'setup.remove': {
+        en: 'Remove',
+        es: 'Eliminar',
+        fr: 'Supprimer',
+        de: 'Entfernen',
+        pt: 'Remover',
+        la: 'Removere'
+    },
+    'setup.education': {
+        en: 'Education',
+        es: 'Educación',
+        fr: 'Éducation',
+        de: 'Bildung',
+        pt: 'Educação',
+        la: 'Educatio'
+    },
+    'setup.school': {
+        en: 'School',
+        es: 'Escuela',
+        fr: 'École',
+        de: 'Schule',
+        pt: 'Escola',
+        la: 'Schola'
+    },
+    'setup.degree': {
+        en: 'Degree',
+        es: 'Título',
+        fr: 'Diplôme',
+        de: 'Abschluss',
+        pt: 'Grau',
+        la: 'Gradus'
+    },
+    'setup.field_of_study': {
+        en: 'Field of Study',
+        es: 'Campo de Estudio',
+        fr: 'Domaine d\'Étude',
+        de: 'Studienfach',
+        pt: 'Área de Estudo',
+        la: 'Campus Studii'
+    },
+    'setup.education_description': {
+        en: 'Description',
+        es: 'Descripción',
+        fr: 'Description',
+        de: 'Beschreibung',
+        pt: 'Descrição',
+        la: 'Descriptio'
+    },
+    'setup.add_education': {
+        en: 'Add Another Education',
+        es: 'Añadir Otra Educación',
+        fr: 'Ajouter une Autre Formation',
+        de: 'Weitere Ausbildung Hinzufügen',
+        pt: 'Adicionar Outra Educação',
+        la: 'Addere Aliam Educationem'
+    },
+    'setup.next': {
+        en: 'Next',
+        es: 'Siguiente',
+        fr: 'Suivant',
+        de: 'Weiter',
+        pt: 'Próximo',
+        la: 'Sequens'
+    },
+    'setup.back': {
+        en: 'Back',
+        es: 'Atrás',
+        fr: 'Retour',
+        de: 'Zurück',
+        pt: 'Voltar',
+        la: 'Redire'
+    },
+    'setup.complete': {
+        en: 'Complete Setup',
+        es: 'Completar Configuración',
+        fr: 'Terminer la Configuration',
+        de: 'Einrichtung Abschließen',
+        pt: 'Concluir Configuração',
+        la: 'Perficere Configurationem'
+    },
+    'setup.saving': {
+        en: 'Saving...',
+        es: 'Guardando...',
+        fr: 'Enregistrement...',
+        de: 'Speichern...',
+        pt: 'Salvando...',
+        la: 'Servans...'
+    },
+    'setup.skip_for_now': {
+        en: 'Skip and Complete Later',
+        es: 'Omitir y Completar Después',
+        fr: 'Passer et Compléter Plus Tard',
+        de: 'Überspringen und Später Abschließen',
+        pt: 'Pular e Completar Depois',
+        la: 'Praeterire et Postea Perficere'
     },
     // Account Settings
     'settings.auth_methods': {

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     debug: bool = False  # Set to True to show detailed error messages
 
     # Session Configuration
-    session_secret: str
+    session_secret: str = "change-this-secret-in-production"  # IMPORTANT: Set in .env for production
     session_cookie_name: str = "dux_session"
     session_max_age: int = 86400  # 24 hours in seconds
     session_cookie_secure: bool = True  # Set to True in production with HTTPS

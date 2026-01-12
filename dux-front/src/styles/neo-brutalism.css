@@ -210,6 +210,16 @@ a:hover {
     background: var(--nb-danger);
 }
 
+.nb-btn--secondary {
+    background: var(--nb-bg-muted);
+    color: var(--nb-fg);
+    border: var(--nb-border) solid var(--nb-fg);
+}
+
+.nb-btn--secondary:hover {
+    background: var(--nb-bg);
+}
+
 .nb-btn--ghost {
     background: var(--nb-btn-ghost-bg);
     color: var(--nb-fg);
@@ -298,7 +308,7 @@ a:hover {
 
 /* Page layout wrapper */
 .nb-page {
-    width: min(100% - 2rem, 680px);
+    width: min(100% - 2rem, 1200px);
     margin: 2.5rem auto;
 }
 

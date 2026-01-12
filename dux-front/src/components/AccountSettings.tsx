@@ -40,7 +40,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onUpdate }) => {
                 setAuthMethods(data);
             }
         } catch (error) {
-            console.error('Failed to fetch auth methods:', error);
+            // Silently fail - auth methods are optional
         }
     };
 

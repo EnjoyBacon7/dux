@@ -77,7 +77,6 @@ const PreferencesCard: React.FC = () => {
             }
         } catch (error) {
             setDeleteError('An error occurred while deleting your account');
-            console.error('Delete account error:', error);
         } finally {
             setIsDeleting(false);
         }

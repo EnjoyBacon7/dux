@@ -1,0 +1,108 @@
+/* ===== HOME PAGE STYLES ===== */
+
+.home-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.home-card-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* Grid Layout */
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.home-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Actions */
+.home-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+.home-actions .nb-btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Upload Form */
+.home-upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.home-upload-form .nb-file {
+    padding: 1rem;
+}
+
+.home-upload-form .nb-btn {
+    width: 100%;
+}
+
+/* Tablet Adjustments (1024px and below) */
+@media (max-width: 1024px) {
+    .home-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+}
+
+/* Mobile Adjustments (768px and below) */
+@media (max-width: 768px) {
+    .home-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .home-title {
+        font-size: 1.5rem;
+    }
+
+    .home-card-title {
+        font-size: 1.1rem;
+    }
+
+    .home-actions {
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .home-actions .nb-btn {
+        width: 100%;
+        min-width: unset;
+    }
+}
+
+/* Small Phone Adjustments (480px and below) */
+@media (max-width: 480px) {
+    .home-grid {
+        gap: 0.75rem;
+    }
+
+    .home-title {
+        font-size: 1.25rem;
+    }
+
+    .home-card-title {
+        font-size: 1rem;
+    }
+
+    .home-upload-form {
+        gap: 0.75rem;
+    }
+}

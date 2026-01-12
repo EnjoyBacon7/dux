@@ -1,11 +1,12 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
 import os
 from server.models import Base
 
 # Get database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://dux_user:dux_password@localhost:5432/dux")
+# Default to SQLite for development if DATABASE_URL is not set
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dux.db")
 
 # Create engine
 engine = create_engine(

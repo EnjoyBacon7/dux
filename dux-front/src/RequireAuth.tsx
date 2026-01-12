@@ -1,9 +1,10 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/useAuth";
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user, loading } = useAuth();
+    const location = useLocation();
 
     if (loading) {
         return (
@@ -15,6 +16,11 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     if (!user) {
         return <Navigate to="/login" replace />;
+    }
+
+    // Redirect to setup if profile is not complete, unless already on setup page
+    if (!user.profile_setup_completed && location.pathname !== '/setup') {
+        return <Navigate to="/setup" replace />;
     }
 
     return <>{children}</>;

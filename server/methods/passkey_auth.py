@@ -1,5 +1,4 @@
 from fastapi import HTTPException, Depends, Request
-import logging
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List
@@ -25,7 +24,6 @@ from server.database import get_db_session
 from server.models import User, PasskeyCredential, WebAuthnChallenge
 from server.config import settings
 from server.validators import validate_username
-from sqlalchemy.exc import IntegrityError
 
 
 # Configuration from settings
@@ -319,7 +317,6 @@ async def verify_passkey_login(request: PasskeyLoginVerifyRequest, req: Request,
         expected_origin=ORIGIN,
         credential_public_key=passkey_cred.public_key,
         credential_current_sign_count=passkey_cred.sign_count,
-        require_user_verification=True,
     )
 
     # Update credential

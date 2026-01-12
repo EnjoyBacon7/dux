@@ -62,7 +62,6 @@ const DebugCard: React.FC = () => {
             }
         } catch (err) {
             setError('Error fetching debug information');
-            console.error('Debug info fetch error:', err);
         } finally {
             setIsLoading(false);
         }
