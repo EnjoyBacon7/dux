@@ -13,23 +13,23 @@ if ! command -v psql &> /dev/null; then
         echo "Visit https://brew.sh"
         exit 1
     fi
-    brew install postgresql@16
+    brew install postgresql
     
     # Add PostgreSQL to PATH for this session
-    export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
+    export PATH="/opt/homebrew/opt/postgresql/bin:$PATH"
 fi
 
 # Ensure PostgreSQL is in PATH
-if [ -d "/opt/homebrew/opt/postgresql@16/bin" ]; then
-    export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
-elif [ -d "/usr/local/opt/postgresql@16/bin" ]; then
-    export PATH="/usr/local/opt/postgresql@16/bin:$PATH"
+if [ -d "/opt/homebrew/opt/postgresql/bin" ]; then
+    export PATH="/opt/homebrew/opt/postgresql/bin:$PATH"
+elif [ -d "/usr/local/opt/postgresql/bin" ]; then
+    export PATH="/usr/local/opt/postgresql/bin:$PATH"
 fi
 
 # Check if PostgreSQL service is running
 if ! pg_isready -h localhost -p 5432 &> /dev/null; then
     echo "Starting PostgreSQL service..."
-    brew services start postgresql@16
+    brew services start postgresql
     
     # Wait for PostgreSQL to be ready
     echo "Waiting for PostgreSQL to start..."
