@@ -85,8 +85,8 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
         if (!content) return null;
         return (
             <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ 
-                    margin: '0 0 0.75rem 0', 
+                <h3 style={{
+                    margin: '0 0 0.75rem 0',
                     fontSize: '1.125rem',
                     fontWeight: 600,
                     opacity: 0.9
@@ -102,7 +102,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
 
     const renderField = (label: string, value: unknown) => {
         if (!value && value !== 0 && value !== false) return null;
-        
+
         let displayValue: string;
         if (typeof value === 'boolean') {
             displayValue = value ? 'Oui' : 'Non';
@@ -111,7 +111,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
         } else {
             displayValue = String(value);
         }
-        
+
         return (
             <div style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem' }}>
                 <span style={{ fontWeight: 600, minWidth: '140px' }}>{label}:</span>
@@ -146,9 +146,9 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                 boxShadow: '8px 8px 0 var(--nb-fg)'
             }}>
                 {/* Header */}
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'flex-start',
                     marginBottom: '1.5rem',
                     paddingBottom: '1rem',
@@ -163,7 +163,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                         </div>
                         {job["lieuTravail_libelle"] && (
                             <div style={{ marginTop: '0.5rem', opacity: 0.7 }}>
-                                📍 {job["lieuTravail_libelle"]}  
+                                📍 {job["lieuTravail_libelle"]}
                             </div>
                         )}
                     </div>
@@ -207,7 +207,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                 ))}
 
                 {/* Salary */}
-                {(job["salaire_libelle"] || job["salaire_complement1"] || job["salaire_complement2"]) && 
+                {(job["salaire_libelle"] || job["salaire_complement1"] || job["salaire_complement2"]) &&
                     renderSection('Rémunération', (
                         <>
                             {renderField('Salaire', job["salaire_libelle"])}
@@ -245,7 +245,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                         {renderField('Libellé', job["lieuTravail_libelle"])}
                         {renderField('Commune', job["lieuTravail_commune"])}
                         {renderField('Code postal', job["lieuTravail_codePostal"])}
-                        {job["lieuTravail_latitude"] && job["lieuTravail_longitude"] && 
+                        {job["lieuTravail_latitude"] && job["lieuTravail_longitude"] &&
                             renderField('Coordonnées', `${job["lieuTravail_latitude"]}, ${job["lieuTravail_longitude"]}`)}
                         {renderField('Déplacement', job.deplacementLibelle || job.deplacementCode)}
                     </>

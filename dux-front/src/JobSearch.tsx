@@ -213,9 +213,9 @@ const JobSearch: React.FC = () => {
                         ) : (
                             <>
                                 {jobs.map(job => (
-                                    <div 
-                                        key={job.id} 
-                                        className="nb-card" 
+                                    <div
+                                        key={job.id}
+                                        className="nb-card"
                                         style={{ cursor: 'pointer' }}
                                         onClick={() => setSelectedJob(job)}
                                     >
@@ -268,8 +268,8 @@ const JobSearch: React.FC = () => {
                                             {/* Job Description Preview */}
                                             {job.description && (
                                                 <p style={{ margin: 0, lineHeight: 1.6 }}>
-                                                    {job.description.length > 200 
-                                                        ? job.description.substring(0, 200) + '...' 
+                                                    {job.description.length > 200
+                                                        ? job.description.substring(0, 200) + '...'
                                                         : job.description}
                                                 </p>
                                             )}
