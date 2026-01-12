@@ -154,8 +154,8 @@ def get_offers(API_URL, NB_OFFRE, CLIENT_ID, CLIENT_SECRET, AUTH_URL):
 if __name__ == "__main__":
     API_URL = "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search"
     NB_OFFRE = 150
-    CLIENT_ID = "PAR_dux_dc80f0f45695a7c5d5baec8923f9fe0180cdfbf90d29c35307a8014e3275b200"
-    CLIENT_SECRET = "20881cafb62205992dde84402208292faf4d976b01633d4f2d1e1e84adc5de48"
+    CLIENT_ID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    CLIENT_SECRET = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
     AUTH_URL = "https://entreprise.francetravail.fr/connexion/oauth2/access_token"
 
     get_offers(API_URL, NB_OFFRE, CLIENT_ID, CLIENT_SECRET, AUTH_URL)
