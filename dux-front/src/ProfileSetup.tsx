@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/useAuth";
 import { useLanguage } from "./contexts/useLanguage";
 import { Header } from "./components";
+import "./styles/profileSetup.css";
 
 interface Experience {
     company: string;
@@ -179,52 +180,23 @@ const ProfileSetup: React.FC = () => {
             <Header />
             <div className="nb-page nb-stack">
                 <div className="nb-card">
-                    <h1 style={{ margin: '0 0 0.5rem 0' }}>{t('setup.title')}</h1>
+                    <h1 className="setup-title">{t('setup.title')}</h1>
                     <p className="nb-text-dim">{t('setup.description')}</p>
 
                     {/* Progress indicator */}
-                    <div style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        marginTop: '1.5rem',
-                        marginBottom: '1.5rem'
-                    }}>
-                        <div style={{
-                            flex: 1,
-                            height: '4px',
-                            backgroundColor: step === 'cv' ? 'var(--nb-accent)' : 'var(--nb-fg)',
-                            opacity: step === 'cv' ? 1 : 0.3,
-                            borderRadius: '2px'
-                        }} />
-                        <div style={{
-                            flex: 1,
-                            height: '4px',
-                            backgroundColor: step === 'profile' ? 'var(--nb-accent)' : 'var(--nb-fg)',
-                            opacity: step === 'profile' ? 1 : 0.3,
-                            borderRadius: '2px'
-                        }} />
-                        <div style={{
-                            flex: 1,
-                            height: '4px',
-                            backgroundColor: step === 'experience' ? 'var(--nb-accent)' : 'var(--nb-fg)',
-                            opacity: step === 'experience' ? 1 : 0.3,
-                            borderRadius: '2px'
-                        }} />
-                        <div style={{
-                            flex: 1,
-                            height: '4px',
-                            backgroundColor: step === 'education' ? 'var(--nb-accent)' : 'var(--nb-fg)',
-                            opacity: step === 'education' ? 1 : 0.3,
-                            borderRadius: '2px'
-                        }} />
+                    <div className="setup-progress">
+                        <div className={`setup-progress__bar ${step === 'cv' ? 'setup-progress__bar--active' : ''}`} />
+                        <div className={`setup-progress__bar ${step === 'profile' || step === 'experience' || step === 'education' ? 'setup-progress__bar--active' : ''}`} />
+                        <div className={`setup-progress__bar ${step === 'experience' || step === 'education' ? 'setup-progress__bar--active' : ''}`} />
+                        <div className={`setup-progress__bar ${step === 'education' ? 'setup-progress__bar--active' : ''}`} />
                     </div>
                 </div>
 
                 {/* Step 1: CV Upload */}
                 {step === 'cv' && (
                     <div className="nb-card">
-                        <h2 style={{ margin: '0 0 1rem 0' }}>{t('setup.cv_upload')}</h2>
-                        <form onSubmit={handleCvUpload}>
+                        <h2 className="setup-step-title">{t('setup.cv_upload')}</h2>
+                        <form onSubmit={handleCvUpload} className="setup-form">
                             <input
                                 type="file"
                                 ref={fileInputRef}
@@ -232,7 +204,7 @@ const ProfileSetup: React.FC = () => {
                                 accept=".pdf,.doc,.docx"
                                 disabled={uploading}
                             />
-                            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                            <div className="setup-form__actions">
                                 <button
                                     type="submit"
                                     className="nb-btn"
@@ -242,23 +214,23 @@ const ProfileSetup: React.FC = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    className="nb-btn-secondary"
+                                    className="nb-btn nb-btn--secondary"
                                     onClick={() => setStep('profile')}
                                 >
                                     {t('setup.skip_cv')}
                                 </button>
                             </div>
                         </form>
-                        {error && <div className="nb-alert nb-alert--danger" style={{ marginTop: '1rem' }}>{error}</div>}
+                        {error && <div className="nb-alert nb-alert--danger setup-error">{error}</div>}
                     </div>
                 )}
 
                 {/* Step 2: Profile Information */}
                 {step === 'profile' && (
                     <div className="nb-card">
-                        <h2 style={{ margin: '0 0 1rem 0' }}>{t('setup.profile_info')}</h2>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div>
+                        <h2 className="setup-step-title">{t('setup.profile_info')}</h2>
+                        <div className="setup-form__group">
+                            <div className="setup-form__field">
                                 <label className="nb-label">{t('setup.headline')}</label>
                                 <input
                                     type="text"
@@ -268,7 +240,7 @@ const ProfileSetup: React.FC = () => {
                                     placeholder="e.g., Senior Software Engineer"
                                 />
                             </div>
-                            <div>
+                            <div className="setup-form__field">
                                 <label className="nb-label">{t('setup.location')}</label>
                                 <input
                                     type="text"
@@ -278,7 +250,7 @@ const ProfileSetup: React.FC = () => {
                                     placeholder="e.g., San Francisco, CA"
                                 />
                             </div>
-                            <div>
+                            <div className="setup-form__field">
                                 <label className="nb-label">{t('setup.summary')}</label>
                                 <textarea
                                     className="nb-input"
@@ -288,9 +260,9 @@ const ProfileSetup: React.FC = () => {
                                     placeholder={t('setup.summary_placeholder')}
                                 />
                             </div>
-                            <div>
+                            <div className="setup-form__field">
                                 <label className="nb-label">{t('setup.skills')}</label>
-                                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                <div className="setup-skills__input">
                                     <input
                                         type="text"
                                         className="nb-input"
@@ -298,42 +270,23 @@ const ProfileSetup: React.FC = () => {
                                         onChange={(e) => setSkillInput(e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleSkillAdd())}
                                         placeholder="e.g., React, Python, etc."
-                                        style={{ flex: 1 }}
                                     />
                                     <button
                                         type="button"
-                                        className="nb-btn-secondary"
+                                        className="nb-btn nb-btn--secondary"
                                         onClick={handleSkillAdd}
                                     >
                                         {t('setup.add_skill')}
                                     </button>
                                 </div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                <div className="setup-skills__list">
                                     {skills.map((skill, idx) => (
-                                        <span
-                                            key={idx}
-                                            style={{
-                                                padding: '0.25rem 0.75rem',
-                                                backgroundColor: 'var(--nb-accent)',
-                                                border: 'var(--nb-border) solid var(--nb-fg)',
-                                                borderRadius: '4px',
-                                                fontSize: '0.875rem',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.5rem'
-                                            }}
-                                        >
+                                        <span key={idx} className="setup-skill-tag">
                                             {skill}
                                             <button
                                                 onClick={() => handleSkillRemove(skill)}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    padding: 0,
-                                                    fontSize: '1rem',
-                                                    lineHeight: 1
-                                                }}
+                                                className="setup-skill-tag__remove"
+                                                aria-label={`Remove ${skill}`}
                                             >
                                                 ×
                                             </button>
@@ -341,22 +294,22 @@ const ProfileSetup: React.FC = () => {
                                     ))}
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                                <button
-                                    type="button"
-                                    className="nb-btn"
-                                    onClick={() => setStep('experience')}
-                                >
-                                    {t('setup.next')}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="nb-btn-secondary"
-                                    onClick={() => setStep('cv')}
-                                >
-                                    {t('setup.back')}
-                                </button>
-                            </div>
+                        </div>
+                        <div className="setup-form__actions">
+                            <button
+                                type="button"
+                                className="nb-btn"
+                                onClick={() => setStep('experience')}
+                            >
+                                {t('setup.next')}
+                            </button>
+                            <button
+                                type="button"
+                                className="nb-btn nb-btn--secondary"
+                                onClick={() => setStep('cv')}
+                            >
+                                {t('setup.back')}
+                            </button>
                         </div>
                     </div>
                 )}
@@ -364,31 +317,22 @@ const ProfileSetup: React.FC = () => {
                 {/* Step 3: Work Experience */}
                 {step === 'experience' && (
                     <div className="nb-card">
-                        <h2 style={{ margin: '0 0 1rem 0' }}>{t('setup.experience')}</h2>
+                        <h2 className="setup-step-title">{t('setup.experience')}</h2>
                         {experiences.map((exp, idx) => (
-                            <div
-                                key={idx}
-                                style={{
-                                    marginBottom: '1.5rem',
-                                    padding: '1rem',
-                                    border: 'var(--nb-border) solid var(--nb-fg)',
-                                    borderRadius: '6px'
-                                }}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                    <h3 style={{ margin: 0, fontSize: '1rem' }}>Experience #{idx + 1}</h3>
+                            <div key={idx} className="setup-item">
+                                <div className="setup-item__header">
+                                    <h3 className="setup-item__title">Experience #{idx + 1}</h3>
                                     {experiences.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeExperience(idx)}
-                                            className="nb-btn-secondary"
-                                            style={{ fontSize: '0.875rem' }}
+                                            className="nb-btn nb-btn--secondary"
                                         >
                                             {t('setup.remove')}
                                         </button>
                                     )}
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div className="setup-form__group">
                                     <input
                                         type="text"
                                         className="nb-input"
@@ -403,7 +347,7 @@ const ProfileSetup: React.FC = () => {
                                         value={exp.title}
                                         onChange={(e) => updateExperience(idx, 'title', e.target.value)}
                                     />
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                    <div className="setup-form__group--row">
                                         <input
                                             type="month"
                                             className="nb-input"
@@ -420,13 +364,13 @@ const ProfileSetup: React.FC = () => {
                                             disabled={exp.isCurrent}
                                         />
                                     </div>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                                    <label className="setup-form__checkbox">
                                         <input
                                             type="checkbox"
                                             checked={exp.isCurrent}
                                             onChange={(e) => updateExperience(idx, 'isCurrent', e.target.checked)}
                                         />
-                                        {t('setup.current_position')}
+                                        <span>{t('setup.current_position')}</span>
                                     </label>
                                     <textarea
                                         className="nb-input"
@@ -440,13 +384,12 @@ const ProfileSetup: React.FC = () => {
                         ))}
                         <button
                             type="button"
-                            className="nb-btn-secondary"
+                            className="nb-btn nb-btn--secondary"
                             onClick={addExperience}
-                            style={{ marginBottom: '1rem' }}
                         >
                             {t('setup.add_experience')}
                         </button>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div className="setup-form__actions">
                             <button
                                 type="button"
                                 className="nb-btn"
@@ -456,7 +399,7 @@ const ProfileSetup: React.FC = () => {
                             </button>
                             <button
                                 type="button"
-                                className="nb-btn-secondary"
+                                className="nb-btn nb-btn--secondary"
                                 onClick={() => setStep('profile')}
                             >
                                 {t('setup.back')}
@@ -468,31 +411,22 @@ const ProfileSetup: React.FC = () => {
                 {/* Step 4: Education */}
                 {step === 'education' && (
                     <div className="nb-card">
-                        <h2 style={{ margin: '0 0 1rem 0' }}>{t('setup.education')}</h2>
+                        <h2 className="setup-step-title">{t('setup.education')}</h2>
                         {educations.map((edu, idx) => (
-                            <div
-                                key={idx}
-                                style={{
-                                    marginBottom: '1.5rem',
-                                    padding: '1rem',
-                                    border: 'var(--nb-border) solid var(--nb-fg)',
-                                    borderRadius: '6px'
-                                }}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                    <h3 style={{ margin: 0, fontSize: '1rem' }}>Education #{idx + 1}</h3>
+                            <div key={idx} className="setup-item">
+                                <div className="setup-item__header">
+                                    <h3 className="setup-item__title">Education #{idx + 1}</h3>
                                     {educations.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeEducation(idx)}
-                                            className="nb-btn-secondary"
-                                            style={{ fontSize: '0.875rem' }}
+                                            className="nb-btn nb-btn--secondary"
                                         >
                                             {t('setup.remove')}
                                         </button>
                                     )}
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div className="setup-form__group">
                                     <input
                                         type="text"
                                         className="nb-input"
@@ -514,7 +448,7 @@ const ProfileSetup: React.FC = () => {
                                         value={edu.fieldOfStudy}
                                         onChange={(e) => updateEducation(idx, 'fieldOfStudy', e.target.value)}
                                     />
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                    <div className="setup-form__group--row">
                                         <input
                                             type="month"
                                             className="nb-input"
@@ -542,13 +476,12 @@ const ProfileSetup: React.FC = () => {
                         ))}
                         <button
                             type="button"
-                            className="nb-btn-secondary"
+                            className="nb-btn nb-btn--secondary"
                             onClick={addEducation}
-                            style={{ marginBottom: '1rem' }}
                         >
                             {t('setup.add_education')}
                         </button>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div className="setup-form__actions">
                             <button
                                 type="button"
                                 className="nb-btn"
@@ -559,21 +492,21 @@ const ProfileSetup: React.FC = () => {
                             </button>
                             <button
                                 type="button"
-                                className="nb-btn-secondary"
+                                className="nb-btn nb-btn--secondary"
                                 onClick={() => setStep('experience')}
                             >
                                 {t('setup.back')}
                             </button>
                         </div>
-                        {error && <div className="nb-alert nb-alert--danger" style={{ marginTop: '1rem' }}>{error}</div>}
+                        {error && <div className="nb-alert nb-alert--danger setup-error">{error}</div>}
                     </div>
                 )}
 
                 {/* Skip Setup */}
-                <div className="nb-card" style={{ textAlign: 'center' }}>
+                <div className="nb-card setup-skip">
                     <button
                         type="button"
-                        className="nb-btn-ghost"
+                        className="nb-btn nb-btn--ghost"
                         onClick={skipSetup}
                     >
                         {t('setup.skip_for_now')}
