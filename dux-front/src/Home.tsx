@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/useAuth";
 import { useLanguage } from "./contexts/useLanguage";
 import { Header, AccountCard } from "./components";
+import "./styles/home.css";
 
 const Home: React.FC = () => {
     const navigate = useNavigate();
@@ -49,7 +50,7 @@ const Home: React.FC = () => {
     return (
         <>
             <Header />
-            <div className="nb-page nb-stack">
+            <div className="nb-page">
                 <AccountCard
                     username={user.username}
                     firstName={user.first_name}
@@ -57,39 +58,43 @@ const Home: React.FC = () => {
                     title={user.title}
                     profilePicture={user.profile_picture}
                 />
-                <div className="nb-card">
-                    <h1 style={{ margin: '0 0 1rem 0' }}>{t('home.welcome')}</h1>
+                
+                <div className="home-grid">
+                    {/* Welcome Card */}
+                    <div className="nb-card home-card">
+                        <h1 className="home-title">{t('home.welcome')}</h1>
                     <p className="nb-text-dim">{t('home.authenticated')}</p>
-                    <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                        <div className="home-actions">
                         <button
                             onClick={() => navigate('/jobs')}
                             className="nb-btn"
                         >
                             {t('jobs.title')}
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                {/* Upload Card */}
-                <div className="nb-card">
-                    <h2 style={{ margin: '0 0 1rem 0' }}>{t('upload.title')}</h2>
-                    <form className="nb-form" onSubmit={handleSubmit}>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="nb-file"
-                            disabled={uploading}
-                        />
-                        <button
-                            type="submit"
-                            className={`nb-btn ${uploading ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
-                            disabled={uploading}
-                        >
-                            {uploading ? t('upload.uploading') : t('upload.button')}
-                        </button>
-                    </form>
-                    {success && <div className="nb-alert nb-alert--success nb-mt">{success}</div>}
-                    {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
+                    {/* Upload Card */}
+                    <div className="nb-card home-card">
+                        <h2 className="home-card-title">{t('upload.title')}</h2>
+                        <form className="nb-form home-upload-form" onSubmit={handleSubmit}>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="nb-file"
+                                disabled={uploading}
+                            />
+                            <button
+                                type="submit"
+                                className={`nb-btn ${uploading ? 'nb-btn--ghost' : 'nb-btn--accent'}`}
+                                disabled={uploading}
+                            >
+                                {uploading ? t('upload.uploading') : t('upload.button')}
+                            </button>
+                        </form>
+                        {success && <div className="nb-alert nb-alert--success nb-mt">{success}</div>}
+                        {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
+                    </div>
                 </div>
             </div>
         </>

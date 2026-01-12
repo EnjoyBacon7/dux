@@ -308,7 +308,7 @@ a:hover {
 
 /* Page layout wrapper */
 .nb-page {
-    width: min(100% - 2rem, 680px);
+    width: min(100% - 2rem, 1200px);
     margin: 2.5rem auto;
 }
 
