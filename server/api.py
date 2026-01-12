@@ -1,5 +1,9 @@
+import logging
+
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 from server.methods.upload import upload_file
+from server.methods.job_search import search_job_offers
 from server.database import get_db_session
 from server.models import User, Experience, Education
 from sqlalchemy.orm import Session
@@ -7,6 +11,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 router = APIRouter(tags=["General"])
+logger = logging.getLogger(__name__)
 
 
 class ExperienceData(BaseModel):
@@ -171,3 +176,31 @@ async def complete_profile_setup(
         import logging
         logging.error(f"Profile setup failed for user {current_user.id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to complete profile setup")
+
+
+@router.get("/jobs/search", summary="Search job offers")
+async def search_jobs(
+    q: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 20,
+    db: Session = Depends(get_db_session)
+):
+    """
+    Query job offers stored in the database, returning the full column set.
+
+    Args:
+        q: Optional free-text query to match against key text fields
+        page: 1-based page number
+        page_size: Number of results per page (capped to 100)
+        db: Database session
+
+    Returns:
+        Paginated job offer results and total count
+    """
+    try:
+        result = search_job_offers(db, query=q, page=page, page_size=page_size)
+        result["results"] = jsonable_encoder(result["results"])
+        return result
+    except Exception as exc:
+        logger.exception("Job search failed")
+        raise HTTPException(status_code=500, detail="Failed to fetch job offers") from exc
