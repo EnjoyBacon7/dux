@@ -128,8 +128,8 @@ async def get_current_user(request: Request, db: Session = Depends(get_db_sessio
         raise HTTPException(status_code=404, detail="User not found")
 
     return {
-        "username": user.username,
         "user_id": user.id,
+        "username": user.username,
         "first_name": user.first_name,
         "last_name": user.last_name,
         "title": user.title,
@@ -251,6 +251,7 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db_sessi
         if user:
             # Existing user - log them in
             request.session["username"] = user.username
+            request.session["user_id"] = user.id
             message = "Logged in successfully"
         else:
             # New user - create account
@@ -272,7 +273,8 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db_sessi
                 first_name=profile_data.get('first_name'),
                 last_name=profile_data.get('last_name'),
                 profile_picture=profile_data.get('profile_picture'),
-                password_hash=None  # No password for LinkedIn-only users
+                password_hash=None,  # No password for LinkedIn-only users
+                profile_setup_completed=True  # LinkedIn users skip profile setup
             )
             db.add(user)
             db.commit()
@@ -280,6 +282,7 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db_sessi
 
             # Log the new user in
             request.session["username"] = user.username
+            request.session["user_id"] = user.id
             message = "Account created and logged in successfully"
 
         return {

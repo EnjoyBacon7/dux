@@ -317,7 +317,6 @@ async def verify_passkey_login(request: PasskeyLoginVerifyRequest, req: Request,
         expected_origin=ORIGIN,
         credential_public_key=passkey_cred.public_key,
         credential_current_sign_count=passkey_cred.sign_count,
-        require_user_verification=True,
     )
 
     # Update credential

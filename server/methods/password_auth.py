@@ -2,7 +2,7 @@ from fastapi import HTTPException, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from passlib.hash import argon2
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from server.database import get_db_session
 from server.models import User, LoginAttempt
@@ -80,15 +80,15 @@ async def login_user_with_password(request: PasswordLoginRequest, req: Request, 
     password_valid = False
     if user:
         # Check if account is locked
-        if user.locked_until and user.locked_until > datetime.utcnow():
-            time_remaining = (user.locked_until - datetime.utcnow()).seconds // 60
+        if user.locked_until and user.locked_until > datetime.now(timezone.utc):
+            time_remaining = (user.locked_until - datetime.now(timezone.utc)).seconds // 60
             raise HTTPException(
                 status_code=429,
                 detail=f"Account is temporarily locked. Try again in {time_remaining} minutes."
             )
 
         # Clear lockout if time has passed
-        if user.locked_until and user.locked_until <= datetime.utcnow():
+        if user.locked_until and user.locked_until <= datetime.now(timezone.utc):
             user.locked_until = None
             user.failed_login_attempts = 0
             db.commit()
@@ -136,7 +136,7 @@ async def login_user_with_password(request: PasswordLoginRequest, req: Request, 
     req.session.clear()
     req.session["user_id"] = user.id
     req.session["username"] = user.username
-    req.session["authenticated_at"] = datetime.utcnow().isoformat()
+    req.session["authenticated_at"] = datetime.now(timezone.utc).isoformat()
 
     return {
         "success": True,

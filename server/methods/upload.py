@@ -2,6 +2,7 @@ from fastapi import UploadFile, File, HTTPException
 from pathlib import Path
 import shutil
 import os
+import uuid
 
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "./uploads"))
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
@@ -24,8 +25,8 @@ async def upload_file(file: UploadFile = File(...)):
             detail=f"File type not allowed. Allowed types: {', '.join(allowed_extensions)}"
         )
 
-    # Create safe filename to prevent directory traversal
-    safe_filename = Path(file.filename).name
+    # Create safe filename using UUID to prevent directory traversal and filename collisions
+    safe_filename = f"{uuid.uuid4()}{file_extension}"
     file_path = UPLOAD_DIR / safe_filename
 
     try:

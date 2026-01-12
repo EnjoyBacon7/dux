@@ -81,14 +81,31 @@ app.include_router(auth_router)
 # Get project root directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Mount frontend static files
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+# Mount frontend static files (only if directory exists)
+static_dir = BASE_DIR / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Serve React SPA for all routes"""
     index_path = BASE_DIR / "static" / "index.html"
-    with open(index_path, "r", encoding="utf-8") as f:
-        html_content = f.read()
-    return HTMLResponse(content=html_content, status_code=200)
+    
+    # Check if index.html exists before serving
+    if not index_path.exists():
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Frontend not built. Run 'npm run build' in dux-front directory."}
+        )
+    
+    try:
+        with open(index_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content, status_code=200)
+    except Exception as e:
+        logger.error(f"Failed to serve SPA: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Failed to serve application"}
+        )
