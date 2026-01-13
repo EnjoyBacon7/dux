@@ -76,8 +76,8 @@ class Settings(BaseSettings):
     client_id: str = ""
     client_secret: str = ""
     auth_url: str = ""
-    api_url_offres: str
-    api_url_fiche_metier: str
+    api_url_offres: str = ""
+    api_url_fiche_metier: str = ""
 
     # LLM Configuration
     openai_api_key: str = ""
