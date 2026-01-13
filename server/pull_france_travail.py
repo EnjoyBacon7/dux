@@ -4,15 +4,18 @@ import requests
 from tqdm.auto import tqdm
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
 from models import Offres_FT
 import os
 from dotenv import load_dotenv
 import json
+from datetime import datetime, timedelta
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-def get_access_token(CLIENT_ID,CLIENT_SECRET,AUTH_URL) -> str:
+
+def get_access_token(CLIENT_ID, CLIENT_SECRET, AUTH_URL) -> str:
     """
     Récupère un token OAuth2 en mode client_credentials.
     """
@@ -30,41 +33,103 @@ def get_access_token(CLIENT_ID,CLIENT_SECRET,AUTH_URL) -> str:
     return token
 
 
-def search_offers(API_URL,NB_OFFRE,CLIENT_ID,CLIENT_SECRET,AUTH_URL) -> list[dict]:
+def search_offers(API_URL, NB_OFFRE, CLIENT_ID, CLIENT_SECRET, AUTH_URL) -> list[dict]:
     offers = []
-    token = get_access_token(CLIENT_ID,CLIENT_SECRET,AUTH_URL)
+    token = get_access_token(CLIENT_ID, CLIENT_SECRET, AUTH_URL)
+    start_date = datetime(2020, 1, 1)
+    
+    # Start from the current date and paginate backwards
+    max_creation_date = datetime.now()
+    
+    with tqdm(desc="Fetching job offers") as pbar:
+        while max_creation_date >= start_date:
+            page_start = 0
+            has_more_results = True
+            
+            while has_more_results:
+                # Respect API limits: page_start <= 3000, page_end <= 3149
+                if page_start > 3000:
+                    break
+                
+                page_end = min(page_start + 149, 3149)
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                }
+                
+                try:
+                    params = {
+                        "maxCreationDate": max_creation_date.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        "minCreationDate": start_date.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        "range": f"{page_start}-{page_end}"
 
-    for i in tqdm(range(0,NB_OFFRE,150)):
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "range": f"{i}-{NB_OFFRE if i+150 > NB_OFFRE else i+150}"
-        }
-
-        try:
-            resp = requests.get(API_URL, headers=headers)
-            resp.raise_for_status()
-            data = resp.json()
-        except:
-            token = get_access_token()
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "range": f"{i}-{NB_OFFRE if i+150 > NB_OFFRE else i+150}"
-            }
-            resp = requests.get(API_URL, headers=headers)
-            resp.raise_for_status()
-            data = resp.json()
-
-        offers += data.get("resultats", [])
+                    }
+                    resp = requests.get(API_URL, headers=headers, params=params)
+                    resp.raise_for_status()
+                    data = resp.json()
+                except Exception as e:
+                    print(f"Error: {e}")
+                    print(f"Response: {resp.text if 'resp' in locals() else 'No response'}")
+                    token = get_access_token(CLIENT_ID, CLIENT_SECRET, AUTH_URL)
+                    headers = {
+                        "Authorization": f"Bearer {token}",
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                        "Range": f"{page_start}-{page_end}"
+                    }
+                    params = {
+                        "maxCreationDate": max_creation_date.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        "minCreationDate": start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    }
+                    resp = requests.get(API_URL, headers=headers, params=params)
+                    resp.raise_for_status()
+                    data = resp.json()
+                
+                results = data.get("resultats", [])
+                if not results:
+                    # No more results for this date range, move to previous date
+                    has_more_results = False
+                    break
+                
+                offers += results
+                
+                # Save results to database immediately
+                save_offers_to_db(results)
+                
+                pbar.set_postfix({
+                    "maxCreationDate": max_creation_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    "page": f"{page_start}-{page_end}",
+                    "retrieved": len(results),
+                    "total": len(offers)
+                })
+                pbar.update(1)
+                
+                # If we got fewer results than requested, we've reached the end of this date range
+                if len(results) < 150:
+                    has_more_results = False
+                else:
+                    page_start += 150
+            
+            # Use the last offer's creation date as the new maxCreationDate for the next request
+            if offers:
+                last_offer_date_str = offers[-1].get("dateCreation")
+                if last_offer_date_str:
+                    max_creation_date = datetime.fromisoformat(last_offer_date_str.replace('Z', '+00:00')).replace(tzinfo=None)
+                    # Subtract a small amount to ensure we don't skip offers with the same creation timestamp
+                    max_creation_date -= timedelta(seconds=1)
+                else:
+                    break
+            else:
+                break
+    
     return offers
 
 
 # Create a session factory
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
+
 
 def save_offers_to_db(offers: list[dict]) -> None:
     if not offers:
@@ -137,19 +202,24 @@ def save_offers_to_db(offers: list[dict]) -> None:
                 trancheEffectifEtab=offer.get("trancheEffectifEtab"),
                 experienceCommentaire=offer.get("experienceCommentaire"),
             )
-            session.add(offre)
+            try:
+                session.add(offre)
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                # Skip duplicate entries
+                continue
 
-        session.commit()
-        print(f"{len(offers)} offres sauvegardées dans la base de données.")
     except Exception as e:
         session.rollback()
         print(f"Erreur lors de la sauvegarde des offres : {e}")
     finally:
         session.close()
 
+
 def get_offers(API_URL, NB_OFFRE, CLIENT_ID, CLIENT_SECRET, AUTH_URL):
     offres = search_offers(API_URL, NB_OFFRE, CLIENT_ID, CLIENT_SECRET, AUTH_URL)
-    save_offers_to_db(offres)
+
 
 if __name__ == "__main__":
     API_URL = "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search"
