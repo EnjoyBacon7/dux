@@ -7,9 +7,6 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-# Allow table override via environment for flexibility
-JOB_OFFERS_TABLE = os.getenv("JOB_OFFERS_TABLE", "job_offers")
-
 # Full list of columns to return for each job offer
 JOB_COLUMNS: List[str] = [
     "id",
@@ -117,7 +114,7 @@ def search_job_offers(
     offset = (safe_page - 1) * safe_page_size
 
     select_clause = ", ".join(_quote_identifier(col) for col in JOB_COLUMNS)
-    table_name = _quote_identifier(JOB_OFFERS_TABLE)
+    table_name = _quote_identifier("offres_FT")
     where_clause, where_params = _build_where_clause(query)
 
     params: Dict[str, Any] = {**where_params, "limit": safe_page_size, "offset": offset}

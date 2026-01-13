@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, Query
 from fastapi.encoders import jsonable_encoder
+
 from server.methods.upload import upload_file
 from server.methods.job_search import search_job_offers
 from server.database import get_db_session
