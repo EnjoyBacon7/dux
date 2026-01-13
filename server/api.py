@@ -1,8 +1,9 @@
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, Query
 from server.methods.upload import upload_file
 from server.database import get_db_session
-from server.models import User, Experience, Education
-from sqlalchemy.orm import Session
+from server.models import User, Experience, Education, Fiche_Metier_ROME    
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine, inspect, text
 from pydantic import BaseModel
 from typing import List, Optional
 from server.config import settings
@@ -10,6 +11,7 @@ import requests
 import pandas as pd
 import os
 import logging
+import json
 
 router = APIRouter(tags=["General"])
 
@@ -232,7 +234,7 @@ def load_offers(
         CLIENT_ID = settings.client_id
         CLIENT_SECRET = settings.client_secret
         AUTH_URL = settings.auth_url
-        API_URL = settings.api_url
+        API_URL_OFFRES = settings.api_url_offres
 
         """
         Récupère un token OAuth2 en mode client_credentials.
@@ -304,7 +306,7 @@ def load_offers(
             }
 
             try:
-                resp = requests.get(API_URL, headers=headers)
+                resp = requests.get(API_URL_OFFRES, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
             except:
@@ -367,7 +369,7 @@ def load_offers(
                     "theme": theme,
                     "typeContrat": typeContrat,
                 }
-                resp = requests.get(API_URL, headers=headers)
+                resp = requests.get(API_URL_OFFRES, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
 
@@ -375,11 +377,113 @@ def load_offers(
             logger = logging.getLogger("uvicorn.info")
             logger.info(f"Récupération des offres : {len(offers)}/{nb_offres} obtenues.")
             
-        # Sauvegarder les offres dans la base de données
+        # Renvoi du résultat
         return offers
     
     except Exception as e:
         return {"error": str(e)}
 
 
+@router.post("/load_fiche_metier", summary="Load fiche metier from France Travail API (ROME)")
+def load_fiche_metier():
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """   
 
+    try:   
+        CLIENT_ID = settings.client_id
+        CLIENT_SECRET = settings.client_secret
+        AUTH_URL = settings.auth_url
+        API_URL_FICHE_METIER = settings.api_url_fiche_metier
+        DATABASE_URL = settings.database_url
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "scope": f"api_rome-fiches-metiersv1 nomenclatureRome",
+        }
+        params = {"realm": "/partenaire"}
+
+        resp = requests.post(AUTH_URL, data=data, params=params)
+        resp.raise_for_status()
+        token = resp.json()["access_token"]
+
+        # Récupérer les offres depuis l'API
+        fiche_metier = []
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        try:
+            resp = requests.get(API_URL_FICHE_METIER, headers=headers)
+            resp.raise_for_status()
+            data = resp.json()
+        except:
+            data = {
+                "grant_type": "client_credentials",
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "scope": f"api_rome-fiches-metiersv1 nomenclatureRome",
+            }
+            params = {"realm": "/partenaire"}
+
+            resp = requests.post(AUTH_URL, data=data, params=params)
+            resp.raise_for_status()
+            token = resp.json()["access_token"]
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = requests.get(API_URL_FICHE_METIER, headers=headers)
+            resp.raise_for_status()
+            data = resp.json()
+
+        fiche_metier += data
+        
+        logger = logging.getLogger("uvicorn.info")
+        logger.info(f"Récupération des fiches métiers : {len(fiche_metier)} obtenues.")
+
+        # Sauvegarde du résultat dans une base de données
+        # Create a session factory
+        engine = create_engine(DATABASE_URL)
+        Session = sessionmaker(bind=engine)
+
+        if not fiche_metier:
+            print("Aucune offre reçue, rien à sauvegarder.")
+            return
+
+        session = Session()
+        session.execute(text("TRUNCATE TABLE Fiche_Metier_ROME RESTART IDENTITY CASCADE;"))
+        session.commit()
+
+        try:
+            for fiche in fiche_metier:
+                fiche_insert = Fiche_Metier_ROME(
+                    code = fiche.get("code"),
+                    metier = fiche.get("metier"),  # {code, libelle}
+                    groupesCompetencesMobilisees = fiche.get("groupesCompetencesMobilisees"),  # Array of competency groups
+                    groupesSavoirs = fiche.get("groupesSavoirs")  # Array of knowledge groups
+                )
+                try:
+                    session.add(fiche_insert)
+                except:
+                    logger.info(f"La fiche métier ROME {fiche.get('code')} existe déjà en base de données.")
+
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Erreur lors de la sauvegarde des fiches métiers ROME : {str(e)}", exc_info=True)
+        finally:
+            session.close()
+
+        return {"message": f"{len(fiche_metier)} fiches métiers ROME chargées et sauvegardées avec succès"}
+
+    except Exception as e:
+        return {"error": str(e)}    
+    

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Boolean, Text
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
 Base = declarative_base()
 
@@ -213,3 +213,15 @@ class Offres_FT(Base):
 
     def __repr__(self):
         return f"<Offres_FT(id={self.id})>"
+    
+
+class Fiche_Metier_ROME(Base):
+    __tablename__ = "fiche_metier_rome"
+    
+    code = Column(String, unique=True, nullable=False, index=True, primary_key=True)
+    metier = Column(JSON, nullable=False)  # {code, libelle}
+    groupesCompetencesMobilisees = Column(JSON, nullable=False)  # Array of competency groups
+    groupesSavoirs = Column(JSON, nullable=False)  # Array of knowledge groups
+
+    def __repr__(self):
+        return f"<Fiche_Metier_ROME(code={self.code})>"
