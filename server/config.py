@@ -68,6 +68,10 @@ class Settings(BaseSettings):
     linkedin_client_secret: str = ""
     linkedin_redirect_uri: str = "http://localhost:5173/linkedin/callback"
 
+    # France Travail OAuth
+    ft_client_id: str = ""
+    ft_client_secret: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
