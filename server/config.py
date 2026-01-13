@@ -76,6 +76,10 @@ class Settings(BaseSettings):
     client_secret: str
     auth_url: str
     api_url: str
+    
+    # France Travail OAuth
+    ft_client_id: str = ""
+    ft_client_secret: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
