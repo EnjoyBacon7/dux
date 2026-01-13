@@ -1,5 +1,9 @@
+import logging
+
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, Query
+from fastapi.encoders import jsonable_encoder
 from server.methods.upload import upload_file
+from server.methods.job_search import search_job_offers
 from server.database import get_db_session
 from server.models import User, Experience, Education, Fiche_Metier_ROME    
 from sqlalchemy.orm import Session, sessionmaker
@@ -14,6 +18,7 @@ import logging
 import json
 
 router = APIRouter(tags=["General"])
+logger = logging.getLogger(__name__)
 
 
 class ExperienceData(BaseModel):
