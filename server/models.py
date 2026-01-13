@@ -31,6 +31,7 @@ class User(Base):
     industry = Column(String, nullable=True)
     linkedin_profile_url = Column(String, nullable=True)
     cv_filename = Column(String, nullable=True)  # Stored CV filename
+    cv_text = Column(Text, nullable=True)  # Extracted text from CV
     skills = Column(ARRAY(String), nullable=True)  # Array of skills
 
     # Setup tracking
