@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     password_require_digit: bool = True
     password_require_special: bool = True
 
-    # LinkedIn OAuth
+    # France Travail OAuth
     linkedin_client_id: str = ""
     linkedin_client_secret: str = ""
     linkedin_redirect_uri: str = "http://localhost:5173/linkedin/callback"
@@ -76,6 +76,11 @@ class Settings(BaseSettings):
     client_secret: str = ""
     auth_url: str = ""
     api_url: str = ""
+
+    # LLM Configuration
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_base_url: str = "https://api.openai.com/v1"
 
     model_config = SettingsConfigDict(
         env_file=".env",

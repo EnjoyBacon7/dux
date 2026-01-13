@@ -5,6 +5,7 @@ from fastapi.encoders import jsonable_encoder
 
 from server.methods.upload import upload_file
 from server.methods.job_search import search_job_offers
+from server.methods.chat import match_profile
 from server.database import get_db_session
 from server.models import User, Experience, Education
 from sqlalchemy.orm import Session
@@ -45,6 +46,58 @@ class ProfileSetupRequest(BaseModel):
     skills: List[str] = []
     experiences: List[ExperienceData] = []
     educations: List[EducationData] = []
+
+
+class ProfileMatchRequest(BaseModel):
+    query: Optional[str] = None
+    model: Optional[str] = None
+    base_url: Optional[str] = None
+    api_key: Optional[str] = None
+
+
+@router.post("/chat/match_profile", summary="Match profile using CV and LLM")
+async def match_profile_endpoint(
+    request: Request,
+    data: ProfileMatchRequest,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user)
+) -> dict:
+    """
+    Analyze user's profile and match with opportunities using LLM.
+    
+    Uses the extracted CV text from a previous upload to generate
+    insights and job matching recommendations.
+    
+    Args:
+        request: FastAPI request object
+        data: ProfileMatchRequest with query, model, base_url, api_key
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        dict: Analysis and recommendations from LLM
+    """
+    # Check if user has uploaded CV
+    if not current_user.cv_text:
+        raise HTTPException(
+            status_code=400,
+            detail="No CV found. Please upload a CV first."
+        )
+    
+    try:
+        result = await match_profile(
+            current_user.cv_text,
+            user_query=data.query,
+            model=data.model,
+            base_url=data.base_url,
+            api_key=data.api_key
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error in profile matching: {str(e)}")
+        raise HTTPException(status_code=500, detail="Profile matching failed")
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
@@ -99,12 +152,13 @@ async def upload_endpoint(
         current_user: Current authenticated user
 
     Returns:
-        dict: Upload result containing filename, content_type, size, and message
+        dict: Upload result containing filename, content_type, size, extracted_text, and message
     """
     result = await upload_file(file)
 
-    # Update user's CV filename in database
+    # Update user's CV filename and extracted text in database
     current_user.cv_filename = result["filename"]
+    current_user.cv_text = result["extracted_text"]
     db.commit()
 
     return result
@@ -234,7 +288,7 @@ def load_offers(
     Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
     """
     try:
-                
+
         CLIENT_ID = settings.client_id
         CLIENT_SECRET = settings.client_secret
         AUTH_URL = settings.auth_url
@@ -255,11 +309,10 @@ def load_offers(
         resp.raise_for_status()
         token = resp.json()["access_token"]
 
-
         # Récupérer les offres depuis l'API
         offers = []
 
-        for i in range(0,nb_offres,150):
+        for i in range(0, nb_offres, 150):
             headers = {
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json",
@@ -380,12 +433,9 @@ def load_offers(
             offers += data.get("resultats", [])
             logger = logging.getLogger("uvicorn.info")
             logger.info(f"Récupération des offres : {len(offers)}/{nb_offres} obtenues.")
-            
+
         # Sauvegarder les offres dans la base de données
         return offers
-    
+
     except Exception as e:
         return {"error": str(e)}
-
-
-
