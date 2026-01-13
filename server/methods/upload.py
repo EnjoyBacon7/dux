@@ -3,12 +3,11 @@ from pathlib import Path
 import shutil
 import os
 import uuid
+import logging
+
 import PyPDF2
 import pytesseract
 from docx import Document
-from PIL import Image
-import io
-import logging
 
 logger = logging.getLogger(__name__)
 

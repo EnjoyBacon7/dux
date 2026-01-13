@@ -1,21 +1,17 @@
 import logging
+import os
+import requests
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, Query
-from fastapi.encoders import jsonable_encoder
-
-from server.methods.upload import upload_file
-from server.methods.job_search import search_job_offers
-from server.methods.chat import match_profile
-from server.database import get_db_session
-from server.models import User, Experience, Education
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
+
+from server.methods.upload import upload_file
+from server.methods.chat import match_profile
+from server.database import get_db_session
+from server.models import User, Experience, Education
 from server.config import settings
-import requests
-import pandas as pd
-import os
-import logging
 
 router = APIRouter(tags=["General"])
 logger = logging.getLogger(__name__)
@@ -55,51 +51,6 @@ class ProfileMatchRequest(BaseModel):
     api_key: Optional[str] = None
 
 
-@router.post("/chat/match_profile", summary="Match profile using CV and LLM")
-async def match_profile_endpoint(
-    request: Request,
-    data: ProfileMatchRequest,
-    db: Session = Depends(get_db_session),
-    current_user: User = Depends(get_current_user)
-) -> dict:
-    """
-    Analyze user's profile and match with opportunities using LLM.
-    
-    Uses the extracted CV text from a previous upload to generate
-    insights and job matching recommendations.
-    
-    Args:
-        request: FastAPI request object
-        data: ProfileMatchRequest with query, model, base_url, api_key
-        db: Database session
-        current_user: Current authenticated user
-        
-    Returns:
-        dict: Analysis and recommendations from LLM
-    """
-    # Check if user has uploaded CV
-    if not current_user.cv_text:
-        raise HTTPException(
-            status_code=400,
-            detail="No CV found. Please upload a CV first."
-        )
-    
-    try:
-        result = await match_profile(
-            current_user.cv_text,
-            user_query=data.query,
-            model=data.model,
-            base_url=data.base_url,
-            api_key=data.api_key
-        )
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error in profile matching: {str(e)}")
-        raise HTTPException(status_code=500, detail="Profile matching failed")
-
-
 def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
     """
     Dependency to get the current authenticated user.
@@ -122,6 +73,51 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)) ->
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
+
+@router.post("/chat/match_profile", summary="Match profile using CV and LLM")
+async def match_profile_endpoint(
+    request: Request,
+    data: ProfileMatchRequest,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user)
+) -> dict:
+    """
+    Analyze user's profile and match with opportunities using LLM.
+
+    Uses the extracted CV text from a previous upload to generate
+    insights and job matching recommendations.
+
+    Args:
+        request: FastAPI request object
+        data: ProfileMatchRequest with query, model, base_url, api_key
+        db: Database session
+        current_user: Current authenticated user
+
+    Returns:
+        dict: Analysis and recommendations from LLM
+    """
+    # Check if user has uploaded CV
+    if not current_user.cv_text:
+        raise HTTPException(
+            status_code=400,
+            detail="No CV found. Please upload a CV first."
+        )
+
+    try:
+        result = await match_profile(
+            current_user.cv_text,
+            user_query=data.query,
+            model=data.model,
+            base_url=data.base_url,
+            api_key=data.api_key
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error in profile matching: {str(e)}")
+        raise HTTPException(status_code=500, detail="Profile matching failed")
 
 
 @router.get("/healthcheck", summary="Health check")
@@ -287,155 +283,104 @@ def load_offers(
     """
     Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
     """
-    try:
+    def build_headers(token: str) -> dict:
+        """Build headers dictionary for API request"""
+        return {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "accesTravailleurHandicape": accesTravailleurHandicape,
+            "appellation": appellation,
+            "codeNAF": codeNAF,
+            "codeROME": codeROME,
+            "commune": commune,
+            "departement": departement,
+            "distance": distance,
+            "domaine": domaine,
+            "dureeContratMax": dureeContratMax,
+            "dureeContratMin": dureeContratMin,
+            "dureeHebdo": dureeHebdo,
+            "dureeHebdoMax": dureeHebdoMax,
+            "dureeHebdoMin": dureeHebdoMin,
+            "employeursHandiEngages": employeursHandiEngages,
+            "entreprisesAdaptees": entreprisesAdaptees,
+            "experience": experience,
+            "experienceExigence": experienceExigence,
+            "grandDomaine": grandDomaine,
+            "inclureLimitrophes": inclureLimitrophes,
+            "maxCreationDate": maxCreationDate,
+            "minCreationDate": minCreationDate,
+            "modeSelectionPartenaires": modeSelectionPartenaires,
+            "motsCles": motsCles,
+            "natureContrat": natureContrat,
+            "niveauFormation": niveauFormation,
+            "offresMRS": offresMRS,
+            "offresManqueCandidats": offresManqueCandidats,
+            "origineOffre": origineOffre,
+            "partenaires": partenaires,
+            "paysContinent": paysContinent,
+            "periodeSalaire": periodeSalaire,
+            "permis": permis,
+            "publieeDepuis": publieeDepuis,
+            "qualification": qualification,
+            "range": content_range,
+            "region": region,
+            "salaireMin": salaireMin,
+            "secteurActivite": secteurActivite,
+            "sort": sort,
+            "tempsPlein": tempsPlein,
+            "theme": theme,
+            "typeContrat": typeContrat,
+        }
 
+    try:
         CLIENT_ID = settings.client_id
         CLIENT_SECRET = settings.client_secret
         AUTH_URL = settings.auth_url
         API_URL = settings.api_url
 
-        """
-        Récupère un token OAuth2 en mode client_credentials.
-        """
-        data = {
+        # Get OAuth2 token
+        auth_data = {
             "grant_type": "client_credentials",
             "client_id": CLIENT_ID,
             "client_secret": CLIENT_SECRET,
             "scope": f"api_offresdemploiv2 o2dsoffre application_{CLIENT_ID}",
         }
-        params = {"realm": "/partenaire"}
+        auth_params = {"realm": "/partenaire"}
 
-        resp = requests.post(AUTH_URL, data=data, params=params)
+        resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
         resp.raise_for_status()
         token = resp.json()["access_token"]
 
-        # Récupérer les offres depuis l'API
+        # Retrieve offers from API
         offers = []
 
         for i in range(0, nb_offres, 150):
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "range": f"{i}-{nb_offres if i+150 > nb_offres else i+150}",
-                "accesTravailleurHandicape": accesTravailleurHandicape,
-                "appellation": appellation,
-                "codeNAF": codeNAF,
-                "codeROME": codeROME,
-                "commune": commune,
-                "departement": departement,
-                "distance": distance,
-                "domaine": domaine,
-                "dureeContratMax": dureeContratMax,
-                "dureeContratMin": dureeContratMin,
-                "dureeHebdo": dureeHebdo,
-                "dureeHebdoMax": dureeHebdoMax,
-                "dureeHebdoMin": dureeHebdoMin,
-                "employeursHandiEngages": employeursHandiEngages,
-                "entreprisesAdaptees": entreprisesAdaptees,
-                "experience": experience,
-                "experienceExigence": experienceExigence,
-                "grandDomaine": grandDomaine,
-                "inclureLimitrophes": inclureLimitrophes,
-                "maxCreationDate": maxCreationDate,
-                "minCreationDate": minCreationDate,
-                "modeSelectionPartenaires": modeSelectionPartenaires,
-                "motsCles": motsCles,
-                "natureContrat": natureContrat,
-                "niveauFormation": niveauFormation,
-                "offresMRS": offresMRS,
-                "offresManqueCandidats": offresManqueCandidats,
-                "origineOffre": origineOffre,
-                "partenaires": partenaires,
-                "paysContinent": paysContinent,
-                "periodeSalaire": periodeSalaire,
-                "permis": permis,
-                "publieeDepuis": publieeDepuis,
-                "qualification": qualification,
-                "range": content_range,
-                "region": region,
-                "salaireMin": salaireMin,
-                "secteurActivite": secteurActivite,
-                "sort": sort,
-                "tempsPlein": tempsPlein,
-                "theme": theme,
-                "typeContrat": typeContrat,
-            }
+            headers = build_headers(token)
+            headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
 
             try:
                 resp = requests.get(API_URL, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
-            except:
-                data = {
-                    "grant_type": "client_credentials",
-                    "client_id": CLIENT_ID,
-                    "client_secret": CLIENT_SECRET,
-                    "scope": f"api_offresdemploiv2 o2dsoffre application_{CLIENT_ID}",
-                }
-                params = {"realm": "/partenaire"}
-
-                resp = requests.post(AUTH_URL, data=data, params=params)
+            except Exception as e:
+                logger.warning(f"Request failed: {e}, refreshing token...")
+                # Refresh token on error
+                resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
                 resp.raise_for_status()
                 token = resp.json()["access_token"]
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Accept": "application/json",
-                    "Content-Type": "application/json",
-                    "range": f"{i}-{nb_offres if i+150 > nb_offres else i+150}",
-                    "accesTravailleurHandicape": accesTravailleurHandicape,
-                    "appellation": appellation,
-                    "codeNAF": codeNAF,
-                    "codeROME": codeROME,
-                    "commune": commune,
-                    "departement": departement,
-                    "distance": distance,
-                    "domaine": domaine,
-                    "dureeContratMax": dureeContratMax,
-                    "dureeContratMin": dureeContratMin,
-                    "dureeHebdo": dureeHebdo,
-                    "dureeHebdoMax": dureeHebdoMax,
-                    "dureeHebdoMin": dureeHebdoMin,
-                    "employeursHandiEngages": employeursHandiEngages,
-                    "entreprisesAdaptees": entreprisesAdaptees,
-                    "experience": experience,
-                    "experienceExigence": experienceExigence,
-                    "grandDomaine": grandDomaine,
-                    "inclureLimitrophes": inclureLimitrophes,
-                    "maxCreationDate": maxCreationDate,
-                    "minCreationDate": minCreationDate,
-                    "modeSelectionPartenaires": modeSelectionPartenaires,
-                    "motsCles": motsCles,
-                    "natureContrat": natureContrat,
-                    "niveauFormation": niveauFormation,
-                    "offresMRS": offresMRS,
-                    "offresManqueCandidats": offresManqueCandidats,
-                    "origineOffre": origineOffre,
-                    "partenaires": partenaires,
-                    "paysContinent": paysContinent,
-                    "periodeSalaire": periodeSalaire,
-                    "permis": permis,
-                    "publieeDepuis": publieeDepuis,
-                    "qualification": qualification,
-                    "range": content_range,
-                    "region": region,
-                    "salaireMin": salaireMin,
-                    "secteurActivite": secteurActivite,
-                    "sort": sort,
-                    "tempsPlein": tempsPlein,
-                    "theme": theme,
-                    "typeContrat": typeContrat,
-                }
+
+                headers = build_headers(token)
+                headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
                 resp = requests.get(API_URL, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
 
             offers += data.get("resultats", [])
-            logger = logging.getLogger("uvicorn.info")
             logger.info(f"Récupération des offres : {len(offers)}/{nb_offres} obtenues.")
 
-        # Sauvegarder les offres dans la base de données
         return offers
 
     except Exception as e:
+        logger.error(f"Error loading offers: {e}")
         return {"error": str(e)}

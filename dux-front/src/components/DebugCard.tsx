@@ -42,6 +42,11 @@ const DebugCard: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [chatQuery, setChatQuery] = useState('');
+    const [chatModel, setChatModel] = useState('');
+    const [chatResponse, setChatResponse] = useState<string | null>(null);
+    const [isChatLoading, setIsChatLoading] = useState(false);
+    const [chatError, setChatError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchDebugInfo();
@@ -64,6 +69,41 @@ const DebugCard: React.FC = () => {
             setError('Error fetching debug information');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const sendChatRequest = async () => {
+        setIsChatLoading(true);
+        setChatError(null);
+        setChatResponse(null);
+        try {
+            const body: Record<string, unknown> = {
+                query: chatQuery
+            };
+            if (chatModel.trim()) {
+                body.model = chatModel;
+            }
+
+            const response = await fetch('/api/chat/match_profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(body)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setChatResponse(data.analysis);
+            } else {
+                const error = await response.json();
+                setChatError(error.detail || 'Failed to get response from model');
+            }
+        } catch (err) {
+            setChatError('Error sending request to model');
+        } finally {
+            setIsChatLoading(false);
         }
     };
 
@@ -255,6 +295,101 @@ const DebugCard: React.FC = () => {
                     <p>Loading debug information...</p>
                 </div>
             )}
+
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '2px solid var(--nb-border)' }}>
+                <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600' }}>🤖 Test Profile Matching</h3>
+
+                <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.875rem' }}>
+                        Query / Preferences
+                    </label>
+                    <input
+                        type="text"
+                        value={chatQuery}
+                        onChange={(e) => setChatQuery(e.target.value)}
+                        placeholder="e.g., I'm interested in machine learning positions"
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '2px solid var(--nb-border)',
+                            backgroundColor: 'var(--nb-bg)',
+                            color: 'var(--nb-text)',
+                            fontSize: '0.875rem',
+                            boxSizing: 'border-box'
+                        }}
+                    />
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.875rem' }}>
+                        Model (optional)
+                    </label>
+                    <input
+                        type="text"
+                        value={chatModel}
+                        onChange={(e) => setChatModel(e.target.value)}
+                        placeholder="e.g., gpt-4 (leave empty for default)"
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '2px solid var(--nb-border)',
+                            backgroundColor: 'var(--nb-bg)',
+                            color: 'var(--nb-text)',
+                            fontSize: '0.875rem',
+                            boxSizing: 'border-box'
+                        }}
+                    />
+                </div>
+
+                <button
+                    className="nb-btn"
+                    onClick={sendChatRequest}
+                    disabled={isChatLoading}
+                    style={{ marginBottom: '1rem', width: '100%' }}
+                >
+                    {isChatLoading ? 'Sending...' : 'Send Request'}
+                </button>
+
+                {chatError && (
+                    <div style={{
+                        padding: '0.75rem',
+                        backgroundColor: 'var(--nb-error-bg)',
+                        border: '2px solid var(--nb-error)',
+                        marginBottom: '1rem',
+                        fontSize: '0.875rem'
+                    }}>
+                        <strong>Error:</strong> {chatError}
+                    </div>
+                )}
+
+                {chatResponse && (
+                    <div style={{
+                        padding: '0.75rem',
+                        backgroundColor: 'var(--nb-bg-dim)',
+                        border: '2px solid var(--nb-border)',
+                        borderRadius: '0.25rem'
+                    }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.875rem' }}>
+                            Response
+                        </label>
+                        <textarea
+                            value={chatResponse}
+                            readOnly
+                            style={{
+                                width: '100%',
+                                minHeight: '200px',
+                                padding: '0.75rem',
+                                border: '2px solid var(--nb-border)',
+                                backgroundColor: 'var(--nb-bg)',
+                                color: 'var(--nb-text)',
+                                fontSize: '0.875rem',
+                                fontFamily: 'monospace',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
