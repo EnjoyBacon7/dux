@@ -22,7 +22,7 @@ const Upload: React.FC = () => {
         try {
             const formData = new FormData();
             formData.append("file", file);
-            const res = await fetch("/api/upload", {
+            const res = await fetch("/api/profile/upload", {
                 method: "POST",
                 body: formData,
             });
