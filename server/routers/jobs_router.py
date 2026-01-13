@@ -1,14 +1,38 @@
 import logging
 import requests
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from server.config import settings
 from server.models import Fiche_Metier_ROME
+from server.database import get_db_session
+from server.methods.job_search import search_job_offers
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 logger = logging.getLogger(__name__)
+
+
+@router.get("/search", summary="Search job offers")
+def search_jobs(
+    q: str = Query(None, description="Search query"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Results per page"),
+    db: Session = Depends(get_db_session)
+):
+    """
+    Search job offers from the database with text search and pagination.
+    
+    - **q**: Search query (searches in job title, description, location, company name, etc.)
+    - **page**: Page number for pagination (default: 1)
+    - **page_size**: Number of results per page (default: 20, max: 100)
+    """
+    try:
+        result = search_job_offers(db, query=q, page=page, page_size=page_size)
+        return result
+    except Exception as e:
+        logger.error(f"Error searching jobs: {e}")
+        return {"error": str(e), "results": [], "page": page, "page_size": page_size, "total": 0}
 
 
 @router.post("/load_offers", summary="Load offers from France Travail API")
