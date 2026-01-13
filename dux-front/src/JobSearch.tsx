@@ -1,154 +1,88 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
+import JobDetail from "./components/JobDetail";
+import type { JobOffer } from "./components/JobDetail";
 import { useLanguage } from "./contexts/useLanguage";
-
-// Job interface - ready for backend integration
-interface Job {
-    id: string;
-    title: string;
-    company: string;
-    location: string;
-    type: 'full-time' | 'part-time' | 'contract' | 'internship';
-    remote: boolean;
-    salary?: {
-        min: number;
-        max: number;
-        currency: string;
-    };
-    description: string;
-    requirements: string[];
-    posted: Date;
-    applicationUrl?: string;
-}
-
-// Mock data - to be replaced with API calls
-const MOCK_JOBS: Job[] = [
-    {
-        id: '1',
-        title: 'Senior Software Engineer',
-        company: 'TechCorp Inc.',
-        location: 'San Francisco, CA',
-        type: 'full-time',
-        remote: true,
-        salary: { min: 120000, max: 180000, currency: 'USD' },
-        description: 'We are looking for a senior software engineer to join our team...',
-        requirements: ['5+ years experience', 'React', 'TypeScript', 'Node.js'],
-        posted: new Date('2024-11-20'),
-        applicationUrl: 'https://example.com/apply'
-    },
-    {
-        id: '2',
-        title: 'Frontend Developer',
-        company: 'Design Studio',
-        location: 'New York, NY',
-        type: 'full-time',
-        remote: false,
-        salary: { min: 80000, max: 120000, currency: 'USD' },
-        description: 'Join our creative team to build beautiful user interfaces...',
-        requirements: ['3+ years experience', 'React', 'CSS', 'UI/UX design'],
-        posted: new Date('2024-11-22'),
-        applicationUrl: 'https://example.com/apply'
-    },
-    {
-        id: '3',
-        title: 'Full Stack Developer',
-        company: 'StartUp Labs',
-        location: 'Remote',
-        type: 'contract',
-        remote: true,
-        description: 'Help us build the next generation of web applications...',
-        requirements: ['React', 'Python', 'PostgreSQL', 'AWS'],
-        posted: new Date('2024-11-25'),
-        applicationUrl: 'https://example.com/apply'
-    },
-    {
-        id: '4',
-        title: 'Backend Engineer',
-        company: 'DataFlow Systems',
-        location: 'Austin, TX',
-        type: 'full-time',
-        remote: true,
-        salary: { min: 100000, max: 150000, currency: 'USD' },
-        description: 'Build scalable backend systems for our data platform...',
-        requirements: ['Python', 'Django', 'PostgreSQL', 'Docker'],
-        posted: new Date('2024-11-18'),
-        applicationUrl: 'https://example.com/apply'
-    },
-    {
-        id: '5',
-        title: 'Software Engineering Intern',
-        company: 'Innovation Corp',
-        location: 'Boston, MA',
-        type: 'internship',
-        remote: false,
-        description: 'Summer internship opportunity for students...',
-        requirements: ['Computer Science student', 'JavaScript', 'Git'],
-        posted: new Date('2024-11-15'),
-        applicationUrl: 'https://example.com/apply'
-    }
-];
 
 const JobSearch: React.FC = () => {
     const { t } = useLanguage();
     const [searchQuery, setSearchQuery] = useState('');
-    const [locationFilter, setLocationFilter] = useState('');
-    const [typeFilter, setTypeFilter] = useState<string>('all');
-    const [remoteOnly, setRemoteOnly] = useState(false);
+    const [jobs, setJobs] = useState<JobOffer[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedJob, setSelectedJob] = useState<JobOffer | null>(null);
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const pageSize = 20;
 
-    // Filter jobs based on search criteria
-    const filteredJobs = useMemo(() => {
-        return MOCK_JOBS.filter(job => {
-            // Text search (title, company, description)
-            const searchLower = searchQuery.toLowerCase();
-            const matchesSearch = !searchQuery ||
-                job.title.toLowerCase().includes(searchLower) ||
-                job.company.toLowerCase().includes(searchLower) ||
-                job.description.toLowerCase().includes(searchLower);
+    // Fetch jobs from API
+    useEffect(() => {
+        const fetchJobs = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    page_size: pageSize.toString(),
+                });
+                if (searchQuery) {
+                    params.append('q', searchQuery);
+                }
 
-            // Location filter
-            const matchesLocation = !locationFilter ||
-                job.location.toLowerCase().includes(locationFilter.toLowerCase());
+                const response = await fetch(`/api/jobs/search?${params}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch jobs');
+                }
 
-            // Job type filter
-            const matchesType = typeFilter === 'all' || job.type === typeFilter;
+                const data = await response.json();
+                setJobs(data.results || []);
+                setTotal(data.total || 0);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred');
+                setJobs([]);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-            // Remote filter
-            const matchesRemote = !remoteOnly || job.remote;
+        fetchJobs();
+    }, [searchQuery, page]);
 
-            return matchesSearch && matchesLocation && matchesType && matchesRemote;
-        });
-    }, [searchQuery, locationFilter, typeFilter, remoteOnly]);
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return 'N/A';
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - date.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    const formatSalary = (salary: Job['salary']) => {
-        if (!salary) return null;
-        const formatter = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: salary.currency,
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        });
-        return `${formatter.format(salary.min)} - ${formatter.format(salary.max)}`;
-    };
-
-    const formatDate = (date: Date) => {
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - date.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 1) return t('jobs.posted_today');
-        if (diffDays < 7) return t('jobs.posted_days_ago').replace('{days}', diffDays.toString());
-        if (diffDays < 30) {
-            const weeks = Math.floor(diffDays / 7);
-            return t('jobs.posted_weeks_ago').replace('{weeks}', weeks.toString());
+            if (diffDays === 1) return t('jobs.posted_today');
+            if (diffDays < 7) return t('jobs.posted_days_ago').replace('{days}', diffDays.toString());
+            if (diffDays < 30) {
+                const weeks = Math.floor(diffDays / 7);
+                return t('jobs.posted_weeks_ago').replace('{weeks}', weeks.toString());
+            }
+            return date.toLocaleDateString();
+        } catch {
+            return dateString;
         }
-        return date.toLocaleDateString();
     };
 
-    const clearFilters = () => {
-        setSearchQuery('');
-        setLocationFilter('');
-        setTypeFilter('all');
-        setRemoteOnly(false);
+    const handleSearch = (value: string) => {
+        setSearchQuery(value);
+        setPage(1); // Reset to first page on new search
+    };
+
+    const handleNextPage = () => {
+        if (page * pageSize < total) {
+            setPage(page + 1);
+        }
+    };
+
+    const handlePreviousPage = () => {
+        if (page > 1) {
+            setPage(page - 1);
+        }
     };
 
     return (
@@ -194,87 +128,27 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Search
+                                Recherche
                             </label>
                             <input
                                 type="text"
                                 className="nb-input"
                                 placeholder={t('jobs.search_placeholder')}
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => handleSearch(e.target.value)}
                                 style={{ width: '100%' }}
                             />
                         </div>
 
-                        {/* Location Filter */}
-                        <div>
-                            <label style={{
-                                display: 'block',
-                                marginBottom: '0.5rem',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                opacity: 0.8
-                            }}>
-                                {t('jobs.location_filter')}
-                            </label>
-                            <input
-                                type="text"
-                                className="nb-input"
-                                placeholder={t('jobs.location_filter')}
-                                value={locationFilter}
-                                onChange={(e) => setLocationFilter(e.target.value)}
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-
-                        {/* Job Type Filter */}
-                        <div>
-                            <label style={{
-                                display: 'block',
-                                marginBottom: '0.5rem',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                opacity: 0.8
-                            }}>
-                                Job Type
-                            </label>
-                            <select
-                                className="nb-input"
-                                value={typeFilter}
-                                onChange={(e) => setTypeFilter(e.target.value)}
-                                style={{ width: '100%' }}
-                            >
-                                <option value="all">{t('jobs.type_all')}</option>
-                                <option value="full-time">{t('jobs.type_fulltime')}</option>
-                                <option value="part-time">{t('jobs.type_parttime')}</option>
-                                <option value="contract">{t('jobs.type_contract')}</option>
-                                <option value="internship">{t('jobs.type_internship')}</option>
-                            </select>
-                        </div>
-
-                        {/* Remote Only Checkbox */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-                            <input
-                                type="checkbox"
-                                id="remote-only"
-                                checked={remoteOnly}
-                                onChange={(e) => setRemoteOnly(e.target.checked)}
-                                style={{ cursor: 'pointer' }}
-                            />
-                            <label htmlFor="remote-only" style={{ cursor: 'pointer', userSelect: 'none', fontSize: '0.875rem' }}>
-                                {t('jobs.remote_only')}
-                            </label>
-                        </div>
-
-                        {/* Clear Filters Button */}
-                        {(searchQuery || locationFilter || typeFilter !== 'all' || remoteOnly) && (
-                            <div style={{ marginTop: '1rem' }}>
+                        {/* Clear Search Button */}
+                        {searchQuery && (
+                            <div>
                                 <button
-                                    onClick={clearFilters}
+                                    onClick={() => handleSearch('')}
                                     className="nb-btn-secondary"
                                     style={{ fontSize: '0.875rem', width: '100%' }}
                                 >
-                                    {t('jobs.clear_filters')}
+                                    Effacer la recherche
                                 </button>
                             </div>
                         )}
@@ -290,8 +164,20 @@ const JobSearch: React.FC = () => {
                             fontSize: '0.875rem',
                             fontWeight: 600
                         }}>
-                            {t('jobs.results_count').replace('{count}', filteredJobs.length.toString())}
+                            {loading ? 'Chargement...' : `${total} offre${total > 1 ? 's' : ''} trouvée${total > 1 ? 's' : ''}`}
                         </div>
+
+                        {/* Pagination Info */}
+                        {!loading && total > 0 && (
+                            <div style={{
+                                padding: '0.5rem',
+                                textAlign: 'center',
+                                fontSize: '0.75rem',
+                                opacity: 0.7
+                            }}>
+                                Page {page} sur {Math.ceil(total / pageSize)}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -301,103 +187,151 @@ const JobSearch: React.FC = () => {
                     overflowY: 'auto',
                     height: 'calc(100vh - 60px)'
                 }}>
+                    {selectedJob && (
+                        <JobDetail job={selectedJob} onClose={() => setSelectedJob(null)} />
+                    )}
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '1200px' }}>
-                        {filteredJobs.length === 0 ? (
+                        {loading ? (
                             <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                                 <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7 }}>
-                                    {t('jobs.no_results')}
+                                    Chargement des offres...
+                                </p>
+                            </div>
+                        ) : error ? (
+                            <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                                <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7, color: 'red' }}>
+                                    Erreur: {error}
+                                </p>
+                            </div>
+                        ) : jobs.length === 0 ? (
+                            <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                                <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7 }}>
+                                    Aucune offre trouvée
                                 </p>
                             </div>
                         ) : (
-                            filteredJobs.map(job => (
-                                <div key={job.id} className="nb-card" style={{ cursor: 'pointer' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                        {/* Job Header */}
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                            <div style={{ flex: 1 }}>
-                                                <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem' }}>
-                                                    {job.title}
-                                                </h3>
-                                                <p style={{ margin: 0, fontSize: '1rem', opacity: 0.8 }}>
-                                                    {job.company}
-                                                </p>
-                                            </div>
-                                            {job.salary && (
-                                                <div style={{
-                                                    fontWeight: 600,
-                                                    color: 'var(--nb-accent)',
-                                                    textAlign: 'right',
-                                                    fontSize: '1rem'
-                                                }}>
-                                                    {formatSalary(job.salary)}
+                            <>
+                                {jobs.map(job => (
+                                    <div
+                                        key={job.id}
+                                        className="nb-card"
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => setSelectedJob(job)}
+                                    >
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                            {/* Job Header */}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem' }}>
+                                                        {job.intitule || 'Sans titre'}
+                                                    </h3>
+                                                    <p style={{ margin: 0, fontSize: '1rem', opacity: 0.8 }}>
+                                                        {job["entreprise_nom"] || 'Entreprise non spécifiée'}
+                                                    </p>
                                                 </div>
-                                            )}
-                                        </div>
-
-                                        {/* Job Meta Info */}
-                                        <div style={{
-                                            display: 'flex',
-                                            flexWrap: 'wrap',
-                                            gap: '0.75rem',
-                                            fontSize: '0.875rem',
-                                            opacity: 0.7
-                                        }}>
-                                            <span>📍 {job.location}</span>
-                                            <span>•</span>
-                                            <span>💼 {t(`jobs.type_${job.type.replace('-', '')}`)}</span>
-                                            {job.remote && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span>🏠 {t('jobs.remote')}</span>
-                                                </>
-                                            )}
-                                            <span>•</span>
-                                            <span>📅 {formatDate(job.posted)}</span>
-                                        </div>
-
-                                        {/* Job Description */}
-                                        <p style={{ margin: 0, lineHeight: 1.6 }}>
-                                            {job.description}
-                                        </p>
-
-                                        {/* Requirements */}
-                                        {job.requirements.length > 0 && (
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                                {job.requirements.map((req, index) => (
-                                                    <span
-                                                        key={index}
-                                                        style={{
-                                                            padding: '0.25rem 0.75rem',
-                                                            backgroundColor: 'var(--nb-accent)',
-                                                            border: 'var(--nb-border) solid var(--nb-fg)',
-                                                            borderRadius: '4px',
-                                                            fontSize: '0.875rem',
-                                                            fontWeight: 500
-                                                        }}
-                                                    >
-                                                        {req}
-                                                    </span>
-                                                ))}
+                                                {job["salaire_libelle"] && (
+                                                    <div style={{
+                                                        fontWeight: 600,
+                                                        color: 'var(--nb-accent)',
+                                                        textAlign: 'right',
+                                                        fontSize: '1rem'
+                                                    }}>
+                                                        {job["salaire_libelle"]}
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
 
-                                        {/* Apply Button */}
-                                        {job.applicationUrl && (
+                                            {/* Job Meta Info */}
+                                            <div style={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: '0.75rem',
+                                                fontSize: '0.875rem',
+                                                opacity: 0.7
+                                            }}>
+                                                {job["lieuTravail_libelle"] && (
+                                                    <>
+                                                        <span>📍 {job["lieuTravail_libelle"]}</span>
+                                                        <span>•</span>
+                                                    </>
+                                                )}
+                                                {job.typeContratLibelle && (
+                                                    <>
+                                                        <span>💼 {job.typeContratLibelle}</span>
+                                                        <span>•</span>
+                                                    </>
+                                                )}
+                                                <span>📅 {formatDate(job.dateActualisation || job.dateCreation)}</span>
+                                            </div>
+
+                                            {/* Job Description Preview */}
+                                            {job.description && (
+                                                <p style={{ margin: 0, lineHeight: 1.6 }}>
+                                                    {job.description.length > 200
+                                                        ? job.description.substring(0, 200) + '...'
+                                                        : job.description}
+                                                </p>
+                                            )}
+
+                                            {/* View Details Button */}
                                             <div style={{ marginTop: '0.5rem' }}>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        window.open(job.applicationUrl, '_blank');
+                                                        setSelectedJob(job);
                                                     }}
                                                     className="nb-btn"
                                                 >
-                                                    {t('jobs.apply')}
+                                                    Voir les détails
                                                 </button>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))
+                                ))}
+
+                                {/* Pagination Controls */}
+                                {total > pageSize && (
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        gap: '1rem',
+                                        marginTop: '2rem',
+                                        paddingBottom: '2rem'
+                                    }}>
+                                        <button
+                                            onClick={handlePreviousPage}
+                                            disabled={page === 1}
+                                            className="nb-btn-secondary"
+                                            style={{
+                                                opacity: page === 1 ? 0.5 : 1,
+                                                cursor: page === 1 ? 'not-allowed' : 'pointer'
+                                            }}
+                                        >
+                                            ← Précédent
+                                        </button>
+                                        <span style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            padding: '0 1rem',
+                                            fontWeight: 600
+                                        }}>
+                                            Page {page} / {Math.ceil(total / pageSize)}
+                                        </span>
+                                        <button
+                                            onClick={handleNextPage}
+                                            disabled={page * pageSize >= total}
+                                            className="nb-btn-secondary"
+                                            style={{
+                                                opacity: page * pageSize >= total ? 0.5 : 1,
+                                                cursor: page * pageSize >= total ? 'not-allowed' : 'pointer'
+                                            }}
+                                        >
+                                            Suivant →
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
