@@ -21,4 +21,3 @@ async def healthcheck() -> dict:
         dict: Status message
     """
     return {"status": "healthy"}
-

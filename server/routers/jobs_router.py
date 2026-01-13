@@ -132,7 +132,7 @@ def load_offers(
         for i in range(0, nb_offres, 150):
             headers = build_headers(token)
             headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
-            
+
             try:
                 resp = requests.get(API_URL, headers=headers)
                 resp.raise_for_status()
@@ -143,7 +143,7 @@ def load_offers(
                 resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
                 resp.raise_for_status()
                 token = resp.json()["access_token"]
-                
+
                 headers = build_headers(token)
                 headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
                 resp = requests.get(API_URL, headers=headers)
