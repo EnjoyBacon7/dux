@@ -22,7 +22,7 @@ def search_jobs(
 ):
     """
     Search job offers from the database with text search and pagination.
-    
+
     - **q**: Search query (searches in job title, description, location, company name, etc.)
     - **page**: Page number for pagination (default: 1)
     - **page_size**: Number of results per page (default: 20, max: 100)
@@ -191,9 +191,9 @@ def load_offers(
 def load_fiche_metier():
     """
     Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
-    """   
+    """
 
-    try:   
+    try:
         CLIENT_ID = settings.client_id
         CLIENT_SECRET = settings.client_secret
         AUTH_URL = settings.auth_url
@@ -248,7 +248,7 @@ def load_fiche_metier():
             data = resp.json()
 
         fiche_metier += data
-        
+
         logger = logging.getLogger("uvicorn.info")
         logger.info(f"Récupération des fiches métiers : {len(fiche_metier)} obtenues.")
 
@@ -268,10 +268,11 @@ def load_fiche_metier():
         try:
             for fiche in fiche_metier:
                 fiche_insert = Fiche_Metier_ROME(
-                    code = fiche.get("code"),
-                    metier = fiche.get("metier"),  # {code, libelle}
-                    groupesCompetencesMobilisees = fiche.get("groupesCompetencesMobilisees"),  # Array of competency groups
-                    groupesSavoirs = fiche.get("groupesSavoirs")  # Array of knowledge groups
+                    code=fiche.get("code"),
+                    metier=fiche.get("metier"),  # {code, libelle}
+                    groupesCompetencesMobilisees=fiche.get(
+                        "groupesCompetencesMobilisees"),  # Array of competency groups
+                    groupesSavoirs=fiche.get("groupesSavoirs")  # Array of knowledge groups
                 )
                 try:
                     session.add(fiche_insert)
@@ -288,4 +289,4 @@ def load_fiche_metier():
         return {"message": f"{len(fiche_metier)} fiches métiers ROME chargées et sauvegardées avec succès"}
 
     except Exception as e:
-        return {"error": str(e)}    
+        return {"error": str(e)}
