@@ -1,17 +1,20 @@
 from fastapi import FastAPI
-from database.db import init_db
-from routers import jobs, candidats
+from server.database import init_db
+from routers import jobs
 
-app = FastAPI(title="DUX - Recrutement IA (Postgres Engine)")
+# On crée l'application
+app = FastAPI(title="DUX - Matching Engine")
 
-# Initialisation DB au démarrage
+# Au démarrage, on crée les tables dans PostgreSQL si elles n'existent pas
 @app.on_event("startup")
 def on_startup():
+    print("🐘 Initialisation de la base de données...")
     init_db()
+    print("✅ Tables vérifiées/créées.")
 
+# On inclut notre router de jobs
 app.include_router(jobs.router)
-app.include_router(candidats.router)
 
 @app.get("/")
 def home():
-    return {"message": "API Dux En Ligne 🚀"}
+    return {"status": "Online", "engine": "PostgreSQL + SQLAlchemy"}

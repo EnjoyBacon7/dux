@@ -4,7 +4,7 @@
 if "%UPLOAD_DIR%"=="" set "UPLOAD_DIR=./uploads"
 if "%HOST%"=="" set "HOST=0.0.0.0"
 if "%PORT%"=="" set "PORT=8000"
-if "%DATABASE_URL%"=="" set "DATABASE_URL=postgresql://dux_user:dux_password@localhost:5432/dux"
+if "%DATABASE_URL%"=="" set "DATABASE_URL=postgresql://dux_user:dux_password@localhost:5433/dux"
 
 :: Display the values of the environment variables
 echo UPLOAD_DIR=%UPLOAD_DIR%

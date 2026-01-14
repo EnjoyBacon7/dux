@@ -31,7 +31,7 @@ services:
       - ./uploads:/app/uploads
     environment:
       - UPLOAD_DIR=/app/uploads
-      - DATABASE_URL=postgresql://dux_user:dux_password@db:5432/dux
+      - DATABASE_URL=postgresql://dux_user:dux_password@db:5433/dux
       # Session Configuration (IMPORTANT: Change SESSION_SECRET in production!)
       - SESSION_SECRET=${SESSION_SECRET:-change-this-in-production-use-env-file}
       - SESSION_COOKIE_NAME=dux_session
