@@ -78,7 +78,7 @@ async def match_profile(
             temperature=0.7,
             max_tokens=8000  # Increased from 2000 to avoid cutoffs
         )
-        
+
         return {
             "success": True,
             "analysis": result["data"],
@@ -100,7 +100,7 @@ async def _call_llm(
 ) -> dict:
     """
     Generic LLM call handler for common API interaction patterns.
-    
+
     Args:
         prompt: User message content
         system_content: System message content
@@ -108,15 +108,15 @@ async def _call_llm(
         max_tokens: Maximum tokens for response
         parse_json: Whether to parse response as JSON
         json_array: Whether to extract JSON array (vs object)
-        
+
     Returns:
         dict: Response data with success flag, content/parameters, model info, and usage stats
     """
     model = settings.openai_model
-    
+
     try:
         client = get_openai_client()
-        
+
         response = client.chat.completions.create(
             model=model,
             messages=[
@@ -126,14 +126,14 @@ async def _call_llm(
             temperature=temperature,
             max_tokens=max_tokens
         )
-        
+
         if not response.choices or len(response.choices) == 0:
             logger.error("No choices returned from LLM")
             raise ValueError("No response from LLM")
-        
+
         choice = response.choices[0]
         content = choice.message.content
-        
+
         # Handle reasoning models
         if content is None:
             if hasattr(choice.message, 'reasoning_content') and choice.message.reasoning_content:
@@ -144,7 +144,7 @@ async def _call_llm(
                 if isinstance(fields, dict) and 'reasoning_content' in fields:
                     content = fields['reasoning_content']
                     logger.info("Using reasoning_content from provider_specific_fields")
-            
+
             if content is None:
                 logger.error(f"Content is None. Finish reason: {choice.finish_reason}")
                 if choice.finish_reason == "length":
@@ -154,12 +154,12 @@ async def _call_llm(
                     raise ValueError("Response was filtered by content policy")
                 else:
                     raise ValueError(f"No content in response (finish_reason: {choice.finish_reason})")
-        
+
         if not content:
             raise ValueError("Empty response from LLM")
-        
+
         result_data = content
-        
+
         # Parse JSON if requested
         if parse_json:
             try:
@@ -169,7 +169,7 @@ async def _call_llm(
                 else:
                     json_start = content.find('{')
                     json_end = content.rfind('}') + 1
-                
+
                 if json_start >= 0 and json_end > json_start:
                     json_str = content[json_start:json_end]
                     result_data = json.loads(json_str)
@@ -178,7 +178,7 @@ async def _call_llm(
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse JSON response: {content}")
                 raise ValueError(f"Invalid JSON in LLM response: {str(e)}")
-        
+
         return {
             "success": True,
             "data": result_data,
@@ -189,7 +189,7 @@ async def _call_llm(
                 "total_tokens": response.usage.total_tokens
             }
         }
-    
+
     except APIError as e:
         logger.error(f"OpenAI API error: {str(e)}")
         raise ValueError(f"LLM service error: {str(e)}")
@@ -266,7 +266,7 @@ async def identify_ft_parameters(
             parse_json=True,
             json_array=False
         )
-        
+
         return {
             "success": True,
             "parameters": result["data"],
@@ -286,45 +286,47 @@ async def rank_job_offers(
 ) -> dict:
     """
     Use LLM to rank and score job offers based on CV and preferences.
-    
+
     Args:
         cv_text: User's CV text
         job_offers: List of job offer dictionaries from France Travail API
         preferences: Optional user job preferences/query
         top_k: Number of top offers to return (default: 5)
-        
+
     Returns:
         dict: Ranked job offers with scores and reasoning
     """
     if not cv_text or not cv_text.strip():
         raise ValueError("CV text is empty. Please upload a valid CV first.")
-    
+
     if not job_offers or len(job_offers) == 0:
         raise ValueError("No job offers provided to rank.")
-    
+
     model = settings.openai_model
-    
+
     # Format job offers for analysis
     offers_text = ""
     for i, offer in enumerate(job_offers, 1):
-        offers_text += f"\n{i}. {offer.get('intitule', 'Unknown Position')} - {offer.get('entreprise_nom', 'Unknown Company')}\n"
+        offers_text += f"\n{i}. {offer.get('intitule', 'Unknown Position')}  - {offer.get(
+            'entreprise_nom', 'Unknown Company')} \n"
         offers_text += f"   Location: {offer.get('lieuTravail_libelle', 'N/A')}\n"
         offers_text += f"   Contract: {offer.get('typeContratLibelle', 'N/A')}\n"
         offers_text += f"   Description: {offer.get('description', 'N/A')[:200]}...\n"
         offers_text += f"   Salary: {offer.get('salaire_libelle', 'N/A')}\n"
-    
-    prompt = f"""You are a professional job matching expert. Analyze the following CV and job offers, then rank them by relevance and match quality.
+
+    prompt = f"""
+        You are a professional job matching expert. Analyze the following CV and job offers, then rank them by relevance and match quality.
 
 USER'S CV:
 ---
-{cv_text}
+        {cv_text} 
 ---
 
 """
-    
+
     if preferences:
         prompt += f"USER'S PREFERENCES: {preferences}\n\n"
-    
+
     prompt += f"""AVAILABLE JOB OFFERS:
 ---
 {offers_text}
@@ -359,7 +361,7 @@ IMPORTANT: Return ONLY the JSON array, no other text or explanation."""
             parse_json=True,
             json_array=True
         )
-        
+
         ranked_offers = result["data"]
         return {
             "success": True,
@@ -369,7 +371,7 @@ IMPORTANT: Return ONLY the JSON array, no other text or explanation."""
             "model": result["model"],
             "usage": result["usage"]
         }
-    
+
     except Exception as e:
         logger.error(f"Unexpected error in job ranking: {str(e)}")
         raise ValueError(f"Job ranking failed: {str(e)}")
