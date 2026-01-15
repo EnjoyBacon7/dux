@@ -1,0 +1,35 @@
+You are a professional job matching expert. Analyze the following CV and job offers, then rank them by relevance and match quality.
+
+## USER'S CV
+
+{cv_text}
+
+{preferences}
+
+## AVAILABLE JOB OFFERS
+
+{offers_text}
+
+## Analysis Instructions
+
+Analyze each offer against the CV and preferences. Score each on a scale of 0-100 based on:
+1. Skills match (alignment of required skills with CV)
+2. Experience level match (seniority and years of experience)
+3. Location fit (proximity and user preferences)
+4. Contract type alignment (CDI/CDD/etc preferences)
+5. Salary expectations (if mentioned)
+6. Career progression (does it advance the user's career goals)
+7. Company culture fit (based on CV history)
+
+## Output Format
+
+Return a JSON array with the top {top_k} offers, each containing:
+- position: offer number
+- title: job title
+- company: company name
+- location: work location
+- score: overall match score (0-100)
+- match_reasons: brief list of 2-3 key reasons why this is a good match
+- concerns: any potential concerns or mismatches (if any)
+
+IMPORTANT: Return ONLY the JSON array, no other text or explanation.

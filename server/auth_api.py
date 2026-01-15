@@ -6,6 +6,7 @@ from slowapi.util import get_remote_address
 from server.database import get_db_session
 from server.config import settings
 from server.models import User
+from server.dependencies import get_current_user
 from server.methods.passkey_auth import (
     get_passkey_register_options,
     verify_passkey_registration,
@@ -118,23 +119,18 @@ async def passkey_login_verify(
 # Session Management Endpoints
 
 @router.get("/me", summary="Get current user")
-async def get_current_user(request: Request, db: Session = Depends(get_db_session)):
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user)
+):
     """Get the currently logged-in user's information."""
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(User).filter(User.username == request.session["username"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
     return {
-        "user_id": user.id,
-        "username": user.username,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "title": user.title,
-        "profile_picture": user.profile_picture,
-        "profile_setup_completed": user.profile_setup_completed or False
+        "user_id": current_user.id,
+        "username": current_user.username,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "title": current_user.title,
+        "profile_picture": current_user.profile_picture,
+        "profile_setup_completed": current_user.profile_setup_completed or False
     }
 
 

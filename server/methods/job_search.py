@@ -1,11 +1,21 @@
+"""
+Job search and filtering utilities.
+
+Provides database queries for searching job offers with full-text search,
+filtering, and pagination capabilities.
+"""
+
 import logging
-import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
+
+# ============================================================================
+# Search Configuration
+# ============================================================================
 
 # Full list of columns to return for each job offer
 JOB_COLUMNS: List[str] = [
@@ -73,7 +83,7 @@ JOB_COLUMNS: List[str] = [
     "entreprise_url",
 ]
 
-# Subset of columns used for basic text search
+# Subset of columns used for basic full-text search
 SEARCHABLE_COLUMNS: List[str] = [
     "intitule",
     "description",
@@ -85,13 +95,36 @@ SEARCHABLE_COLUMNS: List[str] = [
 ]
 
 
+# ============================================================================
+# Query Building Utilities
+# ============================================================================
+
+
 def _quote_identifier(identifier: str) -> str:
-    """Safely quote identifiers that may contain dots or reserved characters."""
+    """
+    Safely quote identifiers that may contain dots or reserved characters.
+
+    Args:
+        identifier: The identifier to quote
+
+    Returns:
+        Quoted identifier safe for SQL
+    """
     return '"' + identifier.replace('"', '""') + '"'
 
 
-def _build_where_clause(query: Optional[str]) -> tuple[str, Dict[str, Any]]:
-    """Create a WHERE clause for the search query and return SQL + parameters."""
+def _build_where_clause(query: Optional[str]) -> Tuple[str, Dict[str, Any]]:
+    """
+    Create a WHERE clause for the search query and return SQL + parameters.
+
+    Builds an OR clause that searches multiple columns for the given query.
+
+    Args:
+        query: Search query string (optional)
+
+    Returns:
+        Tuple of (SQL WHERE clause string, parameters dict)
+    """
     if not query:
         return "", {}
 

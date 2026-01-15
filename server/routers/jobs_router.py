@@ -1,31 +1,60 @@
+"""
+Job search and France Travail API integration router.
+
+Provides endpoints for searching job offers, loading offers from France Travail API,
+and managing job-related data.
+"""
+
 import logging
 import requests
+from typing import Optional, Dict, Any
 
 from fastapi import APIRouter, Query, Depends
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, Session
+
 from server.config import settings
 from server.models import Fiche_Metier_ROME
 from server.database import get_db_session
 from server.methods.job_search import search_job_offers
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, Session
+from server.methods.FT_job_search import search_france_travail
+
+# ============================================================================
+# Router Setup
+# ============================================================================
 
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 logger = logging.getLogger(__name__)
 
+# ============================================================================
+# Job Search Endpoints
+# ============================================================================
 
-@router.get("/search", summary="Search job offers")
+
+@router.get("/search", summary="Search job offers from db")
 def search_jobs(
     q: str = Query(None, description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Results per page"),
     db: Session = Depends(get_db_session)
-):
+) -> Dict[str, Any]:
     """
-    Search job offers from the database with text search and pagination.
+    Search job offers from the local database with text search and pagination.
 
-    - **q**: Search query (searches in job title, description, location, company name, etc.)
-    - **page**: Page number for pagination (default: 1)
-    - **page_size**: Number of results per page (default: 20, max: 100)
+    Performs full-text search across job titles, descriptions, locations,
+    company names, and other relevant fields.
+
+    Args:
+        q: Search query string
+        page: Page number for pagination (default: 1)
+        page_size: Number of results per page (default: 20, max: 100)
+        db: Database session
+
+    Returns:
+        dict: Search results with pagination info and list of matching offers
+
+    Raises:
+        Returns error dict if search fails
     """
     try:
         result = search_job_offers(db, query=q, page=page, page_size=page_size)
@@ -84,12 +113,9 @@ def load_offers(
     """
     Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
     """
-    def build_headers(token: str) -> dict:
-        """Build headers dictionary for API request"""
-        return {
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
+    try:
+        # Build FT parameters dictionary
+        ft_parameters = {
             "accesTravailleurHandicape": accesTravailleurHandicape,
             "appellation": appellation,
             "codeNAF": codeNAF,
@@ -134,54 +160,13 @@ def load_offers(
             "typeContrat": typeContrat,
         }
 
-    try:
-        CLIENT_ID = settings.client_id
-        CLIENT_SECRET = settings.client_secret
-        AUTH_URL = settings.auth_url
-        API_URL = settings.api_url_offres
-
-        # Get OAuth2 token
-        auth_data = {
-            "grant_type": "client_credentials",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "scope": f"api_offresdemploiv2 o2dsoffre application_{CLIENT_ID}",
-        }
-        auth_params = {"realm": "/partenaire"}
-
-        resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
-        resp.raise_for_status()
-        token = resp.json()["access_token"]
-
-        # Retrieve offers from API
-        offers = []
-
-        for i in range(0, nb_offres, 150):
-            headers = build_headers(token)
-            headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
-
-            try:
-                resp = requests.get(API_URL, headers=headers)
-                resp.raise_for_status()
-                data = resp.json()
-            except Exception as e:
-                logger.warning(f"Request failed: {e}, refreshing token...")
-                # Refresh token on error
-                resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
-                resp.raise_for_status()
-                token = resp.json()["access_token"]
-
-                headers = build_headers(token)
-                headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
-                resp = requests.get(API_URL, headers=headers)
-                resp.raise_for_status()
-                data = resp.json()
-
-            offers += data.get("resultats", [])
-            logger.info(f"Récupération des offres : {len(offers)}/{nb_offres} obtenues.")
-
+        # Use centralized search method
+        offers = search_france_travail(ft_parameters, nb_offres=nb_offres)
         return offers
 
+    except ValueError as e:
+        logger.error(f"Error loading offers: {str(e)}")
+        return {"error": str(e)}
     except Exception as e:
         logger.error(f"Error loading offers: {e}")
         return {"error": str(e)}

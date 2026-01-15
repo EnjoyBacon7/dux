@@ -4,39 +4,63 @@ import JobDetail from "./components/JobDetail";
 import type { JobOffer } from "./components/JobDetail";
 import { useLanguage } from "./contexts/useLanguage";
 
+interface FTSearchFilters {
+    motsCles?: string;
+    codeROME?: string;
+    commune?: string;
+    departement?: string;
+    region?: string;
+    distance?: number;
+    typeContrat?: string;
+    natureContrat?: string;
+    experienceExigence?: string;
+    qualification?: string;
+    tempsPlein?: boolean;
+    salaireMin?: string;
+    publieeDepuis?: number;
+    secteurActivite?: string;
+}
+
 const JobSearch: React.FC = () => {
     const { t } = useLanguage();
-    const [searchQuery, setSearchQuery] = useState('');
+    const [filters, setFilters] = useState<FTSearchFilters>({});
     const [jobs, setJobs] = useState<JobOffer[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedJob, setSelectedJob] = useState<JobOffer | null>(null);
-    const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const pageSize = 20;
 
-    // Fetch jobs from API
+    // Fetch jobs from France Travail API
     useEffect(() => {
         const fetchJobs = async () => {
             setLoading(true);
             setError(null);
             try {
-                const params = new URLSearchParams({
-                    page: page.toString(),
-                    page_size: pageSize.toString(),
+                const params = new URLSearchParams();
+                
+                // Add all non-empty filter parameters
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && value !== '') {
+                        params.append(key, String(value));
+                    }
                 });
-                if (searchQuery) {
-                    params.append('q', searchQuery);
-                }
 
-                const response = await fetch(`/api/jobs/search?${params}`);
+                // Always sort by relevance (0 = relevance, 1 = date, 2 = distance)
+                // Override any user-selected sort value to ensure relevance sorting
+                params.set('sort', '0');
+
+                const response = await fetch(`/api/jobs/load_offers?${params}`, {
+                    method: 'POST'
+                });
                 if (!response.ok) {
                     throw new Error('Failed to fetch jobs');
                 }
 
                 const data = await response.json();
-                setJobs(data.results || []);
-                setTotal(data.total || 0);
+                // load_offers returns the array directly
+                const jobsArray = Array.isArray(data) ? data : [];
+                setJobs(jobsArray);
+                setTotal(jobsArray.length);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
                 setJobs([]);
@@ -46,7 +70,7 @@ const JobSearch: React.FC = () => {
         };
 
         fetchJobs();
-    }, [searchQuery, page]);
+    }, [filters]);
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'N/A';
@@ -68,22 +92,18 @@ const JobSearch: React.FC = () => {
         }
     };
 
-    const handleSearch = (value: string) => {
-        setSearchQuery(value);
-        setPage(1); // Reset to first page on new search
+    const updateFilter = (key: keyof FTSearchFilters, value: any) => {
+        setFilters(prev => ({
+            ...prev,
+            [key]: value === '' ? undefined : value
+        }));
     };
 
-    const handleNextPage = () => {
-        if (page * pageSize < total) {
-            setPage(page + 1);
-        }
+    const clearFilters = () => {
+        setFilters({});
     };
 
-    const handlePreviousPage = () => {
-        if (page > 1) {
-            setPage(page - 1);
-        }
-    };
+    const hasActiveFilters = Object.values(filters).some(v => v !== undefined && v !== null && v !== '');
 
     return (
         <div style={{
@@ -96,7 +116,7 @@ const JobSearch: React.FC = () => {
             <Header />
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: '320px 1fr',
+                gridTemplateColumns: '400px 1fr',
                 gap: 0,
                 minHeight: 'calc(100vh - 60px)',
                 width: '100%',
@@ -119,7 +139,7 @@ const JobSearch: React.FC = () => {
 
                     {/* Search and Filters */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {/* Search Input */}
+                        {/* Keywords */}
                         <div>
                             <label style={{
                                 display: 'block',
@@ -128,27 +148,314 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Recherche
+                                Mots-clés
                             </label>
                             <input
                                 type="text"
                                 className="nb-input"
-                                placeholder={t('jobs.search_placeholder')}
-                                value={searchQuery}
-                                onChange={(e) => handleSearch(e.target.value)}
+                                placeholder="Ex: Développeur, Chef de projet..."
+                                value={filters.motsCles || ''}
+                                onChange={(e) => updateFilter('motsCles', e.target.value)}
                                 style={{ width: '100%' }}
                             />
                         </div>
 
-                        {/* Clear Search Button */}
-                        {searchQuery && (
+                        {/* Location Section */}
+                        <div style={{ 
+                            padding: '1rem',
+                            backgroundColor: 'var(--nb-accent)',
+                            border: 'var(--nb-border) solid var(--nb-fg)',
+                            borderRadius: '6px'
+                        }}>
+                            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600 }}>
+                                Localisation
+                            </h3>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {/* Commune (INSEE Code) */}
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        opacity: 0.8
+                                    }}>
+                                        Commune (Code INSEE)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="nb-input"
+                                        placeholder="Ex: 75056"
+                                        value={filters.commune || ''}
+                                        onChange={(e) => updateFilter('commune', e.target.value)}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                {/* Département */}
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        opacity: 0.8
+                                    }}>
+                                        Département
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="nb-input"
+                                        placeholder="Ex: 75"
+                                        value={filters.departement || ''}
+                                        onChange={(e) => updateFilter('departement', e.target.value)}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                {/* Région */}
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        opacity: 0.8
+                                    }}>
+                                        Région
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="nb-input"
+                                        placeholder="Ex: Île-de-France"
+                                        value={filters.region || ''}
+                                        onChange={(e) => updateFilter('region', e.target.value)}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                {/* Distance */}
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        opacity: 0.8
+                                    }}>
+                                        Distance (km)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        className="nb-input"
+                                        placeholder="Ex: 10"
+                                        value={filters.distance || ''}
+                                        onChange={(e) => updateFilter('distance', e.target.value ? Number(e.target.value) : undefined)}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Contract Type */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                Type de contrat
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.typeContrat || ''}
+                                onChange={(e) => updateFilter('typeContrat', e.target.value)}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">Tous les types</option>
+                                <option value="CDI">CDI</option>
+                                <option value="CDD">CDD</option>
+                                <option value="MIS">MIS (Mission intérimaire)</option>
+                                <option value="SAI">SAI (Saisonnier)</option>
+                                <option value="LIB">LIB (Libéral)</option>
+                                <option value="REP">REP (Reprise/Succession)</option>
+                                <option value="FRA">FRA (Franchise)</option>
+                                <option value="CCE">CCE (Contrat de chantier)</option>
+                                <option value="CPE">CPE (Contrat de professionnalisation)</option>
+                            </select>
+                        </div>
+
+                        {/* Experience Level */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                Niveau d'expérience
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.experienceExigence || ''}
+                                onChange={(e) => updateFilter('experienceExigence', e.target.value)}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">Tous niveaux</option>
+                                <option value="D">Débutant accepté</option>
+                                <option value="S">1 à 3 ans</option>
+                                <option value="E">3 ans et plus</option>
+                            </select>
+                        </div>
+
+                        {/* Qualification */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                Qualification
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.qualification || ''}
+                                onChange={(e) => updateFilter('qualification', e.target.value)}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">Tous</option>
+                                <option value="0">Non cadre</option>
+                                <option value="9">Cadre</option>
+                            </select>
+                        </div>
+
+                        {/* Full/Part Time */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                Temps plein / partiel
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.tempsPlein === undefined ? '' : filters.tempsPlein.toString()}
+                                onChange={(e) => updateFilter('tempsPlein', e.target.value === '' ? undefined : e.target.value === 'true')}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">Tous</option>
+                                <option value="true">Temps plein</option>
+                                <option value="false">Temps partiel</option>
+                            </select>
+                        </div>
+
+                        {/* Minimum Salary */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                Salaire minimum (€)
+                            </label>
+                            <input
+                                type="number"
+                                className="nb-input"
+                                placeholder="Ex: 30000"
+                                value={filters.salaireMin || ''}
+                                onChange={(e) => updateFilter('salaireMin', e.target.value)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {/* Published Since */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                Publiée depuis
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.publieeDepuis || ''}
+                                onChange={(e) => updateFilter('publieeDepuis', e.target.value ? Number(e.target.value) : undefined)}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">Toutes les dates</option>
+                                <option value="1">Aujourd'hui</option>
+                                <option value="3">3 derniers jours</option>
+                                <option value="7">7 derniers jours</option>
+                                <option value="14">14 derniers jours</option>
+                                <option value="30">30 derniers jours</option>
+                            </select>
+                        </div>
+
+                        {/* ROME Code */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                Code ROME
+                            </label>
+                            <input
+                                type="text"
+                                className="nb-input"
+                                placeholder="Ex: M1805"
+                                value={filters.codeROME || ''}
+                                onChange={(e) => updateFilter('codeROME', e.target.value)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {/* Sector */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                Secteur d'activité
+                            </label>
+                            <input
+                                type="text"
+                                className="nb-input"
+                                placeholder="Ex: Informatique"
+                                value={filters.secteurActivite || ''}
+                                onChange={(e) => updateFilter('secteurActivite', e.target.value)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {/* Clear Filters Button */}
+                        {hasActiveFilters && (
                             <div>
                                 <button
-                                    onClick={() => handleSearch('')}
+                                    onClick={clearFilters}
                                     className="nb-btn-secondary"
                                     style={{ fontSize: '0.875rem', width: '100%' }}
                                 >
-                                    Effacer la recherche
+                                    Réinitialiser les filtres
                                 </button>
                             </div>
                         )}
@@ -166,18 +473,6 @@ const JobSearch: React.FC = () => {
                         }}>
                             {loading ? 'Chargement...' : `${total} offre${total > 1 ? 's' : ''} trouvée${total > 1 ? 's' : ''}`}
                         </div>
-
-                        {/* Pagination Info */}
-                        {!loading && total > 0 && (
-                            <div style={{
-                                padding: '0.5rem',
-                                textAlign: 'center',
-                                fontSize: '0.75rem',
-                                opacity: 0.7
-                            }}>
-                                Page {page} sur {Math.ceil(total / pageSize)}
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -289,48 +584,6 @@ const JobSearch: React.FC = () => {
                                         </div>
                                     </div>
                                 ))}
-
-                                {/* Pagination Controls */}
-                                {total > pageSize && (
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        gap: '1rem',
-                                        marginTop: '2rem',
-                                        paddingBottom: '2rem'
-                                    }}>
-                                        <button
-                                            onClick={handlePreviousPage}
-                                            disabled={page === 1}
-                                            className="nb-btn-secondary"
-                                            style={{
-                                                opacity: page === 1 ? 0.5 : 1,
-                                                cursor: page === 1 ? 'not-allowed' : 'pointer'
-                                            }}
-                                        >
-                                            ← Précédent
-                                        </button>
-                                        <span style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            padding: '0 1rem',
-                                            fontWeight: 600
-                                        }}>
-                                            Page {page} / {Math.ceil(total / pageSize)}
-                                        </span>
-                                        <button
-                                            onClick={handleNextPage}
-                                            disabled={page * pageSize >= total}
-                                            className="nb-btn-secondary"
-                                            style={{
-                                                opacity: page * pageSize >= total ? 0.5 : 1,
-                                                cursor: page * pageSize >= total ? 'not-allowed' : 'pointer'
-                                            }}
-                                        >
-                                            Suivant →
-                                        </button>
-                                    </div>
-                                )}
                             </>
                         )}
                     </div>

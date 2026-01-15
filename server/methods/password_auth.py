@@ -1,3 +1,12 @@
+"""
+Password-based authentication methods.
+
+Provides user registration and login functionality using username/password
+authentication with security features like account lockout and login attempt tracking.
+"""
+
+from typing import Dict, Any
+
 from fastapi import HTTPException, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -9,20 +18,130 @@ from server.models import User, LoginAttempt
 from server.config import settings
 from server.validators import validate_username, validate_password
 
+# ============================================================================
+# Request Models
+# ============================================================================
+
 
 class PasswordRegisterRequest(BaseModel):
+    """Request body for password registration endpoint."""
     username: str
     password: str
 
 
 class PasswordLoginRequest(BaseModel):
+    """Request body for password login endpoint."""
     username: str
     password: str
 
 
-async def register_user_with_password(request: PasswordRegisterRequest, db: Session = Depends(get_db_session)):
+# ============================================================================
+# Security Helpers
+# ============================================================================
+
+
+def _perform_timing_attack_prevention() -> None:
     """
-    Register a new user with username and password
+    Dummy password hash to prevent timing attacks.
+
+    Even when a user doesn't exist, we perform a hash operation
+    to maintain consistent timing across success and failure paths.
+    """
+    argon2.hash("dummy_password_to_prevent_timing_attack")
+
+
+def _check_account_lockout(user: User) -> None:
+    """
+    Check if user account is locked and clear lockout if expired.
+
+    Args:
+        user: The user to check
+
+    Raises:
+        HTTPException: If account is currently locked
+    """
+    if user.locked_until and user.locked_until > datetime.now(timezone.utc):
+        time_remaining = (user.locked_until - datetime.now(timezone.utc)).seconds // 60
+        raise HTTPException(
+            status_code=429,
+            detail=f"Account is temporarily locked. Try again in {time_remaining} minutes."
+        )
+
+    # Clear lockout if time has passed
+    if user.locked_until and user.locked_until <= datetime.now(timezone.utc):
+        user.locked_until = None
+        user.failed_login_attempts = 0
+
+
+def _handle_failed_login(user: User, db: Session) -> None:
+    """
+    Handle failed login attempt including account lockout.
+
+    Args:
+        user: The user with failed login
+        db: Database session
+
+    Raises:
+        HTTPException: If account becomes locked
+    """
+    user.failed_login_attempts += 1
+
+    # Lock account if too many failed attempts
+    if user.failed_login_attempts >= settings.max_login_attempts:
+        user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=settings.lockout_duration_minutes)
+        db.commit()
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many failed login attempts. Account locked for {settings.lockout_duration_minutes} minutes."
+        )
+    db.commit()
+
+
+def _handle_successful_login(user: User, req: Request, db: Session) -> None:
+    """
+    Handle successful login including session setup and failed attempts reset.
+
+    Args:
+        user: The authenticated user
+        req: FastAPI request object for session
+        db: Database session
+    """
+    # Reset failed attempts
+    user.failed_login_attempts = 0
+    user.locked_until = None
+    db.commit()
+
+    # Regenerate session to prevent session fixation
+    req.session.clear()
+    req.session["user_id"] = user.id
+    req.session["username"] = user.username
+    req.session["authenticated_at"] = datetime.now(timezone.utc).isoformat()
+
+
+# ============================================================================
+# Registration and Login Methods
+# ============================================================================
+
+
+async def register_user_with_password(
+    request: PasswordRegisterRequest,
+    db: Session = Depends(get_db_session)
+) -> Dict[str, Any]:
+    """
+    Register a new user with username and password.
+
+    Validates username and password strength, then creates a new user
+    with an argon2-hashed password.
+
+    Args:
+        request: PasswordRegisterRequest with username and password
+        db: Database session
+
+    Returns:
+        dict: Success message with username
+
+    Raises:
+        HTTPException: If validation fails or username already exists
     """
     username = request.username.strip() if request.username else ""
     password = request.password if request.password else ""
@@ -61,9 +180,27 @@ async def register_user_with_password(request: PasswordRegisterRequest, db: Sess
     }
 
 
-async def login_user_with_password(request: PasswordLoginRequest, req: Request, db: Session = Depends(get_db_session)):
+async def login_user_with_password(
+    request: PasswordLoginRequest,
+    req: Request,
+    db: Session = Depends(get_db_session)
+) -> Dict[str, Any]:
     """
-    Authenticate user with username and password
+    Authenticate user with username and password.
+
+    Validates credentials, handles account lockout, records login attempts,
+    and establishes session on successful authentication.
+
+    Args:
+        request: PasswordLoginRequest with username and password
+        req: FastAPI request object for session and client info
+        db: Database session
+
+    Returns:
+        dict: Success message with username
+
+    Raises:
+        HTTPException: If validation fails, credentials invalid, or account locked
     """
     username = request.username.strip() if request.username else ""
     password = request.password if request.password else ""
@@ -79,26 +216,14 @@ async def login_user_with_password(request: PasswordLoginRequest, req: Request, 
     # Check password (or dummy hash to prevent timing attacks)
     password_valid = False
     if user:
-        # Check if account is locked
-        if user.locked_until and user.locked_until > datetime.now(timezone.utc):
-            time_remaining = (user.locked_until - datetime.now(timezone.utc)).seconds // 60
-            raise HTTPException(
-                status_code=429,
-                detail=f"Account is temporarily locked. Try again in {time_remaining} minutes."
-            )
-
-        # Clear lockout if time has passed
-        if user.locked_until and user.locked_until <= datetime.now(timezone.utc):
-            user.locked_until = None
-            user.failed_login_attempts = 0
-            db.commit()
+        _check_account_lockout(user)
 
         # Verify password if user has one
         if user.password_hash:
             password_valid = argon2.verify(password, user.password_hash)
     else:
         # Dummy hash to prevent timing attacks
-        argon2.hash("dummy_password_to_prevent_timing_attack")
+        _perform_timing_attack_prevention()
 
     # Record login attempt
     if user:
@@ -113,30 +238,12 @@ async def login_user_with_password(request: PasswordLoginRequest, req: Request, 
     # Handle failed login
     if not password_valid or not user:
         if user:
-            user.failed_login_attempts += 1
-
-            # Lock account if too many failed attempts
-            if user.failed_login_attempts >= settings.max_login_attempts:
-                user.locked_until = datetime.utcnow() + timedelta(minutes=settings.lockout_duration_minutes)
-                db.commit()
-                raise HTTPException(
-                    status_code=429,
-                    detail=f"Too many failed login attempts. Account locked for {settings.lockout_duration_minutes} minutes."
-                )
-            db.commit()
+            _handle_failed_login(user, db)
 
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Successful login - reset failed attempts
-    user.failed_login_attempts = 0
-    user.locked_until = None
-    db.commit()
-
-    # Regenerate session to prevent session fixation
-    req.session.clear()
-    req.session["user_id"] = user.id
-    req.session["username"] = user.username
-    req.session["authenticated_at"] = datetime.now(timezone.utc).isoformat()
+    # Successful login
+    _handle_successful_login(user, req, db)
 
     return {
         "success": True,

@@ -1,6 +1,13 @@
+"""
+FastAPI application setup and configuration.
+
+Provides core application initialization, middleware setup, error handling,
+rate limiting, CORS configuration, and route registration.
+"""
+
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from starlette.middleware.sessions import SessionMiddleware
@@ -14,19 +21,39 @@ from server.auth_api import router as auth_router
 from server.database import init_db
 from server.config import settings
 
-# Configure logging
+# ============================================================================
+# Logging Configuration
+# ============================================================================
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize rate limiter
+# ============================================================================
+# Rate Limiting Setup
+# ============================================================================
+
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+
+# ============================================================================
+# FastAPI Application Initialization
+# ============================================================================
 
 app = FastAPI()
 
 
+# ============================================================================
+# Exception Handlers
+# ============================================================================
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Catch all unhandled exceptions and return proper JSON response"""
+    """
+    Global exception handler for unhandled exceptions.
+
+    Catches all unhandled exceptions and returns a proper JSON response
+    with error details (only if debug mode is enabled).
+    """
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=500,
@@ -39,18 +66,25 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    """Handle HTTPException properly"""
+    """
+    Handler for HTTPException to ensure consistent JSON responses.
+    """
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail}
     )
 
-# Add rate limiting
+
+# ============================================================================
+# Middleware Configuration
+# ============================================================================
+
+# Rate limiting middleware
 if settings.rate_limit_enabled:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Add CORS middleware (before session middleware)
+# CORS middleware (added before session middleware for proper ordering)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -59,7 +93,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add session middleware with secure settings
+# Session middleware with secure settings
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.session_secret,
@@ -69,14 +103,33 @@ app.add_middleware(
 )
 
 
+# ============================================================================
+# Startup Events
+# ============================================================================
+
+
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database on startup"""
+    """
+    Initialize application on startup.
+
+    Currently initializes the database connection and schema.
+    """
     init_db()
+
+
+# ============================================================================
+# Route Registration
+# ============================================================================
 
 # Mount API routes
 app.include_router(api_router, prefix="/api")
 app.include_router(auth_router)
+
+
+# ============================================================================
+# Static File Serving and SPA Fallback
+# ============================================================================
 
 # Get project root directory
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -89,20 +142,30 @@ if static_dir.exists():
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
-    """Serve React SPA for all routes"""
+    """
+    Serve React SPA for all unmatched routes.
+
+    This is a catch-all handler that serves index.html for any route
+    not matched by other handlers, enabling client-side routing in the SPA.
+
+    Args:
+        full_path: The requested path
+
+    Returns:
+        HTML content of index.html for SPA, or error if not found
+    """
     index_path = BASE_DIR / "static" / "index.html"
-    
-    # Check if index.html exists before serving
-    if not index_path.exists():
-        return JSONResponse(
-            status_code=404,
-            content={"detail": "Frontend not built. Run 'npm run build' in dux-front directory."}
-        )
-    
+
     try:
         with open(index_path, "r", encoding="utf-8") as f:
             html_content = f.read()
         return HTMLResponse(content=html_content, status_code=200)
+    except FileNotFoundError:
+        logger.warning(f"index.html not found at {index_path}")
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Frontend not built. Run 'npm run build' in dux-front directory."}
+        )
     except Exception as e:
         logger.error(f"Failed to serve SPA: {str(e)}")
         return JSONResponse(

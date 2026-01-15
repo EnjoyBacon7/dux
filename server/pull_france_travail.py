@@ -37,27 +37,27 @@ def search_offers(API_URL, NB_OFFRE, CLIENT_ID, CLIENT_SECRET, AUTH_URL) -> list
     offers = []
     token = get_access_token(CLIENT_ID, CLIENT_SECRET, AUTH_URL)
     start_date = datetime(2020, 1, 1)
-    
+
     # Start from the current date and paginate backwards
     max_creation_date = datetime.now()
-    
+
     with tqdm(desc="Fetching job offers") as pbar:
         while max_creation_date >= start_date:
             page_start = 0
             has_more_results = True
-            
+
             while has_more_results:
                 # Respect API limits: page_start <= 3000, page_end <= 3149
                 if page_start > 3000:
                     break
-                
+
                 page_end = min(page_start + 149, 3149)
                 headers = {
                     "Authorization": f"Bearer {token}",
                     "Accept": "application/json",
                     "Content-Type": "application/json",
                 }
-                
+
                 try:
                     params = {
                         "maxCreationDate": max_creation_date.strftime('%Y-%m-%dT%H:%M:%SZ'),
@@ -85,18 +85,18 @@ def search_offers(API_URL, NB_OFFRE, CLIENT_ID, CLIENT_SECRET, AUTH_URL) -> list
                     resp = requests.get(API_URL, headers=headers, params=params)
                     resp.raise_for_status()
                     data = resp.json()
-                
+
                 results = data.get("resultats", [])
                 if not results:
                     # No more results for this date range, move to previous date
                     has_more_results = False
                     break
-                
+
                 offers += results
-                
+
                 # Save results to database immediately
                 save_offers_to_db(results)
-                
+
                 pbar.set_postfix({
                     "maxCreationDate": max_creation_date.strftime('%Y-%m-%d %H:%M:%S'),
                     "page": f"{page_start}-{page_end}",
@@ -104,25 +104,26 @@ def search_offers(API_URL, NB_OFFRE, CLIENT_ID, CLIENT_SECRET, AUTH_URL) -> list
                     "total": len(offers)
                 })
                 pbar.update(1)
-                
+
                 # If we got fewer results than requested, we've reached the end of this date range
                 if len(results) < 150:
                     has_more_results = False
                 else:
                     page_start += 150
-            
+
             # Use the last offer's creation date as the new maxCreationDate for the next request
             if offers:
                 last_offer_date_str = offers[-1].get("dateCreation")
                 if last_offer_date_str:
-                    max_creation_date = datetime.fromisoformat(last_offer_date_str.replace('Z', '+00:00')).replace(tzinfo=None)
+                    max_creation_date = datetime.fromisoformat(
+                        last_offer_date_str.replace('Z', '+00:00')).replace(tzinfo=None)
                     # Subtract a small amount to ensure we don't skip offers with the same creation timestamp
                     max_creation_date -= timedelta(seconds=1)
                 else:
                     break
             else:
                 break
-    
+
     return offers
 
 
