@@ -12,7 +12,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-from server.methods.chat import match_profile, identify_ft_parameters, rank_job_offers
+from server.methods.chat import identify_ft_parameters, rank_job_offers
+from server.methods.job_search import search_job_offers
 from server.database import get_db_session
 from server.models import User
 
@@ -97,7 +98,7 @@ def _check_user_cv(current_user: User) -> None:
 # ============================================================================
 
 
-@router.post("/match_profile", summary="Match profile using CV and LLM")
+@router.post("/match_profile", summary="Match profile and return optimal offers")
 async def match_profile_endpoint(
     request: Request,
     data: ProfileMatchRequest,
@@ -105,10 +106,7 @@ async def match_profile_endpoint(
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
-    Analyze user's profile and match with opportunities using LLM.
-
-    Uses the extracted CV text from a previous upload to generate
-    insights on key strengths, relevant job matches, and career recommendations.
+    Identify search parameters, find offers, and return ranked optimal offers.
 
     Args:
         request: FastAPI request object
@@ -117,19 +115,54 @@ async def match_profile_endpoint(
         current_user: Current authenticated user
 
     Returns:
-        dict: Analysis and recommendations from LLM with model and usage info
+        dict: France Travail parameters and ranked optimal offers
 
     Raises:
-        HTTPException: If CV not found, validation fails, or LLM call fails
+        HTTPException: If CV not found, validation fails, or offer lookup fails
     """
     _check_user_cv(current_user)
 
     try:
-        result = await match_profile(
+        # Step 1: identify optimal FT parameters from CV and optional query/preferences
+        ft_result = await identify_ft_parameters(
             current_user.cv_text,
-            user_query=data.query
+            preferences=data.query
         )
-        return result
+        ft_parameters = ft_result.get("parameters", {})
+
+        # Step 2: search offers using identified parameters (fallback to motsCles for search)
+        search_query = ft_parameters.get("motsCles") if isinstance(ft_parameters, dict) else None
+        search_result = search_job_offers(
+            db,
+            query=search_query,
+            page=1,
+            page_size=50  # collect enough offers for ranking
+        )
+
+        offers = search_result.get("results", [])
+        if not offers:
+            raise ValueError("No job offers found matching the search parameters")
+
+        # Step 3: rank offers to return the optimal matches
+        ranking = await rank_job_offers(
+            current_user.cv_text,
+            offers,
+            preferences=data.query,
+            top_k=5
+        )
+
+        return {
+            "success": True,
+            "ft_parameters": ft_parameters,
+            "offers": ranking.get("ranked_offers", []),
+            "total_offers_analyzed": ranking.get("total_offers_analyzed"),
+            "top_offers_returned": ranking.get("top_offers_returned"),
+            "model": ranking.get("model"),
+            "usage": {
+                "ft_parameters": ft_result.get("usage"),
+                "ranking": ranking.get("usage")
+            }
+        }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

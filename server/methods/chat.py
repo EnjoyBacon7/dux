@@ -426,9 +426,14 @@ async def identify_ft_parameters(
             json_array=False
         )
 
+        parameters = result["data"]
+        # France Travail aggregates keyword tokens with AND; drop motsCles to avoid over-filtering.
+        if isinstance(parameters, dict) and "motsCles" in parameters:
+            parameters.pop("motsCles", None)
+
         return {
             "success": True,
-            "parameters": result["data"],
+            "parameters": parameters,
             "model": result["model"],
             "usage": result["usage"]
         }
