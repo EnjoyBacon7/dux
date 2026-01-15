@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     password_require_digit: bool = True
     password_require_special: bool = True
 
-    # France Travail OAuth
+    # Linkedin OAuth
     linkedin_client_id: str = ""
     linkedin_client_secret: str = ""
     linkedin_redirect_uri: str = "http://localhost:5173/linkedin/callback"
@@ -72,12 +72,10 @@ class Settings(BaseSettings):
     ft_client_id: str = ""
     ft_client_secret: str = ""
     # France Travail API Configuration
-
-    client_id: str = ""
-    client_secret: str = ""
-    auth_url: str = ""
-    api_url_offres: str = ""
-    api_url_fiche_metier: str = ""
+    ft_auth_url: str = ""
+    ft_api_url_offres: str = ""
+    ft_api_url_fiche_metier: str = ""
+    ft_api_url_code_metier: str = ""
 
     # LLM Configuration
     openai_api_key: str = ""

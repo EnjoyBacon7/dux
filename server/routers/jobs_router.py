@@ -1,13 +1,30 @@
 import logging
+import time
 import requests
 
 from fastapi import APIRouter, Query, Depends
 from server.config import settings
-from server.models import Fiche_Metier_ROME
+from server.models import Metier_ROME
 from server.database import get_db_session
 from server.methods.job_search import search_job_offers
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
+from tqdm.auto import tqdm
+
+def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: str) -> str:
+    data = {
+        "grant_type": "client_credentials",
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "scope": scope,
+    }
+    params = {"realm": "/partenaire"}
+
+    resp = requests.post(AUTH_URL, data=data, params=params)
+    resp.raise_for_status()
+    token = resp.json()["access_token"]
+
+    return token
 
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 logger = logging.getLogger(__name__)
@@ -135,21 +152,21 @@ def load_offers(
         }
 
     try:
-        CLIENT_ID = settings.client_id
-        CLIENT_SECRET = settings.client_secret
-        AUTH_URL = settings.auth_url
-        API_URL = settings.api_url_offres
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL = settings.ft_api_url_offres
 
         # Get OAuth2 token
         auth_data = {
             "grant_type": "client_credentials",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "scope": f"api_offresdemploiv2 o2dsoffre application_{CLIENT_ID}",
+            "client_id": FT_CLIENT_ID,
+            "client_secret": FT_CLIENT_SECRET,
+            "scope": f"api_offresdemploiv2 o2dsoffre application_{FT_CLIENT_ID}",
         }
         auth_params = {"realm": "/partenaire"}
 
-        resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
+        resp = requests.post(FT_AUTH_URL, data=auth_data, params=auth_params)
         resp.raise_for_status()
         token = resp.json()["access_token"]
 
@@ -161,23 +178,23 @@ def load_offers(
             headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
 
             try:
-                resp = requests.get(API_URL, headers=headers)
+                resp = requests.get(FT_API_URL, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
             except Exception as e:
                 logger.warning(f"Request failed: {e}, refreshing token...")
                 # Refresh token on error
-                resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
+                resp = requests.post(FT_AUTH_URL, data=auth_data, params=auth_params)
                 resp.raise_for_status()
                 token = resp.json()["access_token"]
 
                 headers = build_headers(token)
                 headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
-                resp = requests.get(API_URL, headers=headers)
+                resp = requests.get(FT_API_URL, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
 
-            offers += data.get("resultats", [])
+            offers.append(data.get("resultats", []))
             logger.info(f"Récupération des offres : {len(offers)}/{nb_offres} obtenues.")
 
         return offers
@@ -194,64 +211,90 @@ def load_fiche_metier():
     """
 
     try:
-        CLIENT_ID = settings.client_id
-        CLIENT_SECRET = settings.client_secret
-        AUTH_URL = settings.auth_url
-        API_URL_FICHE_METIER = settings.api_url_fiche_metier
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL_CODE_METIER = settings.ft_api_url_code_metier
+        FT_API_URL_METIER = settings.ft_api_url_fiche_metier
         DATABASE_URL = settings.database_url
 
         """
         Récupère un token OAuth2 en mode client_credentials.
         """
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "scope": f"api_rome-fiches-metiersv1 nomenclatureRome",
-        }
-        params = {"realm": "/partenaire"}
 
-        resp = requests.post(AUTH_URL, data=data, params=params)
-        resp.raise_for_status()
-        token = resp.json()["access_token"]
-
-        # Récupérer les offres depuis l'API
-        fiche_metier = []
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
 
         headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/json"
         }
 
+        # Récupérer les codes métiers ROME
+        code_metier = []
+
+        # Getting the list of ROME codes
         try:
-            resp = requests.get(API_URL_FICHE_METIER, headers=headers)
+            resp = requests.get(FT_API_URL_CODE_METIER, headers=headers)
             resp.raise_for_status()
             data = resp.json()
         except:
-            data = {
-                "grant_type": "client_credentials",
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-                "scope": f"api_rome-fiches-metiersv1 nomenclatureRome",
-            }
-            params = {"realm": "/partenaire"}
-
-            resp = requests.post(AUTH_URL, data=data, params=params)
-            resp.raise_for_status()
-            token = resp.json()["access_token"]
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
             headers = {
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json"
             }
-            resp = requests.get(API_URL_FICHE_METIER, headers=headers)
+            resp = requests.get(FT_API_URL_CODE_METIER, headers=headers)
             resp.raise_for_status()
             data = resp.json()
 
-        fiche_metier += data
+        code_metier += data
+
+        print(f"Nombre de codes ROME récupérés : {len(code_metier)}")
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        fiche_metier = []
+        
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+
+        for code in tqdm(code_metier[:1]):
+            try:
+                while True:
+                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers)
+                    if resp.status_code != 429:
+                        break
+                resp.raise_for_status()
+                data = resp.json()
+                # Getting offers info from france travail API
+                test = load_offers(codeROME=code.get("code"), nb_offres=1)
+                print(test)
+                #print(data)
+            except:
+                token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json"
+                }
+                while True:
+                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers)
+                    if resp.status_code != 429:
+                        break
+
+                resp.raise_for_status()
+                data = resp.json()
+                
+
+            fiche_metier.append(data.copy())
+
 
         logger = logging.getLogger("uvicorn.info")
         logger.info(f"Récupération des fiches métiers : {len(fiche_metier)} obtenues.")
-
+        
         # Sauvegarde du résultat dans une base de données
         # Create a session factory
         engine = create_engine(DATABASE_URL)
@@ -262,31 +305,43 @@ def load_fiche_metier():
             return
 
         session = Session()
-        session.execute(text("TRUNCATE TABLE Fiche_Metier_ROME RESTART IDENTITY CASCADE;"))
+        session.execute(text("TRUNCATE TABLE Metier_ROME RESTART IDENTITY CASCADE;"))
         session.commit()
 
         try:
             for fiche in fiche_metier:
-                fiche_insert = Fiche_Metier_ROME(
-                    code=fiche.get("code"),
-                    metier=fiche.get("metier"),  # {code, libelle}
-                    groupesCompetencesMobilisees=fiche.get(
-                        "groupesCompetencesMobilisees"),  # Array of competency groups
-                    groupesSavoirs=fiche.get("groupesSavoirs")  # Array of knowledge groups
-                )
+                fiche_insert = Metier_ROME(
+                    code = fiche.get("code"),
+                    libelle = fiche.get("libelle"),
+                    accesEmploi = fiche.get("accesEmploi"),
+                    appellations = fiche.get("appellations"),  # Array of appellations
+                    centresInteretsLies = fiche.get("centresInteretsLies"),  # Array of related interest centers
+                    competencesMobilisees = fiche.get("competencesMobilisees"),  # Array of skills
+                    contextesTravail = fiche.get("contextesTravail"),  # Array of work contexts
+                    definition = fiche.get("definition"),
+                    domaineProfessionnel = fiche.get("domaineProfessionnel"),
+                    metiersEnProximite = fiche.get("metiersEnProximite"),
+                    secteursActivitesLies = fiche.get("secteursActivitesLies"),
+                    themes = fiche.get("themes"),  # Array of themes
+                    transitionEcologique = fiche.get("transitionEcologique"),  # Ecological transition info
+                    transitionNumerique = fiche.get("transitionNumerique"),  # Digital transition info
+                    transitionDemographique = fiche.get("transitionDemographique"),  # Demographic transition info
+                    emploiCadre = fiche.get("emploiCadre"),
+                    emploiReglemente = fiche.get("emploiReglemente"),
+                                )
                 try:
                     session.add(fiche_insert)
                 except:
-                    logger.info(f"La fiche métier ROME {fiche.get('code')} existe déjà en base de données.")
+                    logger.info(f"Le métier ROME {fiche.get('code')} existe déjà en base de données.")
 
             session.commit()
         except Exception as e:
             session.rollback()
-            logger.error(f"Erreur lors de la sauvegarde des fiches métiers ROME : {str(e)}", exc_info=True)
+            logger.error(f"Erreur lors de la sauvegarde des métiers ROME : {str(e)}", exc_info=True)
         finally:
             session.close()
 
-        return {"message": f"{len(fiche_metier)} fiches métiers ROME chargées et sauvegardées avec succès"}
+        return {"message": f"{len(fiche_metier)} métiers ROME chargées et sauvegardées avec succès"}
 
     except Exception as e:
         return {"error": str(e)}
