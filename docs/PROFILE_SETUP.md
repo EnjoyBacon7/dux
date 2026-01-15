@@ -96,7 +96,7 @@ class Education:
 
 **API Endpoints** (`server/api.py`):
 
-1. **POST /api/upload**
+1. **POST /api/profile/upload**
    - Uploads CV file
    - Updates `user.cv_filename`
    - Requires authentication
