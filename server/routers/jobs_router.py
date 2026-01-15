@@ -17,6 +17,7 @@ from server.config import settings
 from server.models import Fiche_Metier_ROME
 from server.database import get_db_session
 from server.methods.job_search import search_job_offers
+from server.methods.FT_job_search import search_france_travail
 
 # ============================================================================
 # Router Setup
@@ -25,69 +26,12 @@ from server.methods.job_search import search_job_offers
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 logger = logging.getLogger(__name__)
 
-
-# ============================================================================
-# Helper Functions
-# ============================================================================
-
-
-def _build_ft_api_headers(token: str, params: Dict[str, Any]) -> Dict[str, str]:
-    """
-    Build headers dictionary for France Travail API requests.
-
-    Args:
-        token: OAuth2 bearer token
-        params: Search parameters to include in headers
-
-    Returns:
-        Headers dictionary for API request
-    """
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
-    # Add parameters as headers (specific to France Travail API)
-    for key, value in params.items():
-        if value is not None:
-            headers[key] = str(value)
-    return headers
-
-
-def _get_ft_oauth_token(client_id: str, client_secret: str, auth_url: str) -> str:
-    """
-    Get OAuth2 token from France Travail authentication service.
-
-    Args:
-        client_id: OAuth client ID
-        client_secret: OAuth client secret
-        auth_url: Authentication endpoint URL
-
-    Returns:
-        OAuth2 access token
-
-    Raises:
-        Exception: If authentication fails
-    """
-    auth_data = {
-        "grant_type": "client_credentials",
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "scope": f"api_offresdemploiv2 o2dsoffre application_{client_id}",
-    }
-    params = {"realm": "/partenaire"}
-
-    resp = requests.post(auth_url, data=auth_data, params=params)
-    resp.raise_for_status()
-    return resp.json()["access_token"]
-
-
 # ============================================================================
 # Job Search Endpoints
 # ============================================================================
 
 
-@router.get("/search", summary="Search job offers")
+@router.get("/search", summary="Search job offers from db")
 def search_jobs(
     q: str = Query(None, description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
@@ -169,12 +113,9 @@ def load_offers(
     """
     Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
     """
-    def build_headers(token: str) -> dict:
-        """Build headers dictionary for API request"""
-        return {
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
+    try:
+        # Build FT parameters dictionary
+        ft_parameters = {
             "accesTravailleurHandicape": accesTravailleurHandicape,
             "appellation": appellation,
             "codeNAF": codeNAF,
@@ -219,54 +160,13 @@ def load_offers(
             "typeContrat": typeContrat,
         }
 
-    try:
-        CLIENT_ID = settings.client_id
-        CLIENT_SECRET = settings.client_secret
-        AUTH_URL = settings.auth_url
-        API_URL = settings.api_url_offres
-
-        # Get OAuth2 token
-        auth_data = {
-            "grant_type": "client_credentials",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "scope": f"api_offresdemploiv2 o2dsoffre application_{CLIENT_ID}",
-        }
-        auth_params = {"realm": "/partenaire"}
-
-        resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
-        resp.raise_for_status()
-        token = resp.json()["access_token"]
-
-        # Retrieve offers from API
-        offers = []
-
-        for i in range(0, nb_offres, 150):
-            headers = build_headers(token)
-            headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
-
-            try:
-                resp = requests.get(API_URL, headers=headers)
-                resp.raise_for_status()
-                data = resp.json()
-            except Exception as e:
-                logger.warning(f"Request failed: {e}, refreshing token...")
-                # Refresh token on error
-                resp = requests.post(AUTH_URL, data=auth_data, params=auth_params)
-                resp.raise_for_status()
-                token = resp.json()["access_token"]
-
-                headers = build_headers(token)
-                headers["range"] = f"{i}-{nb_offres if i+150 > nb_offres else i+150}"
-                resp = requests.get(API_URL, headers=headers)
-                resp.raise_for_status()
-                data = resp.json()
-
-            offers += data.get("resultats", [])
-            logger.info(f"Récupération des offres : {len(offers)}/{nb_offres} obtenues.")
-
+        # Use centralized search method
+        offers = search_france_travail(ft_parameters, nb_offres=nb_offres)
         return offers
 
+    except ValueError as e:
+        logger.error(f"Error loading offers: {str(e)}")
+        return {"error": str(e)}
     except Exception as e:
         logger.error(f"Error loading offers: {e}")
         return {"error": str(e)}

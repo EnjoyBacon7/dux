@@ -134,6 +134,28 @@ def _build_usage_dict(response: Any) -> Dict[str, int]:
 # ============================================================================
 
 
+def _load_prompt_template(template_name: str) -> str:
+    """
+    Load a prompt template from the prompts directory.
+
+    Args:
+        template_name: Name of the template file (without .txt extension)
+
+    Returns:
+        Template content as string
+
+    Raises:
+        FileNotFoundError: If template file doesn't exist
+    """
+    prompts_dir = Path(__file__).parent.parent / "prompts"
+    template_path = prompts_dir / f"{template_name}.txt"
+    
+    if not template_path.exists():
+        raise FileNotFoundError(f"Prompt template not found: {template_path}")
+    
+    return template_path.read_text(encoding="utf-8")
+
+
 def _validate_cv_text(cv_text: str) -> None:
     """
     Validate that CV text is provided and non-empty.
@@ -160,95 +182,6 @@ def _validate_job_offers(job_offers: List[Dict[str, Any]]) -> None:
     """
     if not job_offers or len(job_offers) == 0:
         raise ValueError("No job offers provided to rank.")
-
-
-# ============================================================================
-# Profile Matching API
-# ============================================================================
-
-
-def create_profile_match_prompt(cv_text: str, user_query: Optional[str] = None) -> str:
-    """
-    Create a prompt for profile matching analysis.
-
-    Args:
-        cv_text: User's CV text
-        user_query: Optional user query or preferences
-
-    Returns:
-        Formatted prompt for the LLM
-    """
-    prompt = f"""You are a professional job matching assistant. 
-    
-I have a user's CV with the following information:
-
----
-{cv_text}
----
-
-"""
-
-    if user_query:
-        prompt += f"The user's request: {user_query}\n\n"
-
-    prompt += """Please analyze this CV and provide insights on:
-1. Key strengths and skills
-2. Relevant job matches based on experience
-3. Recommendations for career development
-4. Matching with job opportunities
-
-Be concise and actionable in your response."""
-
-    return prompt
-
-
-async def match_profile(
-    cv_text: str,
-    user_query: Optional[str] = None
-) -> Dict[str, Any]:
-    """
-    Analyze and match user profile based on CV.
-
-    Uses an LLM to analyze the provided CV and generate insights on:
-    - Key strengths and skills
-    - Relevant job matches
-    - Career development recommendations
-    - Job opportunity alignment
-
-    Args:
-        cv_text: Extracted text from user's CV
-        user_query: Optional user query or preferences to guide analysis
-
-    Returns:
-        Dict with keys:
-        - success: bool (True on success)
-        - analysis: LLM analysis text
-        - model: Model name used
-        - usage: Token usage statistics
-
-    Raises:
-        ValueError: If CV is empty or LLM call fails
-    """
-    _validate_cv_text(cv_text)
-
-    try:
-        prompt = create_profile_match_prompt(cv_text, user_query)
-        result = await _call_llm(
-            prompt=prompt,
-            system_content="You are an expert career advisor and job matching specialist.",
-            temperature=0.7,
-            max_tokens=8000
-        )
-
-        return {
-            "success": True,
-            "analysis": result["data"],
-            "model": result["model"],
-            "usage": result["usage"]
-        }
-    except Exception as e:
-        logger.error(f"Unexpected error in profile matching: {str(e)}")
-        raise ValueError(f"Profile matching failed: {str(e)}")
 
 
 async def _call_llm(
@@ -337,25 +270,6 @@ async def _call_llm(
 # ============================================================================
 
 
-def _load_ft_search_prompt() -> str:
-    """
-    Load the France Travail search optimization prompt template from file.
-
-    Returns:
-        Prompt template string, or empty string if file not found
-
-    Note:
-        Expected file location: server/prompts/FT_search.txt
-    """
-    prompt_path = Path(__file__).resolve().parent.parent / "prompts" / "FT_search.txt"
-    try:
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        logger.warning(f"FT_search.txt prompt not found at {prompt_path}")
-        return ""
-
-
 def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None) -> str:
     """
     Create a prompt for identifying France Travail API search parameters.
@@ -370,10 +284,10 @@ def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None)
     Returns:
         Formatted prompt for the LLM
     """
-    base_prompt = _load_ft_search_prompt()
-
-    if not base_prompt:
-        # Fallback if template not found
+    try:
+        base_prompt = _load_prompt_template("FT_search")
+    except FileNotFoundError:
+        logger.warning("FT_search template not found, using fallback")
         base_prompt = """You are a job search parameter optimizer for the France Travail API.
         
 Generate optimal search parameters for a user's job search based on their CV and preferences.
@@ -486,47 +400,19 @@ def create_job_ranking_prompt(
     Returns:
         Formatted prompt for the LLM
     """
+    template = _load_prompt_template("job_ranking")
     offers_text = _format_job_offers_for_analysis(job_offers)
-
-    prompt = f"""
-        You are a professional job matching expert. Analyze the following CV and job offers, then rank them by relevance and match quality.
-
-USER'S CV:
----
-        {cv_text} 
----
-
-"""
-
+    
+    preferences_section = ""
     if preferences:
-        prompt += f"USER'S PREFERENCES: {preferences}\n\n"
-
-    prompt += f"""AVAILABLE JOB OFFERS:
----
-{offers_text}
----
-
-Analyze each offer against the CV and preferences. Score each on a scale of 0-100 based on:
-1. Skills match (alignment of required skills with CV)
-2. Experience level match (seniority and years of experience)
-3. Location fit (proximity and user preferences)
-4. Contract type alignment (CDI/CDD/etc preferences)
-5. Salary expectations (if mentioned)
-6. Career progression (does it advance the user's career goals)
-7. Company culture fit (based on CV history)
-
-Return a JSON array with the top {top_k} offers, each containing:
-- position: offer number
-- title: job title
-- company: company name
-- location: work location
-- score: overall match score (0-100)
-- match_reasons: brief list of 2-3 key reasons why this is a good match
-- concerns: any potential concerns or mismatches (if any)
-
-IMPORTANT: Return ONLY the JSON array, no other text or explanation."""
-
-    return prompt
+        preferences_section = f"\n## USER'S PREFERENCES\n\n{preferences}\n"
+    
+    return template.format(
+        cv_text=cv_text,
+        preferences=preferences_section,
+        offers_text=offers_text,
+        top_k=top_k
+    )
 
 
 async def rank_job_offers(

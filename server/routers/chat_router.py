@@ -7,15 +7,17 @@ and job offer ranking using AI/LLM services.
 
 import logging
 from typing import Optional, Dict, Any
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from server.methods.chat import identify_ft_parameters, rank_job_offers
-from server.methods.job_search import search_job_offers
+from server.methods.FT_job_search import search_france_travail
 from server.database import get_db_session
-from server.models import User
+from server.models import User, OptimalOffer
+from server.dependencies import get_current_user
 
 # ============================================================================
 # Router Setup
@@ -42,38 +44,14 @@ class FTParametersRequest(BaseModel):
 
 class OptimalOffersRequest(BaseModel):
     """Request body for optimal job offers ranking endpoint."""
-    ft_parameters: dict
+    ft_parameters: Optional[dict] = None
     preferences: Optional[str] = None
     top_k: int = 5
 
 
 # ============================================================================
-# Dependencies
+# Helper Functions
 # ============================================================================
-
-
-def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
-    """
-    Dependency to extract and validate the current authenticated user from session.
-
-    Args:
-        request: FastAPI request object containing session
-        db: Database session
-
-    Returns:
-        User: The currently authenticated user
-
-    Raises:
-        HTTPException: If user is not authenticated or not found in database
-    """
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(User).filter(User.username == request.session["username"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return user
 
 
 def _check_user_cv(current_user: User) -> None:
@@ -93,6 +71,114 @@ def _check_user_cv(current_user: User) -> None:
         )
 
 
+async def _get_optimal_offers_with_cache(
+    current_user: User,
+    db: Session,
+    ft_parameters: dict,
+    preferences: Optional[str] = None,
+    top_k: int = 5,
+    cache_hours: int = 24
+) -> Dict[str, Any]:
+    """
+    Get optimal job offers, using cache if available and fresh.
+
+    Checks if cached offers exist and are less than cache_hours old.
+    If cache is valid, returns cached results. Otherwise, fetches new offers
+    from France Travail API, ranks them with LLM, and saves to database.
+
+    Args:
+        current_user: Current authenticated user
+        db: Database session
+        ft_parameters: France Travail search parameters
+        preferences: Optional user preferences for ranking
+        top_k: Number of top offers to return
+        cache_hours: Number of hours before cache is considered stale
+
+    Returns:
+        dict: Ranked job offers with match scores, reasoning, and cache status
+
+    Raises:
+        ValueError: If no offers found
+        Exception: If ranking or database operations fail
+    """
+    # Check cache first
+    try:
+        cached_offers = db.query(OptimalOffer).filter(
+            OptimalOffer.user_id == current_user.id
+        ).order_by(OptimalOffer.position).all()
+
+        if cached_offers:
+            # Check if cache is fresh
+            most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
+            last_updated = most_recent.updated_at or most_recent.created_at
+            cache_age = datetime.now(last_updated.tzinfo) - last_updated
+            
+            if cache_age < timedelta(hours=cache_hours):
+                # Cache is fresh, return cached results
+                offers_data = [
+                    {
+                        "position": o.position,
+                        "title": o.title,
+                        "company": o.company,
+                        "location": o.location,
+                        "score": o.score,
+                        "match_reasons": o.match_reasons,
+                        "concerns": o.concerns
+                    }
+                    for o in cached_offers
+                ]
+                
+                return {
+                    "success": True,
+                    "offers": offers_data,
+                    "count": len(offers_data),
+                    "cached": True,
+                    "cache_age_hours": round(cache_age.total_seconds() / 3600, 1)
+                }
+    except Exception as e:
+        logger.warning(f"Error checking cache: {str(e)}, proceeding with fresh search")
+
+    # Cache is stale or missing, fetch new offers
+    # Use France Travail API to fetch offers with provided parameters
+    offers = search_france_travail(ft_parameters or {}, nb_offres=50)
+
+    if not offers:
+        raise ValueError("No job offers found from France Travail API with the provided parameters")
+
+    # Rank the offers using LLM
+    result = await rank_job_offers(
+        current_user.cv_text,
+        offers,
+        preferences=preferences,
+        top_k=top_k
+    )
+    
+    # Save optimal offers to database (delete old ones first)
+    db.query(OptimalOffer).filter(OptimalOffer.user_id == current_user.id).delete()
+
+    ranked_offers = result.get("ranked_offers", [])
+    for offer in ranked_offers:
+        db_offer = OptimalOffer(
+            user_id=current_user.id,
+            position=offer.get("position", 0),
+            title=offer.get("title", ""),
+            company=offer.get("company", ""),
+            location=offer.get("location", ""),
+            score=offer.get("score", 0),
+            match_reasons=offer.get("match_reasons", []),
+            concerns=offer.get("concerns", [])
+        )
+        db.add(db_offer)
+
+    db.commit()
+    
+    # Add cache status and offers to result
+    result["cached"] = False
+    result["offers"] = ranked_offers
+
+    return result
+
+
 # ============================================================================
 # Profile Matching Endpoints
 # ============================================================================
@@ -106,7 +192,12 @@ async def match_profile_endpoint(
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
-    Identify search parameters, find offers, and return ranked optimal offers.
+    Identify search parameters and return optimal offers (using cache if available).
+
+    Orchestrates two operations:
+    1. Checks cache first - if fresh cached offers exist, skip LLM parameter identification
+    2. If cache is stale/missing, identifies France Travail search parameters from CV
+    3. Gets optimal offers (from cache or fresh search and ranking)
 
     Args:
         request: FastAPI request object
@@ -115,7 +206,7 @@ async def match_profile_endpoint(
         current_user: Current authenticated user
 
     Returns:
-        dict: France Travail parameters and ranked optimal offers
+        dict: France Travail parameters and optimal offers (cached or fresh)
 
     Raises:
         HTTPException: If CV not found, validation fails, or offer lookup fails
@@ -123,44 +214,74 @@ async def match_profile_endpoint(
     _check_user_cv(current_user)
 
     try:
-        # Step 1: identify optimal FT parameters from CV and optional query/preferences
+        # Check if we have fresh cached offers first (to avoid unnecessary LLM call)
+        try:
+            cached_offers = db.query(OptimalOffer).filter(
+                OptimalOffer.user_id == current_user.id
+            ).order_by(OptimalOffer.position).all()
+
+            if cached_offers:
+                most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
+                last_updated = most_recent.updated_at or most_recent.created_at
+                cache_age = datetime.now(last_updated.tzinfo) - last_updated
+                
+                if cache_age < timedelta(hours=24):
+                    # Cache is fresh, return cached results without LLM call
+                    offers_data = [
+                        {
+                            "position": o.position,
+                            "title": o.title,
+                            "company": o.company,
+                            "location": o.location,
+                            "score": o.score,
+                            "match_reasons": o.match_reasons,
+                            "concerns": o.concerns
+                        }
+                        for o in cached_offers
+                    ]
+                    
+                    return {
+                        "success": True,
+                        "ft_parameters": {},  # Not needed for cached response
+                        "offers": offers_data,
+                        "cached": True,
+                        "cache_age_hours": round(cache_age.total_seconds() / 3600, 1),
+                        "total_offers_analyzed": len(offers_data),
+                        "top_offers_returned": len(offers_data),
+                        "usage": None  # No LLM usage for cached response
+                    }
+        except Exception as e:
+            logger.warning(f"Error checking cache: {str(e)}, proceeding with fresh search")
+
+        # Cache is stale or missing, so identify FT parameters from CV
         ft_result = await identify_ft_parameters(
             current_user.cv_text,
             preferences=data.query
         )
         ft_parameters = ft_result.get("parameters", {})
 
-        # Step 2: search offers using identified parameters (fallback to motsCles for search)
-        search_query = ft_parameters.get("motsCles") if isinstance(ft_parameters, dict) else None
-        search_result = search_job_offers(
-            db,
-            query=search_query,
-            page=1,
-            page_size=50  # collect enough offers for ranking
-        )
-
-        offers = search_result.get("results", [])
-        if not offers:
-            raise ValueError("No job offers found matching the search parameters")
-
-        # Step 3: rank offers to return the optimal matches
-        ranking = await rank_job_offers(
-            current_user.cv_text,
-            offers,
+        # Get optimal offers using helper (with fresh search since cache was invalid)
+        offers_result = await _get_optimal_offers_with_cache(
+            current_user=current_user,
+            db=db,
+            ft_parameters=ft_parameters,
             preferences=data.query,
-            top_k=5
+            top_k=5,
+            cache_hours=24
         )
 
         return {
             "success": True,
             "ft_parameters": ft_parameters,
-            "offers": ranking.get("ranked_offers", []),
-            "total_offers_analyzed": ranking.get("total_offers_analyzed"),
-            "top_offers_returned": ranking.get("top_offers_returned"),
-            "model": ranking.get("model"),
+            "offers": offers_result.get("offers", []),
+            "cached": offers_result.get("cached", False),
+            "cache_age_hours": offers_result.get("cache_age_hours"),
+            "total_offers_analyzed": offers_result.get("total_offers_analyzed"),
+            "top_offers_returned": offers_result.get("top_offers_returned"),
+            "model": offers_result.get("model"),
             "usage": {
                 "ft_parameters": ft_result.get("usage"),
-                "ranking": ranking.get("usage")
+                "ranking": offers_result.get("usage")
             }
         }
     except ValueError as e:
@@ -220,28 +341,88 @@ async def ft_parameters_identification_endpoint(
 # ============================================================================
 
 
-@router.post("/optimal_offers", summary="Find optimal job offers based on France Travail parameters")
-async def optimal_offers_endpoint(
+@router.get("/optimal_offers_cache", summary="Get stored optimal offers for current user")
+async def optimal_offers_cache(
     request: Request,
-    data: OptimalOffersRequest,
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
+    Retrieve previously stored optimal offers for the current user.
+
+    Returns the ranked offers that were generated during the last profile match,
+    avoiding the need to re-run the expensive matching operation on page refresh.
+
+    Args:
+        request: FastAPI request object
+        db: Database session
+        current_user: Current authenticated user
+
+    Returns:
+        dict: Stored optimal offers with metadata
+
+    Raises:
+        HTTPException: If retrieval fails
+    """
+    try:
+        offers = db.query(OptimalOffer).filter(
+            OptimalOffer.user_id == current_user.id
+        ).order_by(OptimalOffer.position).all()
+
+        if not offers:
+            return {
+                "success": True,
+                "offers": [],
+                "count": 0
+            }
+
+        offers_data = [
+            {
+                "position": o.position,
+                "title": o.title,
+                "company": o.company,
+                "location": o.location,
+                "score": o.score,
+                "match_reasons": o.match_reasons,
+                "concerns": o.concerns
+            }
+            for o in offers
+        ]
+
+        return {
+            "success": True,
+            "offers": offers_data,
+            "count": len(offers_data)
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving optimal offers: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve optimal offers")
+
+
+@router.post("/optimal_offers", summary="Find optimal job offers based on France Travail parameters")
+async def optimal_offers(
+    request: Request,
+    data: OptimalOffersRequest,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    cache_hours: int = 24
+) -> Dict[str, Any]:
+    """
     Find and rank the most relevant job offers based on search parameters.
 
-    Takes a set of search parameters, fetches matching job offers from
-    the database, and uses the LLM to rank them based on the user's
-    CV and preferences.
+    First checks if cached offers exist and are fresh (less than cache_hours old).
+    If cache is valid, returns cached results. Otherwise, fetches new offers from
+    France Travail API and ranks them using LLM.
 
     Args:
         request: FastAPI request object
         data: OptimalOffersRequest with search parameters, preferences, and top_k
         db: Database session
         current_user: Current authenticated user
+        cache_hours: Number of hours before cache is considered stale (default: 24)
 
     Returns:
-        dict: Ranked job offers with match scores and reasoning
+        dict: Ranked job offers with match scores and reasoning, plus cache status
 
     Raises:
         HTTPException: If CV not found, no offers found, or ranking fails
@@ -249,32 +430,14 @@ async def optimal_offers_endpoint(
     _check_user_cv(current_user)
 
     try:
-        from server.methods.job_search import search_job_offers
-
-        # Extract search query from parameters if available
-        search_query = data.ft_parameters.get('motsCles')
-
-        # Search for job offers using the provided parameters
-        search_result = search_job_offers(
-            db,
-            query=search_query,
-            page=1,
-            page_size=50  # Get up to 50 offers to rank
-        )
-
-        offers = search_result.get('results', [])
-
-        if not offers:
-            raise ValueError("No job offers found matching the search parameters")
-
-        # Rank the offers using LLM
-        result = await rank_job_offers(
-            current_user.cv_text,
-            offers,
+        result = await _get_optimal_offers_with_cache(
+            current_user=current_user,
+            db=db,
+            ft_parameters=data.ft_parameters or {},
             preferences=data.preferences,
-            top_k=data.top_k
+            top_k=data.top_k,
+            cache_hours=cache_hours
         )
-
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

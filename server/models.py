@@ -47,6 +47,7 @@ class User(Base):
     login_attempts = relationship("LoginAttempt", back_populates="user", cascade="all, delete-orphan")
     experiences = relationship("Experience", back_populates="user", cascade="all, delete-orphan")
     educations = relationship("Education", back_populates="user", cascade="all, delete-orphan")
+    optimal_offers = relationship("OptimalOffer", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username})>"
@@ -214,11 +215,11 @@ class Offres_FT(Base):
 
     def __repr__(self):
         return f"<Offres_FT(id={self.id})>"
-    
+
 
 class Fiche_Metier_ROME(Base):
     __tablename__ = "fiche_metier_rome"
-    
+
     code = Column(String, unique=True, nullable=False, index=True, primary_key=True)
     metier = Column(JSON, nullable=False)  # {code, libelle}
     groupesCompetencesMobilisees = Column(JSON, nullable=False)  # Array of competency groups
@@ -226,3 +227,25 @@ class Fiche_Metier_ROME(Base):
 
     def __repr__(self):
         return f"<Fiche_Metier_ROME(code={self.code})>"
+
+
+class OptimalOffer(Base):
+    __tablename__ = "optimal_offers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    position = Column(Integer, nullable=False)
+    title = Column(String, nullable=False)
+    company = Column(String, nullable=False)
+    location = Column(String, nullable=False)
+    score = Column(Integer, nullable=False)
+    match_reasons = Column(ARRAY(String), nullable=False)
+    concerns = Column(ARRAY(String), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationship
+    user = relationship("User", back_populates="optimal_offers")
+
+    def __repr__(self):
+        return f"<OptimalOffer(id={self.id}, user_id={self.user_id}, title={self.title})>"

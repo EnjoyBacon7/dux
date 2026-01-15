@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/useAuth";
 import { useLanguage } from "./contexts/useLanguage";
-import { Header, AccountCard } from "./components";
+import { Header, AccountCard, JobOffersCard } from "./components";
 import "./styles/home.css";
 
 const Home: React.FC = () => {
@@ -58,19 +58,19 @@ const Home: React.FC = () => {
                     title={user.title}
                     profilePicture={user.profile_picture}
                 />
-                
+
                 <div className="home-grid">
                     {/* Welcome Card */}
                     <div className="nb-card home-card">
                         <h1 className="home-title">{t('home.welcome')}</h1>
-                    <p className="nb-text-dim">{t('home.authenticated')}</p>
+                        <p className="nb-text-dim">{t('home.authenticated')}</p>
                         <div className="home-actions">
-                        <button
-                            onClick={() => navigate('/jobs')}
-                            className="nb-btn"
-                        >
-                            {t('jobs.title')}
-                        </button>
+                            <button
+                                onClick={() => navigate('/jobs')}
+                                className="nb-btn"
+                            >
+                                {t('jobs.title')}
+                            </button>
                         </div>
                     </div>
 
@@ -95,6 +95,9 @@ const Home: React.FC = () => {
                         {success && <div className="nb-alert nb-alert--success nb-mt">{success}</div>}
                         {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
                     </div>
+
+                    {/* Job Offers Carousel Card */}
+                    <JobOffersCard />
                 </div>
             </div>
         </>

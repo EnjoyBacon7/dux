@@ -26,12 +26,14 @@ Generate a JSON object with France Travail API search parameters. Include all re
 
 {
   "motsCles": "comma-separated relevant keywords from CV and preferences",
+  "codeROME": "ROME code(s) matching the user's target position",
+  "appellation": "specific job title code(s) if applicable",
   "theme": "ROME theme code(s) for the job",
   "domaine": "domain code(s)",
   "grandDomaine": "larger domain category code(s)",
   "secteurActivite": "industry sector code(s) (NAF division)",
   "region": "region code(s)",
-  "commune": "INSEE commune code (5-digit) - NOT postal/ZIP code",
+  "commune": "specific city code(s) if provided",
   "departement": "department code(s)",
   "distance": "search radius in km from base location",
   "inclureLimitrophes": true/false to include neighboring departments,
@@ -39,9 +41,16 @@ Generate a JSON object with France Travail API search parameters. Include all re
   "typeContrat": "contract type code (CDI, CDD, Stage, etc.)",
   "natureContrat": "nature of contract code",
   "tempsPlein": true/false for full-time preference,
+  "dureeContratMin": "minimum contract duration in months",
+  "dureeContratMax": "maximum contract duration in months",
+  "dureeHebdo": "weekly hours type: 0 (Non précisé), 1 (Temps plein), 2 (Temps partiel)",
+  "dureeHebdoMin": "minimum weekly hours (format HHMM)",
+  "dureeHebdoMax": "maximum weekly hours (format HHMM)",
   "experienceExigence": "required experience level (D, S, E)",
   "experience": "experience level: 0 (Non précisé), 1 (Moins d'un an), 2 (1-3 ans), 3 (Plus de 3 ans)",
   "experienceCommentaire": "experience commentary if needed",
+  "niveauFormation": "required education/qualification level",
+  "qualification": "specific qualification code(s)",
   "permis": "required driving license(s) if any",
   "salaireMin": "minimum salary expectation",
   "periodeSalaire": "salary period (annual/monthly/hourly)",
@@ -55,29 +64,28 @@ Generate a JSON object with France Travail API search parameters. Include all re
   "modeSelectionPartenaires": "partner selection mode",
   "minCreationDate": "earliest date for offers (ISO format)",
   "maxCreationDate": "latest date for offers (ISO format)",
+  "publieeDepuis": "maximum days since publication",
   "sort": "sorting: 0 (relevance, distance, date), 1 (date, relevance, distance), 2 (distance, relevance, date)"
 }
 
 ## Guidelines for Parameter Selection
 
 1. **Keywords (motsCles)**:
-   - **PRIMARY SEARCH FILTER** - Start with relevant keywords from CV and preferences
    - Extract main job titles and key skills from CV
    - Include industry-specific terminology
    - Use terms from user's preferences
    - Prioritize recent and relevant experience
    - **IMPORTANT**: Multiple keywords are combined with AND logic - be selective to avoid over-filtering
    - Each keyword must be at least 2 characters, separated by commas
-   - Prefer 1-2 broad keywords over many specific ones
 
-2. **Job Classification (theme/domaine/grandDomaine)**:
-   - **Use categorical filters for broad, flexible matching**
-   - **theme**: Select the most relevant ROME theme(s) from the list below
-   - **domaine**: Choose the specific domain(s) that match user's target roles
-   - **grandDomaine**: Use for very broad searches spanning multiple domains
-   - **RECOMMENDED**: Start with theme + domaine, add grandDomaine only for extremely broad searches
-   - Prefer 1-2 most relevant domains over exhaustive lists
-   - These filters are less restrictive than ROME codes and return more results
+2. **Job Classification (ROME/Appellation)**:
+   - Map user's experience and target roles to ROME codes
+   - Include multiple codes if roles span different categories
+   - **IMPORTANT**: Prefer codeROME alone; avoid combining with domaine AND secteurActivite (over-constrains search)
+    - Use appellation for specific job title codes
+       - Provide numeric codes only (digits), comma-separated if multiple
+       - Do not use labels; use France Travail appellation IDs
+    - Set theme and domaine for broader categorization
     - domaine: Valid domain codes:
        - A11: Engins agricoles et forestiers
        - A12: Espaces naturels et espaces verts
@@ -210,11 +218,9 @@ Generate a JSON object with France Travail API search parameters. Include all re
    - Consider grandDomaine for very broad searches
 
 3. **Industry & Sector (secteurActivite)**:
-   - **ONLY include if user explicitly mentions a specific industry or sector**
-   - Do not infer secteurActivite from job titles alone - require explicit industry preference
-   - Map user's stated industry preferences to NAF division codes
-   - Examples of explicit mentions: "in healthcare", "automotive industry", "financial sector"
-   - Leave blank if user has no specific sector preference or only mentions job titles
+   - Map user's current and target industries to NAF division codes
+   - Include multiple sectors if user has transferable skills
+   - Leave blank for no sector preference
    - Valid NAF division codes:
      - 01: Culture et production animale, chasse et services annexes
      - 02: Sylviculture et exploitation forestière
@@ -307,20 +313,15 @@ Generate a JSON object with France Travail API search parameters. Include all re
 
 4. **Location Strategy**:
    - Choose exactly one geographic filter: commune OR departement OR region OR paysContinent
-   - **commune**: Requires INSEE commune code (5-digit), NOT postal/ZIP code
-     - Example: Paris = 75056 (INSEE), NOT 75001-75020 (postal codes)
-     - **IMPORTANT**: Do not use postal codes - they will be rejected by the API
-     - If you only have city name or postal code, use `departement` instead (e.g., "75" for Paris)
-   - **departement**: Preferred for city-level searches when INSEE code unknown (e.g., "75" for Paris, "13" for Marseille)
+   - Use specific commune codes if user has fixed location
    - Use region code(s) for broader geographic search
+   - Use departement for department-level filtering
    - Distance radius applies only with commune as base location (drop `distance` otherwise)
    - Set inclureLimitrophes=true for neighboring departments search
 
 5. **Contract & Duration**:
-   - typeContrat: **DEFAULT TO "CDI"** unless CV or user preferences explicitly mention other contract types (internship, CDD, freelance, etc.)
-     - Valid codes: CDI (permanent), CDD (fixed-term), MIS (interim), SAI (seasonal), CCE (commercial), FRA (franchise), LIB (self-employed), REP (business takeover), TTI (temporary insertion), DDI (fixed-term insertion), DIN (interim permanent), DDT (CDD trampoline)
-     - Only change from CDI if user explicitly states a different preference
-    - natureContrat: **RARELY NEEDED** - Only specify for very specific contract types like apprenticeships or government programs. Do not combine with typeContrat unless user explicitly requires it. Valid codes:
+   - typeContrat: Use ONLY these valid codes: CDI (permanent), CDD (fixed-term), MIS (interim), SAI (seasonal), CCE (commercial), FRA (franchise), LIB (self-employed), REP (business takeover), TTI (temporary insertion), DDI (fixed-term insertion), DIN (interim permanent), DDT (CDD trampoline)
+    - natureContrat: Specify contract nature if relevant. Valid codes:
        - E1: Contrat travail
        - E2: Contrat apprentissage
        - FA: Act. Formation pré.recrut.
@@ -341,34 +342,28 @@ Generate a JSON object with France Travail API search parameters. Include all re
        - ER: Engagement à servir dans la réserve
        - CI: Contrat intermittent
    - tempsPlein: Set based on preference (true for full-time, false for part-time)
+   - dureeContratMin/Max: For contract duration preferences (in months)
+   - dureeHebdo: Type of weekly hours (0=not specified, 1=full-time, 2=part-time)
+   - dureeHebdoMin/Max: For specific weekly hour requirements (HHMM format)
 
 6. **Experience & Education**:
-   - **IMPORTANT**: Use EITHER experienceExigence OR experience, not both (combining them is too restrictive)
    - experienceExigence: D (débutant accepté), S (souhaitée), E (exigée) - requirement level
    - experience: 0 (not specified), 1 (less than 1yr), 2 (1-3yrs), 3 (3+yrs) - experience duration
-   - **Choose one**: Use experienceExigence for requirement strictness OR experience for duration, not both
-    - permis: **ONLY if explicitly required by user or job nature** (e.g., delivery driver, sales rep with travel). Do not add for office/remote roles. Valid codes:
-       - AM: AM - Cyclomoteur <= 50 cm3
-       - A1: A1 - Motocyclette <=125 cm3
-       - A2: A2 - Moto <= 600 cm3
-       - A: A - Moto
-       - B1: B1 - Quadricycle
-       - B: B - Véhicule léger
-       - B96: B mention 96 - VL + remorque (PTAC < 4,25 T)
-       - EB: EB - Véhicule léger + remorque
-       - B79: B mention 79.06 (= EB)
-       - BE: BE - Véhicule léger + remorque  (PTAC > 4,25 T)
-       - C1: C1 - Poids lourd < 7,5 T
-       - C1E: C1E - Poids lourd < 7,5 T + remorque
-       - C: C - Poids lourd
-       - CE: CE - Poids lourd + remorque  (= EC)
-       - EC: EC - Poids lourd + remorque
-       - D1: D1 - Transport de personnes <= 16 places
-       - D1E: D1E - Transport de personnes <= 16 P + remorque
-       - D: D - Transport de personnes
-       - DE: DE - Transport de personnes + remorque (= ED)
-       - ED: ED - Transport de personnes + remorque
-   - Include experience commentary if needed for context
+   - Use experienceExigence for requirement strictness, experience for duration
+    - niveauFormation: Use France Travail education codes (strings). Valid codes:
+       - AFS: Aucune formation scolaire
+       - CP4: Primaire à 4ème
+       - CFG: 4ème achevée
+       - C3A: 3ème achevée ou Brevet
+       - C12: 2nd ou 1ère achevée
+       - NV5: CAP, BEP et équivalents
+       - NV4b: Niveau Bac
+       - NV4: Bac ou équivalent
+       - NV3: Bac+2 ou équivalents
+       - NV2: Bac+3, Bac+4 ou équivalents
+       - NV1: Bac+5 et plus ou équivalents
+   - **AVOID qualification** unless user explicitly states cadre/non-cadre preference (often filters out most results)
+   - **AVOID permis** unless job explicitly requires driving (e.g., delivery, sales) - most jobs don't need licenses
 
 7. **Salary & Benefits**:
    - salaireMin: Set minimum based on expectations and experience
@@ -385,6 +380,7 @@ Generate a JSON object with France Travail API search parameters. Include all re
 
 9. **Date Filtering**:
    - minCreationDate/maxCreationDate: Specific date range (ISO format)
+   - publieeDepuis: Use one of 1, 3, 7, 14, or 31 (days since publication)
 
 10. **Advanced Filters**:
     - origineOffre: Specific offer origin if known
@@ -395,23 +391,15 @@ Generate a JSON object with France Travail API search parameters. Include all re
 
 ## Optimization Strategy
 
-- **Prioritize broader searches over narrow filters** - France Travail combines all filters with AND logic
-- **Always include typeContrat: "CDI"** unless user explicitly mentions other contract types
-- **PRIMARY APPROACH**: motsCles + location + theme/domaine
-- **Job classification hierarchy**: Start with theme + domaine for targeted results
-- **Only add secteurActivite if user explicitly mentions a specific industry/sector**
-- Limit keywords to 1-2 broad terms maximum
-- Avoid combining too many classification filters - use theme + domaine, add secteurActivite only when explicitly required
-- Do not add permis unless user specifically mentions them
-- Use EITHER experienceExigence OR experience, not both
-- Omit education level filters (niveauFormation) - they are too restrictive
-- Omit contract duration filters (dureeContratMin/Max) - they eliminate most results
 - Start with broad parameters if user has limited specificity
 - Add filters progressively to match user requirements
 - Ensure at least some results will be returned (don't over-filter)
 - Balance between relevance and result quantity
-- Use location filters strategically: precise departement for cities, region for broader search
-- When user preferences are unclear, use broader categorical filters (theme, domaine, region) with keyword search
+- Adjust experience and education requirements only when strictly necessary
+- Use location filters strategically: precise commune for local jobs, region+distance for mobility
+- Combine ROME codes and keywords for precise matching without over-constraining results
+- Consider complementary parameters: use both typeContrat and dureeHebdo for flexibility
+- When user preferences are unclear, use broader categorical filters (grandDomaine, region) with keyword search
 
 ## Important Notes
 
@@ -421,8 +409,10 @@ Generate a JSON object with France Travail API search parameters. Include all re
 - Date formats should be ISO 8601 (YYYY-MM-DD)
 - HHMM format for weekly hours (e.g., "0900" for 9 hours, "3500" for 35 hours)
 - Boolean parameters should be true/false, not 1/0 or "yes"/"no"
-- For multiple values (themes, domains, regions, etc.), use comma-separated strings or arrays as needed
+- For multiple values (ROME codes, regions, etc.), use comma-separated strings or arrays as needed
+ - Note: The backend removes `theme` when `codeROME` is provided; prefer `codeROME` for specificity
 - The range parameter is limited to 150 results maximum per request (format: "0-149")
+- Maximum 200 ROME codes can be specified in a single search
 
 ## Output Format
 Respond with only the JSON object, no additional text or explanation.
