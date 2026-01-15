@@ -103,10 +103,10 @@ SEARCHABLE_COLUMNS: List[str] = [
 def _quote_identifier(identifier: str) -> str:
     """
     Safely quote identifiers that may contain dots or reserved characters.
-    
+
     Args:
         identifier: The identifier to quote
-        
+
     Returns:
         Quoted identifier safe for SQL
     """
@@ -116,7 +116,7 @@ def _quote_identifier(identifier: str) -> str:
 def _build_where_clause(query: Optional[str]) -> Tuple[str, Dict[str, Any]]:
     """
     Create a WHERE clause for the search query and return SQL + parameters.
-    
+
     Builds an OR clause that searches multiple columns for the given query.
 
     Args:

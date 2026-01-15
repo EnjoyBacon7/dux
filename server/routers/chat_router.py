@@ -54,14 +54,14 @@ class OptimalOffersRequest(BaseModel):
 def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
     """
     Dependency to extract and validate the current authenticated user from session.
-    
+
     Args:
         request: FastAPI request object containing session
         db: Database session
-        
+
     Returns:
         User: The currently authenticated user
-        
+
     Raises:
         HTTPException: If user is not authenticated or not found in database
     """
@@ -78,10 +78,10 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)) ->
 def _check_user_cv(current_user: User) -> None:
     """
     Validate that user has uploaded a CV.
-    
+
     Args:
         current_user: The current user to check
-        
+
     Raises:
         HTTPException: If user has no CV uploaded
     """
@@ -118,7 +118,7 @@ async def match_profile_endpoint(
 
     Returns:
         dict: Analysis and recommendations from LLM with model and usage info
-        
+
     Raises:
         HTTPException: If CV not found, validation fails, or LLM call fails
     """
@@ -163,7 +163,7 @@ async def ft_parameters_identification_endpoint(
 
     Returns:
         dict: Identified search parameters and usage information
-        
+
     Raises:
         HTTPException: If CV not found, validation fails, or LLM call fails
     """
@@ -209,7 +209,7 @@ async def optimal_offers_endpoint(
 
     Returns:
         dict: Ranked job offers with match scores and reasoning
-        
+
     Raises:
         HTTPException: If CV not found, no offers found, or ranking fails
     """

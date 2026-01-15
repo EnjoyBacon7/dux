@@ -50,7 +50,7 @@ app = FastAPI()
 async def global_exception_handler(request: Request, exc: Exception):
     """
     Global exception handler for unhandled exceptions.
-    
+
     Catches all unhandled exceptions and returns a proper JSON response
     with error details (only if debug mode is enabled).
     """
@@ -112,7 +112,7 @@ app.add_middleware(
 async def startup_event():
     """
     Initialize application on startup.
-    
+
     Currently initializes the database connection and schema.
     """
     init_db()
@@ -144,18 +144,18 @@ if static_dir.exists():
 async def serve_spa(full_path: str):
     """
     Serve React SPA for all unmatched routes.
-    
+
     This is a catch-all handler that serves index.html for any route
     not matched by other handlers, enabling client-side routing in the SPA.
-    
+
     Args:
         full_path: The requested path
-        
+
     Returns:
         HTML content of index.html for SPA, or error if not found
     """
     index_path = BASE_DIR / "static" / "index.html"
-    
+
     try:
         with open(index_path, "r", encoding="utf-8") as f:
             html_content = f.read()

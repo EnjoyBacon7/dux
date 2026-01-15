@@ -34,11 +34,11 @@ logger = logging.getLogger(__name__)
 def _build_ft_api_headers(token: str, params: Dict[str, Any]) -> Dict[str, str]:
     """
     Build headers dictionary for France Travail API requests.
-    
+
     Args:
         token: OAuth2 bearer token
         params: Search parameters to include in headers
-        
+
     Returns:
         Headers dictionary for API request
     """
@@ -57,15 +57,15 @@ def _build_ft_api_headers(token: str, params: Dict[str, Any]) -> Dict[str, str]:
 def _get_ft_oauth_token(client_id: str, client_secret: str, auth_url: str) -> str:
     """
     Get OAuth2 token from France Travail authentication service.
-    
+
     Args:
         client_id: OAuth client ID
         client_secret: OAuth client secret
         auth_url: Authentication endpoint URL
-        
+
     Returns:
         OAuth2 access token
-        
+
     Raises:
         Exception: If authentication fails
     """
@@ -108,7 +108,7 @@ def search_jobs(
 
     Returns:
         dict: Search results with pagination info and list of matching offers
-        
+
     Raises:
         Returns error dict if search fails
     """

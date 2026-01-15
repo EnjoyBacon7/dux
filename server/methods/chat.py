@@ -129,8 +129,6 @@ def _build_usage_dict(response: Any) -> Dict[str, int]:
 # ============================================================================
 
 
-
-
 # ============================================================================
 # Input Validation Utilities
 # ============================================================================
@@ -253,7 +251,6 @@ async def match_profile(
         raise ValueError(f"Profile matching failed: {str(e)}")
 
 
-
 async def _call_llm(
     prompt: str,
     system_content: str,
@@ -313,7 +310,7 @@ async def _call_llm(
 
         choice = response.choices[0]
         content = _extract_response_content(choice)
-        
+
         result_data = content
         if parse_json:
             result_data = _parse_json_response(content, json_array)
@@ -333,8 +330,6 @@ async def _call_llm(
     except Exception as e:
         logger.error(f"Unexpected error in LLM call: {str(e)}")
         raise
-
-
 
 
 # ============================================================================
@@ -442,9 +437,6 @@ async def identify_ft_parameters(
         raise ValueError(f"FT parameters identification failed: {str(e)}")
 
 
-
-
-
 # ============================================================================
 # Job Offer Ranking API
 # ============================================================================
@@ -462,7 +454,8 @@ def _format_job_offers_for_analysis(job_offers: List[Dict[str, Any]]) -> str:
     """
     offers_text = ""
     for i, offer in enumerate(job_offers, 1):
-        offers_text += f"\n{i}. {offer.get('intitule', 'Unknown Position')} - {offer.get('entreprise_nom', 'Unknown Company')}\n"
+        offers_text += f"\n{i}. {offer.get('intitule', 'Unknown Position')}  - {offer.get(
+            'entreprise_nom', 'Unknown Company')} \n"
         offers_text += f"   Location: {offer.get('lieuTravail_libelle', 'N/A')}\n"
         offers_text += f"   Contract: {offer.get('typeContratLibelle', 'N/A')}\n"
         offers_text += f"   Description: {offer.get('description', 'N/A')[:200]}...\n"
@@ -490,11 +483,12 @@ def create_job_ranking_prompt(
     """
     offers_text = _format_job_offers_for_analysis(job_offers)
 
-    prompt = f"""You are a professional job matching expert. Analyze the following CV and job offers, then rank them by relevance and match quality.
+    prompt = f"""
+        You are a professional job matching expert. Analyze the following CV and job offers, then rank them by relevance and match quality.
 
 USER'S CV:
 ---
-{cv_text}
+        {cv_text} 
 ---
 
 """
@@ -587,4 +581,3 @@ async def rank_job_offers(
     except Exception as e:
         logger.error(f"Unexpected error in job ranking: {str(e)}")
         raise ValueError(f"Job ranking failed: {str(e)}")
-

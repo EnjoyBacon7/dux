@@ -43,7 +43,7 @@ class PasswordLoginRequest(BaseModel):
 def _perform_timing_attack_prevention() -> None:
     """
     Dummy password hash to prevent timing attacks.
-    
+
     Even when a user doesn't exist, we perform a hash operation
     to maintain consistent timing across success and failure paths.
     """
@@ -53,10 +53,10 @@ def _perform_timing_attack_prevention() -> None:
 def _check_account_lockout(user: User) -> None:
     """
     Check if user account is locked and clear lockout if expired.
-    
+
     Args:
         user: The user to check
-        
+
     Raises:
         HTTPException: If account is currently locked
     """
@@ -76,11 +76,11 @@ def _check_account_lockout(user: User) -> None:
 def _handle_failed_login(user: User, db: Session) -> None:
     """
     Handle failed login attempt including account lockout.
-    
+
     Args:
         user: The user with failed login
         db: Database session
-        
+
     Raises:
         HTTPException: If account becomes locked
     """
@@ -100,7 +100,7 @@ def _handle_failed_login(user: User, db: Session) -> None:
 def _handle_successful_login(user: User, req: Request, db: Session) -> None:
     """
     Handle successful login including session setup and failed attempts reset.
-    
+
     Args:
         user: The authenticated user
         req: FastAPI request object for session
@@ -129,7 +129,7 @@ async def register_user_with_password(
 ) -> Dict[str, Any]:
     """
     Register a new user with username and password.
-    
+
     Validates username and password strength, then creates a new user
     with an argon2-hashed password.
 
@@ -139,7 +139,7 @@ async def register_user_with_password(
 
     Returns:
         dict: Success message with username
-        
+
     Raises:
         HTTPException: If validation fails or username already exists
     """
@@ -187,7 +187,7 @@ async def login_user_with_password(
 ) -> Dict[str, Any]:
     """
     Authenticate user with username and password.
-    
+
     Validates credentials, handles account lockout, records login attempts,
     and establishes session on successful authentication.
 
@@ -198,7 +198,7 @@ async def login_user_with_password(
 
     Returns:
         dict: Success message with username
-        
+
     Raises:
         HTTPException: If validation fails, credentials invalid, or account locked
     """

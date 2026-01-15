@@ -37,7 +37,7 @@ router.include_router(jobs_router.router)
 async def healthcheck() -> Dict[str, str]:
     """
     Simple healthcheck endpoint to verify the API is running.
-    
+
     This endpoint can be used by load balancers, monitoring services,
     or frontend applications to verify API availability.
 

@@ -31,7 +31,7 @@ UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 def extract_text_from_pdf(file_path: Path) -> str:
     """
     Extract text from PDF file with OCR fallback.
-    
+
     Uses PyPDF2 for text extraction from searchable PDFs.
     If no text is found (e.g., scanned PDFs), attempts OCR using pytesseract.
 
@@ -40,7 +40,7 @@ def extract_text_from_pdf(file_path: Path) -> str:
 
     Returns:
         Extracted text from the PDF
-        
+
     Note:
         OCR fallback requires pytesseract and pdf2image to be installed
     """
@@ -72,7 +72,7 @@ def extract_text_from_pdf(file_path: Path) -> str:
 def extract_text_from_docx(file_path: Path) -> str:
     """
     Extract text from DOCX/DOC file.
-    
+
     Extracts text from both paragraphs and tables within the document.
 
     Args:
@@ -80,7 +80,7 @@ def extract_text_from_docx(file_path: Path) -> str:
 
     Returns:
         Extracted text from the document
-        
+
     Raises:
         HTTPException: If document reading fails
     """
@@ -110,7 +110,7 @@ def extract_text_from_txt(file_path: Path) -> str:
 
     Returns:
         Text content of the file
-        
+
     Raises:
         HTTPException: If file reading fails
     """
@@ -125,7 +125,7 @@ def extract_text_from_txt(file_path: Path) -> str:
 def extract_text_from_file(file_path: Path, file_extension: str) -> str:
     """
     Extract text from file based on its extension.
-    
+
     Routes to appropriate extraction function based on file type.
 
     Args:
@@ -134,7 +134,7 @@ def extract_text_from_file(file_path: Path, file_extension: str) -> str:
 
     Returns:
         Extracted text from the file
-        
+
     Raises:
         HTTPException: If file type is unsupported or extraction fails
     """
@@ -156,7 +156,7 @@ def extract_text_from_file(file_path: Path, file_extension: str) -> str:
 async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
     Handle file upload, validation, storage, and text extraction.
-    
+
     Validates file type and size, saves to disk with secure filename,
     and extracts text content for later processing.
 
@@ -170,7 +170,7 @@ async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
         - size: File size in bytes
         - extracted_text: Extracted text content
         - message: Success message
-        
+
     Raises:
         HTTPException: If validation fails or processing errors occur
     """

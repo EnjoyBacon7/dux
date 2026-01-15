@@ -65,14 +65,14 @@ class ProfileSetupRequest(BaseModel):
 def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
     """
     Dependency to extract and validate the current authenticated user from session.
-    
+
     Args:
         request: FastAPI request object containing session
         db: Database session
-        
+
     Returns:
         User: The currently authenticated user
-        
+
     Raises:
         HTTPException: If user is not authenticated or not found in database
     """
@@ -100,7 +100,7 @@ async def upload_endpoint(
 ) -> Dict[str, Any]:
     """
     Upload and process a CV file (PDF, DOCX, or TXT).
-    
+
     Handles file validation, text extraction, and storage of CV data
     in the user's profile.
 
@@ -112,7 +112,7 @@ async def upload_endpoint(
 
     Returns:
         dict: Upload result with filename, content_type, size, extracted_text, and status message
-        
+
     Raises:
         HTTPException: If file validation or processing fails
     """
@@ -140,7 +140,7 @@ async def complete_profile_setup(
 ) -> Dict[str, str]:
     """
     Complete user profile setup with detailed career information.
-    
+
     Saves profile data including headline, summary, location, skills,
     work experience, and education history to the database.
 
@@ -152,7 +152,7 @@ async def complete_profile_setup(
 
     Returns:
         dict: Success message confirming profile setup completion
-        
+
     Raises:
         HTTPException: If database operations fail
     """
