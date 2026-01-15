@@ -6,3 +6,6 @@ uploads
 htmlcov
 .VSCodeCounter
 static
+cvs
+.idea
+chroma_db
