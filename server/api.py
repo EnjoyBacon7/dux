@@ -15,7 +15,7 @@ from server.routers import chat_router, profile_router, jobs_router
 # Router Setup
 # ============================================================================
 
-router = APIRouter(tags=["General"])
+router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # ============================================================================
@@ -33,7 +33,7 @@ router.include_router(jobs_router.router)
 # ============================================================================
 
 
-@router.get("/healthcheck", summary="Health check endpoint")
+@router.get("/healthcheck", tags=["General"], summary="Health check endpoint")
 async def healthcheck() -> Dict[str, str]:
     """
     Simple healthcheck endpoint to verify the API is running.
