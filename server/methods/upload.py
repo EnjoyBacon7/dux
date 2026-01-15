@@ -1,9 +1,17 @@
+"""
+File upload and text extraction utilities.
+
+Handles CV file uploads, text extraction from various file formats
+(PDF, DOCX, TXT), with OCR fallback support for scanned PDFs.
+"""
+
 from fastapi import UploadFile, File, HTTPException
 from pathlib import Path
 import shutil
 import os
 import uuid
 import logging
+from typing import Dict, Any
 
 import PyPDF2
 import pytesseract
@@ -15,10 +23,26 @@ UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "./uploads"))
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
 
+# ============================================================================
+# Text Extraction Functions
+# ============================================================================
+
+
 def extract_text_from_pdf(file_path: Path) -> str:
     """
-    Extract text from PDF file. Uses PyPDF2 for text extraction,
-    and falls back to OCR if needed.
+    Extract text from PDF file with OCR fallback.
+    
+    Uses PyPDF2 for text extraction from searchable PDFs.
+    If no text is found (e.g., scanned PDFs), attempts OCR using pytesseract.
+
+    Args:
+        file_path: Path to the PDF file
+
+    Returns:
+        Extracted text from the PDF
+        
+    Note:
+        OCR fallback requires pytesseract and pdf2image to be installed
     """
     text = ""
     try:
@@ -47,7 +71,18 @@ def extract_text_from_pdf(file_path: Path) -> str:
 
 def extract_text_from_docx(file_path: Path) -> str:
     """
-    Extract text from DOCX file
+    Extract text from DOCX/DOC file.
+    
+    Extracts text from both paragraphs and tables within the document.
+
+    Args:
+        file_path: Path to the DOCX file
+
+    Returns:
+        Extracted text from the document
+        
+    Raises:
+        HTTPException: If document reading fails
     """
     text = ""
     try:
@@ -68,7 +103,16 @@ def extract_text_from_docx(file_path: Path) -> str:
 
 def extract_text_from_txt(file_path: Path) -> str:
     """
-    Extract text from TXT file
+    Extract text from TXT file.
+
+    Args:
+        file_path: Path to the TXT file
+
+    Returns:
+        Text content of the file
+        
+    Raises:
+        HTTPException: If file reading fails
     """
     try:
         with open(file_path, 'r', encoding='utf-8') as txt_file:
@@ -80,7 +124,19 @@ def extract_text_from_txt(file_path: Path) -> str:
 
 def extract_text_from_file(file_path: Path, file_extension: str) -> str:
     """
-    Extract text from file based on its extension
+    Extract text from file based on its extension.
+    
+    Routes to appropriate extraction function based on file type.
+
+    Args:
+        file_path: Path to the file
+        file_extension: File extension (e.g., ".pdf", ".docx")
+
+    Returns:
+        Extracted text from the file
+        
+    Raises:
+        HTTPException: If file type is unsupported or extraction fails
     """
     if file_extension == ".pdf":
         return extract_text_from_pdf(file_path)
@@ -92,9 +148,31 @@ def extract_text_from_file(file_path: Path, file_extension: str) -> str:
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_extension}")
 
 
-async def upload_file(file: UploadFile = File(...)):
+# ============================================================================
+# File Upload Handler
+# ============================================================================
+
+
+async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
-    Handle file upload, save to disk, and extract text using OCR/text extraction
+    Handle file upload, validation, storage, and text extraction.
+    
+    Validates file type and size, saves to disk with secure filename,
+    and extracts text content for later processing.
+
+    Args:
+        file: The uploaded file (multipart/form-data)
+
+    Returns:
+        dict: Upload result with:
+        - filename: Original filename
+        - content_type: File MIME type
+        - size: File size in bytes
+        - extracted_text: Extracted text content
+        - message: Success message
+        
+    Raises:
+        HTTPException: If validation fails or processing errors occur
     """
     # Validate file
     if not file.filename:

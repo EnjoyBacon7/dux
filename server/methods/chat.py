@@ -1,11 +1,15 @@
 import logging
 import json
-from typing import Optional
+from typing import Optional, Dict, Any, List
 from pathlib import Path
 from openai import OpenAI, APIError
 from server.config import settings
 
 logger = logging.getLogger(__name__)
+
+# ============================================================================
+# OpenAI Configuration and Client Management
+# ============================================================================
 
 
 def get_openai_client(base_url: Optional[str] = None, api_key: Optional[str] = None) -> OpenAI:
@@ -15,6 +19,12 @@ def get_openai_client(base_url: Optional[str] = None, api_key: Optional[str] = N
     Args:
         base_url: Optional custom base URL (defaults to settings.openai_base_url)
         api_key: Optional custom API key (defaults to settings.openai_api_key)
+
+    Returns:
+        OpenAI: Configured OpenAI client instance
+
+    Raises:
+        ValueError: If OPENAI_API_KEY is not configured
     """
     api_key = api_key or settings.openai_api_key
     base_url = base_url or settings.openai_base_url
@@ -25,9 +35,150 @@ def get_openai_client(base_url: Optional[str] = None, api_key: Optional[str] = N
     return OpenAI(api_key=api_key, base_url=base_url)
 
 
+# ============================================================================
+# Response Extraction and Parsing Utilities
+# ============================================================================
+
+
+def _extract_response_content(choice: Any) -> str:
+    """
+    Extract content from API response choice, handling reasoning models.
+
+    Args:
+        choice: Response choice object from OpenAI API
+
+    Returns:
+        str: Extracted content
+
+    Raises:
+        ValueError: If no valid content found in response
+    """
+    content = choice.message.content
+
+    # Handle reasoning models that put content in reasoning_content
+    if content is None:
+        if hasattr(choice.message, 'reasoning_content') and choice.message.reasoning_content:
+            content = choice.message.reasoning_content
+            logger.info("Using reasoning_content from message")
+        elif hasattr(choice, 'provider_specific_fields'):
+            fields = choice.provider_specific_fields
+            if isinstance(fields, dict) and 'reasoning_content' in fields:
+                content = fields['reasoning_content']
+                logger.info("Using reasoning_content from provider_specific_fields")
+
+        if content is None:
+            logger.error(f"Content is None. Finish reason: {choice.finish_reason}")
+            if choice.finish_reason == "length":
+                raise ValueError(
+                    "Response was cut off due to max_tokens limit. Try increasing max_tokens or shortening your query."
+                )
+            elif choice.finish_reason == "content_filter":
+                raise ValueError("Response was filtered by content policy")
+            else:
+                raise ValueError(f"No content in response (finish_reason: {choice.finish_reason})")
+
+    if not content:
+        raise ValueError("Empty response from LLM")
+
+    return content
+
+
+def _parse_json_response(content: str, json_array: bool = False) -> Dict[str, Any] | List[Any]:
+    """
+    Parse JSON from LLM response, extracting JSON from surrounding text if needed.
+
+    Args:
+        content: Response content string
+        json_array: Whether to extract JSON array (vs object)
+
+    Returns:
+        Parsed JSON object or array
+
+    Raises:
+        ValueError: If JSON parsing fails
+    """
+    try:
+        if json_array:
+            json_start = content.find('[')
+            json_end = content.rfind(']') + 1
+        else:
+            json_start = content.find('{')
+            json_end = content.rfind('}') + 1
+
+        if json_start >= 0 and json_end > json_start:
+            json_str = content[json_start:json_end]
+            return json.loads(json_str)
+        else:
+            return json.loads(content)
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse JSON response: {content}")
+        raise ValueError(f"Invalid JSON in LLM response: {str(e)}")
+
+
+def _build_usage_dict(response: Any) -> Dict[str, int]:
+    """Build usage statistics dictionary from API response."""
+    return {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens
+    }
+
+
+# ============================================================================
+# LLM Core Functionality
+# ============================================================================
+
+
+
+
+# ============================================================================
+# Input Validation Utilities
+# ============================================================================
+
+
+def _validate_cv_text(cv_text: str) -> None:
+    """
+    Validate that CV text is provided and non-empty.
+
+    Args:
+        cv_text: CV text to validate
+
+    Raises:
+        ValueError: If CV text is empty or None
+    """
+    if not cv_text or not cv_text.strip():
+        raise ValueError("CV text is empty. Please upload a valid CV first.")
+
+
+def _validate_job_offers(job_offers: List[Dict[str, Any]]) -> None:
+    """
+    Validate that job offers list is provided and non-empty.
+
+    Args:
+        job_offers: Job offers list to validate
+
+    Raises:
+        ValueError: If job offers list is empty or None
+    """
+    if not job_offers or len(job_offers) == 0:
+        raise ValueError("No job offers provided to rank.")
+
+
+# ============================================================================
+# Profile Matching API
+# ============================================================================
+
+
 def create_profile_match_prompt(cv_text: str, user_query: Optional[str] = None) -> str:
     """
-    Create a prompt for profile matching using CV text
+    Create a prompt for profile matching analysis.
+
+    Args:
+        cv_text: User's CV text
+        user_query: Optional user query or preferences
+
+    Returns:
+        Formatted prompt for the LLM
     """
     prompt = f"""You are a professional job matching assistant. 
     
@@ -56,19 +207,31 @@ Be concise and actionable in your response."""
 async def match_profile(
     cv_text: str,
     user_query: Optional[str] = None
-) -> dict:
+) -> Dict[str, Any]:
     """
-    Use LLM to match and analyze user profile based on CV
+    Analyze and match user profile based on CV.
+
+    Uses an LLM to analyze the provided CV and generate insights on:
+    - Key strengths and skills
+    - Relevant job matches
+    - Career development recommendations
+    - Job opportunity alignment
 
     Args:
-        cv_text: Extracted text from CV
-        user_query: Optional user query/preferences
+        cv_text: Extracted text from user's CV
+        user_query: Optional user query or preferences to guide analysis
 
     Returns:
-        dict: LLM response with analysis and matches
+        Dict with keys:
+        - success: bool (True on success)
+        - analysis: LLM analysis text
+        - model: Model name used
+        - usage: Token usage statistics
+
+    Raises:
+        ValueError: If CV is empty or LLM call fails
     """
-    if not cv_text or not cv_text.strip():
-        raise ValueError("CV text is empty. Please upload a valid CV first.")
+    _validate_cv_text(cv_text)
 
     try:
         prompt = create_profile_match_prompt(cv_text, user_query)
@@ -76,7 +239,7 @@ async def match_profile(
             prompt=prompt,
             system_content="You are an expert career advisor and job matching specialist.",
             temperature=0.7,
-            max_tokens=8000  # Increased from 2000 to avoid cutoffs
+            max_tokens=8000
         )
 
         return {
@@ -90,6 +253,7 @@ async def match_profile(
         raise ValueError(f"Profile matching failed: {str(e)}")
 
 
+
 async def _call_llm(
     prompt: str,
     system_content: str,
@@ -97,20 +261,36 @@ async def _call_llm(
     max_tokens: int = 4000,
     parse_json: bool = False,
     json_array: bool = False
-) -> dict:
+) -> Dict[str, Any]:
     """
-    Generic LLM call handler for common API interaction patterns.
+    Make a call to the LLM with common error handling and response parsing.
+
+    This is the core LLM interaction function used by all higher-level APIs.
+    It handles:
+    - Client initialization
+    - API calls with retry logic
+    - Response validation
+    - Content extraction from reasoning models
+    - Optional JSON parsing
+    - Usage statistics tracking
 
     Args:
         prompt: User message content
         system_content: System message content
-        temperature: Model temperature parameter
-        max_tokens: Maximum tokens for response
-        parse_json: Whether to parse response as JSON
-        json_array: Whether to extract JSON array (vs object)
+        temperature: Model temperature parameter (default: 0.7)
+        max_tokens: Maximum tokens for response (default: 4000)
+        parse_json: Whether to parse response as JSON (default: False)
+        json_array: Whether to extract JSON array vs object (default: False)
 
     Returns:
-        dict: Response data with success flag, content/parameters, model info, and usage stats
+        Dict with keys:
+        - success: bool (always True on success)
+        - data: Parsed/unparsed response content
+        - model: Model name used
+        - usage: Token usage statistics
+
+    Raises:
+        ValueError: If LLM call fails or response is invalid
     """
     model = settings.openai_model
 
@@ -132,74 +312,46 @@ async def _call_llm(
             raise ValueError("No response from LLM")
 
         choice = response.choices[0]
-        content = choice.message.content
-
-        # Handle reasoning models
-        if content is None:
-            if hasattr(choice.message, 'reasoning_content') and choice.message.reasoning_content:
-                content = choice.message.reasoning_content
-                logger.info("Using reasoning_content from message")
-            elif hasattr(choice, 'provider_specific_fields'):
-                fields = choice.provider_specific_fields
-                if isinstance(fields, dict) and 'reasoning_content' in fields:
-                    content = fields['reasoning_content']
-                    logger.info("Using reasoning_content from provider_specific_fields")
-
-            if content is None:
-                logger.error(f"Content is None. Finish reason: {choice.finish_reason}")
-                if choice.finish_reason == "length":
-                    raise ValueError(
-                        "Response was cut off due to max_tokens limit. Try increasing max_tokens or shortening your query.")
-                elif choice.finish_reason == "content_filter":
-                    raise ValueError("Response was filtered by content policy")
-                else:
-                    raise ValueError(f"No content in response (finish_reason: {choice.finish_reason})")
-
-        if not content:
-            raise ValueError("Empty response from LLM")
-
+        content = _extract_response_content(choice)
+        
         result_data = content
-
-        # Parse JSON if requested
         if parse_json:
-            try:
-                if json_array:
-                    json_start = content.find('[')
-                    json_end = content.rfind(']') + 1
-                else:
-                    json_start = content.find('{')
-                    json_end = content.rfind('}') + 1
-
-                if json_start >= 0 and json_end > json_start:
-                    json_str = content[json_start:json_end]
-                    result_data = json.loads(json_str)
-                else:
-                    result_data = json.loads(content)
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse JSON response: {content}")
-                raise ValueError(f"Invalid JSON in LLM response: {str(e)}")
+            result_data = _parse_json_response(content, json_array)
 
         return {
             "success": True,
             "data": result_data,
             "model": model,
-            "usage": {
-                "prompt_tokens": response.usage.prompt_tokens,
-                "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens
-            }
+            "usage": _build_usage_dict(response)
         }
 
     except APIError as e:
         logger.error(f"OpenAI API error: {str(e)}")
         raise ValueError(f"LLM service error: {str(e)}")
+    except ValueError:
+        raise
     except Exception as e:
         logger.error(f"Unexpected error in LLM call: {str(e)}")
         raise
 
 
+
+
+# ============================================================================
+# France Travail Job Search API
+# ============================================================================
+
+
 def _load_ft_search_prompt() -> str:
-    """Load the France Travail search optimization prompt template"""
+    """
+    Load the France Travail search optimization prompt template from file.
+
+    Returns:
+        Prompt template string, or empty string if file not found
+
+    Note:
+        Expected file location: server/prompts/FT_search.txt
+    """
     prompt_path = Path(__file__).resolve().parent.parent / "prompts" / "FT_search.txt"
     try:
         with open(prompt_path, 'r', encoding='utf-8') as f:
@@ -211,14 +363,17 @@ def _load_ft_search_prompt() -> str:
 
 def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None) -> str:
     """
-    Create a prompt for identifying France Travail API search parameters based on CV and preferences
+    Create a prompt for identifying France Travail API search parameters.
+
+    Generates an LLM prompt that analyzes the CV and user preferences
+    to recommend optimal France Travail API search parameters.
 
     Args:
         cv_text: User's CV text
-        preferences: Optional user preferences/query
+        preferences: Optional user preferences or job requirements
 
     Returns:
-        Complete prompt for the LLM
+        Formatted prompt for the LLM
     """
     base_prompt = _load_ft_search_prompt()
 
@@ -242,26 +397,35 @@ Only return the JSON object, no additional text."""
 async def identify_ft_parameters(
     cv_text: str,
     preferences: Optional[str] = None
-) -> dict:
+) -> Dict[str, Any]:
     """
-    Use LLM to identify optimal France Travail API search parameters based on CV and preferences
+    Identify optimal France Travail API search parameters from CV.
+
+    Uses an LLM to analyze the CV and user preferences, then returns
+    recommended search parameters for the France Travail API.
 
     Args:
         cv_text: User's CV text
-        preferences: Optional user job preferences/query
+        preferences: Optional user job preferences/requirements
 
     Returns:
-        dict: Identified search parameters and metadata
+        Dict with keys:
+        - success: bool (True on success)
+        - parameters: Recommended API parameters as dict
+        - model: Model name used
+        - usage: Token usage statistics
+
+    Raises:
+        ValueError: If CV is empty or LLM call fails
     """
-    if not cv_text or not cv_text.strip():
-        raise ValueError("CV text is empty. Please upload a valid CV first.")
+    _validate_cv_text(cv_text)
 
     try:
         prompt = create_ft_parameters_prompt(cv_text, preferences)
         result = await _call_llm(
             prompt=prompt,
             system_content="You are an expert job search optimizer specializing in France Travail API parameters. You output only valid JSON objects with no additional text or explanation.",
-            temperature=0.5,  # Lower temperature for more consistent parameter generation
+            temperature=0.5,
             max_tokens=4000,
             parse_json=True,
             json_array=False
@@ -278,48 +442,59 @@ async def identify_ft_parameters(
         raise ValueError(f"FT parameters identification failed: {str(e)}")
 
 
-async def rank_job_offers(
-    cv_text: str,
-    job_offers: list,
-    preferences: Optional[str] = None,
-    top_k: int = 5
-) -> dict:
+
+
+
+# ============================================================================
+# Job Offer Ranking API
+# ============================================================================
+
+
+def _format_job_offers_for_analysis(job_offers: List[Dict[str, Any]]) -> str:
     """
-    Use LLM to rank and score job offers based on CV and preferences.
+    Format job offers into a readable text representation for LLM analysis.
 
     Args:
-        cv_text: User's CV text
         job_offers: List of job offer dictionaries from France Travail API
-        preferences: Optional user job preferences/query
-        top_k: Number of top offers to return (default: 5)
 
     Returns:
-        dict: Ranked job offers with scores and reasoning
+        Formatted job offers as text
     """
-    if not cv_text or not cv_text.strip():
-        raise ValueError("CV text is empty. Please upload a valid CV first.")
-
-    if not job_offers or len(job_offers) == 0:
-        raise ValueError("No job offers provided to rank.")
-
-    model = settings.openai_model
-
-    # Format job offers for analysis
     offers_text = ""
     for i, offer in enumerate(job_offers, 1):
-        offers_text += f"\n{i}. {offer.get('intitule', 'Unknown Position')}  - {offer.get(
-            'entreprise_nom', 'Unknown Company')} \n"
+        offers_text += f"\n{i}. {offer.get('intitule', 'Unknown Position')} - {offer.get('entreprise_nom', 'Unknown Company')}\n"
         offers_text += f"   Location: {offer.get('lieuTravail_libelle', 'N/A')}\n"
         offers_text += f"   Contract: {offer.get('typeContratLibelle', 'N/A')}\n"
         offers_text += f"   Description: {offer.get('description', 'N/A')[:200]}...\n"
         offers_text += f"   Salary: {offer.get('salaire_libelle', 'N/A')}\n"
+    return offers_text
 
-    prompt = f"""
-        You are a professional job matching expert. Analyze the following CV and job offers, then rank them by relevance and match quality.
+
+def create_job_ranking_prompt(
+    cv_text: str,
+    job_offers: List[Dict[str, Any]],
+    preferences: Optional[str] = None,
+    top_k: int = 5
+) -> str:
+    """
+    Create a prompt for ranking and scoring job offers.
+
+    Args:
+        cv_text: User's CV text
+        job_offers: List of job offer dictionaries
+        preferences: Optional user preferences
+        top_k: Number of top offers to return
+
+    Returns:
+        Formatted prompt for the LLM
+    """
+    offers_text = _format_job_offers_for_analysis(job_offers)
+
+    prompt = f"""You are a professional job matching expert. Analyze the following CV and job offers, then rank them by relevance and match quality.
 
 USER'S CV:
 ---
-        {cv_text} 
+{cv_text}
 ---
 
 """
@@ -352,7 +527,44 @@ Return a JSON array with the top {top_k} offers, each containing:
 
 IMPORTANT: Return ONLY the JSON array, no other text or explanation."""
 
+    return prompt
+
+
+async def rank_job_offers(
+    cv_text: str,
+    job_offers: List[Dict[str, Any]],
+    preferences: Optional[str] = None,
+    top_k: int = 5
+) -> Dict[str, Any]:
+    """
+    Rank and score job offers based on CV and preferences.
+
+    Uses an LLM to analyze provided job offers against the user's CV
+    and preferences, returning ranked offers with match scores and reasoning.
+
+    Args:
+        cv_text: User's CV text
+        job_offers: List of job offer dictionaries from France Travail API
+        preferences: Optional user job preferences/requirements
+        top_k: Number of top offers to return (default: 5)
+
+    Returns:
+        Dict with keys:
+        - success: bool (True on success)
+        - ranked_offers: List of ranked job offer dicts with scores
+        - total_offers_analyzed: int (total offers provided)
+        - top_offers_returned: int (actual top offers returned)
+        - model: Model name used
+        - usage: Token usage statistics
+
+    Raises:
+        ValueError: If CV or job offers are empty, or LLM call fails
+    """
+    _validate_cv_text(cv_text)
+    _validate_job_offers(job_offers)
+
     try:
+        prompt = create_job_ranking_prompt(cv_text, job_offers, preferences, top_k)
         result = await _call_llm(
             prompt=prompt,
             system_content="You are an expert job matching analyst. Analyze CVs and job offers to identify the best matches. Return only valid JSON with no additional text.",
@@ -375,3 +587,4 @@ IMPORTANT: Return ONLY the JSON array, no other text or explanation."""
     except Exception as e:
         logger.error(f"Unexpected error in job ranking: {str(e)}")
         raise ValueError(f"Job ranking failed: {str(e)}")
+

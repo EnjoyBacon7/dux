@@ -1,19 +1,34 @@
+"""Profile management router.
+
+Provides endpoints for user profile setup, CV upload, and experience/education management.
+"""
+
 import logging
+from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List, Optional
 
 from server.methods.upload import upload_file
 from server.database import get_db_session
 from server.models import User, Experience, Education
 
+# ============================================================================
+# Router Setup
+# ============================================================================
+
 router = APIRouter(prefix="/profile", tags=["Profile"])
 logger = logging.getLogger(__name__)
 
 
+# ============================================================================
+# Request Models
+# ============================================================================
+
+
 class ExperienceData(BaseModel):
+    """Experience entry data for profile setup."""
     company: str
     title: str
     startDate: str
@@ -23,6 +38,7 @@ class ExperienceData(BaseModel):
 
 
 class EducationData(BaseModel):
+    """Education entry data for profile setup."""
     school: str
     degree: str
     fieldOfStudy: Optional[str] = None
@@ -32,6 +48,7 @@ class EducationData(BaseModel):
 
 
 class ProfileSetupRequest(BaseModel):
+    """Request body for profile setup endpoint."""
     headline: Optional[str] = None
     summary: Optional[str] = None
     location: Optional[str] = None
@@ -40,9 +57,24 @@ class ProfileSetupRequest(BaseModel):
     educations: List[EducationData] = []
 
 
+# ============================================================================
+# Dependencies
+# ============================================================================
+
+
 def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
     """
-    Dependency to get the current authenticated user.
+    Dependency to extract and validate the current authenticated user from session.
+    
+    Args:
+        request: FastAPI request object containing session
+        db: Database session
+        
+    Returns:
+        User: The currently authenticated user
+        
+    Raises:
+        HTTPException: If user is not authenticated or not found in database
     """
     if "username" not in request.session:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -54,24 +86,35 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)) ->
     return user
 
 
+# ============================================================================
+# File Upload Endpoints
+# ============================================================================
+
+
 @router.post("/upload", summary="Upload CV file")
 async def upload_endpoint(
     request: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
-) -> dict:
+) -> Dict[str, Any]:
     """
-    Upload endpoint to handle file uploads (CV).
+    Upload and process a CV file (PDF, DOCX, or TXT).
+    
+    Handles file validation, text extraction, and storage of CV data
+    in the user's profile.
 
     Args:
         request: FastAPI request object
-        file: The file to upload (multipart/form-data)
+        file: The CV file to upload (multipart/form-data)
         db: Database session
         current_user: Current authenticated user
 
     Returns:
-        dict: Upload result containing filename, content_type, size, extracted_text, and message
+        dict: Upload result with filename, content_type, size, extracted_text, and status message
+        
+    Raises:
+        HTTPException: If file validation or processing fails
     """
     result = await upload_file(file)
 
@@ -83,23 +126,35 @@ async def upload_endpoint(
     return result
 
 
+# ============================================================================
+# Profile Setup Endpoints
+# ============================================================================
+
+
 @router.post("/setup", summary="Complete profile setup")
 async def complete_profile_setup(
     request: Request,
     data: ProfileSetupRequest,
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
-) -> dict:
+) -> Dict[str, str]:
     """
-    Complete user profile setup after registration.
+    Complete user profile setup with detailed career information.
+    
+    Saves profile data including headline, summary, location, skills,
+    work experience, and education history to the database.
 
     Args:
-        data: Profile setup data including headline, summary, skills, experience, education
+        request: FastAPI request object
+        data: Profile setup data with headline, summary, location, skills, experience, education
         db: Database session
         current_user: Current authenticated user
 
     Returns:
-        dict: Success message
+        dict: Success message confirming profile setup completion
+        
+    Raises:
+        HTTPException: If database operations fail
     """
     try:
         # Update user profile fields
