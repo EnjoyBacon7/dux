@@ -212,6 +212,7 @@ def search_france_travail(
 
         # Validate and clean parameters first
         parameters = _validate_and_clean_parameters(parameters)
+        logger.debug(f"France Travail Search - Cleaned parameters: {parameters}")
 
         # Get OAuth2 token
         token = get_ft_oauth_token(CLIENT_ID, CLIENT_SECRET, AUTH_URL)
@@ -233,9 +234,9 @@ def search_france_travail(
                 else:
                     query_params[key] = str(value)
 
-        # Log the sort parameter for debugging
-        logger.info(f"France Travail Search - Sort parameter: {query_params.get('sort', 'NOT SET')}")
-        logger.debug(f"Query params after validation: {query_params}")
+        # Log the full request before sending
+        logger.debug(f"France Travail API Request - URL: {API_URL}")
+        logger.debug(f"France Travail API Request - Query params: {query_params}")
 
         # Fetch offers from API (handle pagination)
         offers = []
@@ -272,9 +273,10 @@ def search_france_travail(
                     )
                     raise ValueError(f"France Travail API returned invalid JSON: {json_err}")
 
-                offers.extend(data.get("resultats", []))
-                logger.info(f"France Travail: Retrieved {len(offers)}/{nb_offres} offers")
-                logger.debug(f"France Travail API Response: {data.get('resultats', [])[:1]}")
+                batch_results = data.get("resultats", [])
+                logger.debug(f"France Travail API Response - Batch {i//150 + 1}: Received {len(batch_results)} results")
+                logger.debug(f"First result sample: {batch_results[0] if batch_results else 'No results'}")
+                offers.extend(batch_results)
 
                 # If we got fewer results than requested, we've reached the end
                 if len(data.get("resultats", [])) < 150:
@@ -310,8 +312,9 @@ def search_france_travail(
                         )
                         raise ValueError(f"France Travail API returned invalid JSON on retry: {json_err}")
 
-                    offers.extend(data.get("resultats", []))
-                    logger.info(f"France Travail: Retrieved {len(offers)}/{nb_offres} offers")
+                    batch_results = data.get("resultats", [])
+                    logger.debug(f"France Travail API Response (retry) - Batch {i//150 + 1}: Received {len(batch_results)} results")
+                    offers.extend(batch_results)
                 else:
                     # Log detailed France Travail error payload if available
                     status = getattr(e.response, "status_code", "Unknown")
@@ -336,7 +339,7 @@ def search_france_travail(
                         logger.error("France Travail API error: status=%s body=%s", status, err_text)
                     raise
 
-        logger.info(f"France Travail: Successfully retrieved {len(offers)} total offers")
+        logger.info(f"France Travail: Successfully retrieved {len(offers)} total offers from parameters: {parameters}")
         return offers
 
     except requests.exceptions.RequestException as e:

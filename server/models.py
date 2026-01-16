@@ -236,8 +236,8 @@ class OptimalOffer(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     position = Column(Integer, nullable=False)
     title = Column(String, nullable=False)
-    company = Column(String, nullable=False)
-    location = Column(String, nullable=False)
+    company = Column(String, nullable=True)  # Nullable as France Travail API may not provide company info
+    location = Column(String, nullable=True)  # Nullable as France Travail API may not provide location
     score = Column(Integer, nullable=False)
     match_reasons = Column(ARRAY(String), nullable=False)
     concerns = Column(ARRAY(String), nullable=True)

@@ -15,6 +15,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import logging
+import os
 
 from server.api import router as api_router
 from server.auth_api import router as auth_router
@@ -25,8 +26,36 @@ from server.config import settings
 # Logging Configuration
 # ============================================================================
 
-logging.basicConfig(level=logging.INFO)
+# Create logs directory in working directory if it doesn't exist
+log_dir = Path.cwd() / "logs"
+log_dir.mkdir(exist_ok=True)
+log_file = log_dir / "app.log"
+
+# Create file and stream handlers
+file_handler = logging.FileHandler(log_file)
+stream_handler = logging.StreamHandler()
+
+# Configure format
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+# Configure logging to write to both file and console
+log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
+logging.basicConfig(
+    level=log_level,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[file_handler, stream_handler]
+)
+
+# Configure FastAPI/Uvicorn access logging
+access_logger = logging.getLogger("uvicorn.access")
+access_logger.setLevel(log_level)
+access_logger.addHandler(file_handler)
+access_logger.addHandler(stream_handler)
+
 logger = logging.getLogger(__name__)
+logger.info(f"Logging initialized. Log file: {log_file}")
 
 # ============================================================================
 # Rate Limiting Setup
