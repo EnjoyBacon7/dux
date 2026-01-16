@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Boolean, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Boolean, Text, Float
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
@@ -236,6 +236,8 @@ class Metier_ROME(Base):
     transitionDemographique = Column(Boolean, nullable=True)  # Demographic transition info
     emploiCadre = Column(Boolean, nullable=True)
     emploiReglemente = Column(Boolean, nullable=True)
+    nb_offre = Column(Integer, nullable=True)
+    liste_salaire_offre = Column(ARRAY(Float), nullable=True)
 
     def __repr__(self):
         return f"<Metier_ROME(code={self.code})>"

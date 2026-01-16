@@ -1,6 +1,8 @@
 import logging
 import time
+import token
 import requests
+import re
 
 from fastapi import APIRouter, Query, Depends
 from server.config import settings
@@ -25,6 +27,214 @@ def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: s
     token = resp.json()["access_token"]
 
     return token
+
+def get_offers(code_rome: str) -> dict:
+    FT_CLIENT_ID = settings.ft_client_id
+    FT_CLIENT_SECRET = settings.ft_client_secret
+    FT_AUTH_URL = settings.ft_auth_url
+    FT_API_OFFRES_URL = settings.ft_api_url_offres
+
+    """
+    Récupère un token OAuth2 en mode client_credentials.
+    """
+
+    token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+
+    # Getting the list of offers for the given ROME code
+    resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}", headers=headers)
+    resp.raise_for_status()
+    try:
+        data = resp.json()
+    except:
+        data = {"resultats": []}
+    return data.get("resultats", [])
+
+def calcul_salaire(texte_salaire: str, texte_heure: str) -> float:
+    if texte_salaire == None:
+        return None
+    elif texte_salaire[0:7] == "Mensuel":
+        try:
+            try:
+                pattern = r"Mensuel\s+de\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois"
+                m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+
+                if not m:
+                    raise ValueError("Format non reconnu")
+
+                salaire_mensuel = float(m.group(1).replace(",", "."))
+                nb_mois = float(m.group(2).replace(",", "."))
+            except:
+                pattern = r"Mensuel\s+de\s+([\d.,]+)\s*Euros"
+                m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+
+                if not m:
+                    raise ValueError("Format non reconnu")
+
+                salaire_mensuel = float(m.group(1).replace(",", "."))
+                nb_mois = 12.0
+        except:
+            try:
+                pattern = r"Mensuel\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois"
+                m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+
+                if not m:
+                    raise ValueError("Format non reconnu")
+
+                salaire_mensuel_inf = float(m.group(1).replace(",", "."))
+                salaire_mensuel_sup = float(m.group(2).replace(",", "."))
+                nb_mois = float(m.group(3).replace(",", "."))
+
+                salaire_mensuel = (salaire_mensuel_inf + salaire_mensuel_sup) / 2.0
+            except:
+                pattern = r"Mensuel\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros"
+                m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+
+                if not m:
+                    raise ValueError("Format non reconnu")
+
+                salaire_mensuel_inf = float(m.group(1).replace(",", "."))
+                salaire_mensuel_sup = float(m.group(2).replace(",", "."))
+                nb_mois = 12.0
+
+                salaire_mensuel = (salaire_mensuel_inf + salaire_mensuel_sup) / 2.0
+
+        annuel = salaire_mensuel * nb_mois
+        salaire = annuel / 12
+    elif texte_salaire[0:7] == "Horaire":
+        try:
+            pattern = r"Horaire\s+de\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois"
+            m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+            if not m:
+                raise ValueError("Format non reconnu")
+            
+            salaire_horaire = float(m.group(1).replace(",", "."))
+            nb_mois = float(m.group(2).replace(",", "."))
+
+        except:
+            try:
+                pattern = r"Horaire\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois"
+                m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+                if not m:
+                    raise ValueError("Format non reconnu")
+                
+                salaire_horaire_inf = float(m.group(1).replace(",", "."))
+                salaire_horaire_sup = float(m.group(2).replace(",", "."))
+                nb_mois = float(m.group(3).replace(",", "."))
+                salaire_horaire = (salaire_horaire_inf + salaire_horaire_sup) / 2.0
+
+            except:
+                try:
+                    pattern = r"Horaire\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros"
+                    m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+                    if not m:
+                        raise ValueError("Format non reconnu")
+                    
+                    salaire_horaire_inf = float(m.group(1).replace(",", "."))
+                    salaire_horaire_sup = float(m.group(2).replace(",", "."))
+                    nb_mois = 12.0
+                    salaire_horaire = (salaire_horaire_inf + salaire_horaire_sup) / 2.0
+                except:
+                    pattern = r"Horaire\s+de\s+([\d.,]+)\s*Euros"
+                    m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+                    if not m:
+                        raise ValueError("Format non reconnu")
+                    
+                    salaire_horaire = float(m.group(1).replace(",", "."))
+                    nb_mois = 12.0
+                    
+        
+        texte_heure = re.sub(r"(semaine)\b.*$", r"\1", texte_heure, flags=re.S)
+        try:
+            try:
+                pattern_horaire = r"Temps\s+partiel\s+-\s+([\d.,]+)H/semaine\b.*$"
+                horaire = re.search(pattern_horaire,texte_heure, flags=re.IGNORECASE)
+                if not horaire:
+                    raise ValueError("Format horaire non reconnu")
+                
+                nb_heures_semaine = float(horaire.group(1).replace(",", "."))
+
+            except:
+                try:
+                    pattern_horaire = r"([\d.,]+)H/semaine.*$"
+                    horaire = re.search(pattern_horaire,texte_heure, flags=re.IGNORECASE)
+                    if not horaire:
+                        raise ValueError("Format horaire non reconnu")
+                    
+                    nb_heures_semaine = float(horaire.group(1).replace(",", "."))
+
+                except:
+                    pattern_horaire = r"([\d.,]+)H([\d.,]+)/semaine.*$"
+                    horaire = re.search(pattern_horaire,texte_heure, flags=re.IGNORECASE)
+                    if not horaire:
+                        raise ValueError("Format horaire non reconnu")
+                    
+                    nb_heures_semaine = float(horaire.group(1).replace(",", "."))
+                    nb_heures_semaine += float(horaire.group(2).replace(",", "."))/60.0
+        except:
+            nb_heures_semaine = 35.0
+
+        annuel = salaire_horaire * nb_heures_semaine * 52.0 * (nb_mois / 12.0)
+        salaire = annuel / 12
+
+    elif texte_salaire[0:6] == "Annuel":
+        try:
+            pattern = r"Annuel\s+de\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois"
+            m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+
+            if not m:
+                raise ValueError("Format non reconnu")
+            
+            salaire_annuel = float(m.group(1).replace(",", "."))
+            nb_mois = float(m.group(2).replace(",", "."))
+        except:
+            try:
+                pattern = r"Annuel\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois"
+                m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+
+                if not m:
+                    raise ValueError("Format non reconnu")
+
+                salaire_annuel_inf = float(m.group(1).replace(",", "."))
+                salaire_annuel_sup = float(m.group(2).replace(",", "."))
+                nb_mois = float(m.group(3).replace(",", "."))
+
+                salaire_annuel = (salaire_annuel_inf + salaire_annuel_sup) / 2.0
+            except:
+                try:
+                    pattern = r"Annuel\s+de\s+([\d.,]+)\s*Euros"
+                    m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+
+                    if not m:
+                        raise ValueError("Format non reconnu")
+                    
+                    salaire_annuel = float(m.group(1).replace(",", "."))
+                    nb_mois = 12.0
+                except:
+                    pattern = r"Annuel de\s*([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*Euros\s*à\s*([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*Euros"
+                    m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+
+                    if not m:
+                        raise ValueError("Format non reconnu")
+                    
+                    salaire_annuel_inf = float(m.group(1).replace(",", "."))
+                    salaire_annuel_sup = float(m.group(2).replace(",", "."))
+                    nb_mois = 12.0
+                    salaire_annuel = (salaire_annuel_inf + salaire_annuel_sup) / 2.0
+                    if salaire_annuel > 1000000:
+                        salaire_annuel = salaire_annuel / 1000.0
+
+
+        annuel = salaire_annuel * (nb_mois/12.0)
+        salaire = annuel / 12
+    else:
+        salaire = None
+
+    return salaire
 
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 logger = logging.getLogger(__name__)
@@ -54,7 +264,7 @@ def search_jobs(
 
 @router.post("/load_offers", summary="Load offers from France Travail API")
 def load_offers(
-    nb_offres: int = Query(10, description="Nombre d'offres à récupérer"),
+    nb_offres: int = Query(2, description="Nombre d'offres à récupérer"),
     accesTravailleurHandicape: bool = Query(None, description="Offres ouvertes aux Bénéficiaires de l'Obligation d'Emploi"),
     appellation: str = Query(None, description="Code appellation ROME de l'offre"),
     codeNAF: str = Query(None, description="Code NAF (Code APE) de l'offre"),
@@ -262,18 +472,21 @@ def load_fiche_metier():
         
         champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
 
-        for code in tqdm(code_metier[:1]):
+        for code in tqdm(code_metier):
             try:
                 while True:
                     resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers)
                     if resp.status_code != 429:
                         break
+                
                 resp.raise_for_status()
                 data = resp.json()
                 # Getting offers info from france travail API
-                test = load_offers(codeROME=code.get("code"), nb_offres=1)
-                print(test)
-                #print(data)
+                liste_offres = get_offers(code.get("code"))
+                salaire = []
+                for offre in liste_offres:
+                    salaire.append(calcul_salaire(str(offre.get('salaire').get('libelle')), str(offre.get('dureeTravailLibelle'))))
+                
             except:
                 token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
                 headers = {
@@ -284,10 +497,22 @@ def load_fiche_metier():
                     resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers)
                     if resp.status_code != 429:
                         break
-
+                
                 resp.raise_for_status()
                 data = resp.json()
-                
+
+                # Getting offers info from france travail API
+                liste_offres = get_offers(code.get("code"))
+                salaire = []
+                for offre in liste_offres:
+                    salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
+
+            if len(liste_offres) == 0:
+                data['nb_offre'] = 0
+                data['liste_salaire_offre'] = []
+            else:
+                data['nb_offre'] = len(liste_offres)
+                data['liste_salaire_offre'] = salaire
 
             fiche_metier.append(data.copy())
 
@@ -301,7 +526,7 @@ def load_fiche_metier():
         Session = sessionmaker(bind=engine)
 
         if not fiche_metier:
-            print("Aucune offre reçue, rien à sauvegarder.")
+            print("Aucune fiche métier reçue, rien à sauvegarder.")
             return
 
         session = Session()
@@ -328,6 +553,8 @@ def load_fiche_metier():
                     transitionDemographique = fiche.get("transitionDemographique"),  # Demographic transition info
                     emploiCadre = fiche.get("emploiCadre"),
                     emploiReglemente = fiche.get("emploiReglemente"),
+                    nb_offre = fiche.get("nb_offre"),
+                    liste_salaire_offre = fiche.get("liste_salaire_offre")
                                 )
                 try:
                     session.add(fiche_insert)
