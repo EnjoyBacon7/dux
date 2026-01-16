@@ -66,7 +66,7 @@ def search_jobs(
 
 @router.post("/load_offers", summary="Load offers from France Travail API")
 def load_offers(
-    nb_offres: int = Query(10, description="Nombre d'offres à récupérer"),
+    nb_offres: int = Query(150, description="Nombre d'offres à récupérer"),
     accesTravailleurHandicape: bool = Query(None, description="Offres ouvertes aux Bénéficiaires de l'Obligation d'Emploi"),
     appellation: str = Query(None, description="Code appellation ROME de l'offre"),
     codeNAF: str = Query(None, description="Code NAF (Code APE) de l'offre"),
