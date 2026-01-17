@@ -13,22 +13,21 @@ const Home: React.FC = () => {
     return (
         <>
             <Header />
-            <div className="nb-page">
-                <AccountCard
-                    username={user.username}
-                    firstName={user.first_name}
-                    lastName={user.last_name}
-                    title={user.title}
-                    profilePicture={user.profile_picture}
-                />
-
+            <main className="nb-page home-container">
                 <div className="home-grid">
                     <WelcomeCard />
+                    <AccountCard
+                        username={user.username}
+                        firstName={user.first_name}
+                        lastName={user.last_name}
+                        title={user.title}
+                        profilePicture={user.profile_picture}
+                    />
                     <CVUploadForm onSuccess={checkAuth} />
                     <CVPreview hasCV={hasCv} cvFilename={user.cv_filename} />
                     <JobOffersCard />
                 </div>
-            </div>
+            </main>
         </>
     );
 };

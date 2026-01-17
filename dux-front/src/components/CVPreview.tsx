@@ -11,39 +11,32 @@ const CVPreview: React.FC<CVPreviewProps> = ({ hasCV, cvFilename }) => {
     const cvUrl = "/api/profile/cv";
 
     return (
-        <div className="nb-card home-card">
-            <h2 className="home-card-title">{t('home.cv_title')}</h2>
+        <div className="nb-card home-card cv-preview-card">
+            <div className="home-cv-header">
+                <h2 className="home-card-title">{t('home.cv_title')}</h2>
+                <a
+                    className="nb-link"
+                    href={cvUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Open CV in new tab"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" className="home-cv-icon">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                </a>
+            </div>
             {hasCV ? (
-                <>
-                    <object
+                <div className="home-cv-container">
+                    <embed
                         key={cvFilename || 'cv'}
-                        data={cvUrl}
+                        src={cvUrl}
                         type="application/pdf"
                         className="home-cv-frame"
-                    >
-                        <p className="nb-text-dim">
-                            {t('home.cv_preview_unavailable')} {" "}
-                            <a
-                                className="nb-link"
-                                href={cvUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                {t('home.cv_open_link')}
-                            </a>
-                        </p>
-                    </object>
-                    <div className="home-cv-actions">
-                        <a
-                            className="nb-link"
-                            href={cvUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            {t('home.cv_open_link')}
-                        </a>
-                    </div>
-                </>
+                    />
+                </div>
             ) : (
                 <div className="nb-text-dim home-cv-empty">
                     {t('home.cv_missing')}

@@ -59,7 +59,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onSuccess }) => {
     };
 
     return (
-        <div className="nb-card home-card">
+        <div className="nb-card home-card cv-upload-card">
             <h2 className="home-card-title">{t('upload.title')}</h2>
             <form className="nb-form home-upload-form" onSubmit={handleSubmit}>
                 <input

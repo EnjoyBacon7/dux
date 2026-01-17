@@ -37,7 +37,7 @@ const JobSearch: React.FC = () => {
             setError(null);
             try {
                 const params = new URLSearchParams();
-                
+
                 // Add all non-empty filter parameters
                 Object.entries(filters).forEach(([key, value]) => {
                     if (value !== undefined && value !== null && value !== '') {
@@ -161,16 +161,15 @@ const JobSearch: React.FC = () => {
                         </div>
 
                         {/* Location Section */}
-                        <div style={{ 
+                        <div style={{
                             padding: '1rem',
-                            backgroundColor: 'var(--nb-accent)',
                             border: 'var(--nb-border) solid var(--nb-fg)',
                             borderRadius: '6px'
                         }}>
                             <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600 }}>
                                 Localisation
                             </h3>
-                            
+
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {/* Commune (INSEE Code) */}
                                 <div>

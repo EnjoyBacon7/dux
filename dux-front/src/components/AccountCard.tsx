@@ -30,7 +30,7 @@ const AccountCard: React.FC<AccountCardProps> = ({
     };
 
     return (
-        <div className="nb-card">
+        <div className="nb-card home-card account-card">
             <h2 style={{ margin: '0 0 1rem 0' }}>{t('home.account')}</h2>
             <div className="nb-account-card-content">
                 <div className="nb-account-avatar">

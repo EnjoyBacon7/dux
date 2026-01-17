@@ -56,7 +56,7 @@ const JobOffersCard: React.FC = () => {
 
     if (offers.length === 0 && !loading && !error) {
         return (
-            <div className="nb-card job-offers-card">
+            <div className="nb-card home-card job-offers-card">
                 <h2 className="home-card-title">Optimal Offers</h2>
                 <p className="nb-text-dim">Upload a CV and run profile matching to see offers.</p>
                 <button onClick={generateOffers} className="nb-btn nb-btn--accent">
@@ -67,7 +67,7 @@ const JobOffersCard: React.FC = () => {
     }
 
     return (
-        <div className="nb-card job-offers-card">
+        <div className="nb-card home-card job-offers-card">
             <h2 className="home-card-title">Optimal Offers</h2>
 
             {loading && <p className="nb-text-dim">Loading offers...</p>}
