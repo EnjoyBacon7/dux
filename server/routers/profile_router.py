@@ -7,10 +7,12 @@ import logging
 from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+import mimetypes
 
-from server.methods.upload import upload_file
+from server.methods.upload import UPLOAD_DIR, upload_file
 from server.database import get_db_session
 from server.models import User, Experience, Education
 
@@ -124,6 +126,39 @@ async def upload_endpoint(
     db.commit()
 
     return result
+
+
+@router.get("/cv", summary="Get current user's CV file")
+async def get_cv_file(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Return the authenticated user's CV file for inline display/download.
+
+    Ensures the user has a CV on record and that the file exists on disk
+    before streaming it back to the client.
+    """
+    if not current_user.cv_filename:
+        raise HTTPException(status_code=404, detail="No CV found for this user")
+
+    upload_root = UPLOAD_DIR.resolve()
+    file_path = (UPLOAD_DIR / current_user.cv_filename).resolve()
+
+    # Prevent path traversal outside the upload directory
+    if upload_root not in file_path.parents:
+        raise HTTPException(status_code=400, detail="Invalid CV path")
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="CV file not found")
+
+    media_type, _ = mimetypes.guess_type(current_user.cv_filename)
+    headers = {"Content-Disposition": f'inline; filename="{current_user.cv_filename}"'}
+
+    return FileResponse(
+        path=file_path,
+        media_type=media_type or "application/octet-stream",
+        headers=headers
+    )
 
 
 # ============================================================================

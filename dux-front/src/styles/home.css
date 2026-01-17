@@ -54,6 +54,28 @@
     width: 100%;
 }
 
+/* CV Preview */
+.home-cv-frame {
+    width: 100%;
+    height: 24rem;
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-bg);
+}
+
+.home-cv-empty {
+    padding: 1rem;
+    border: var(--nb-border) dashed var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-card-muted-bg);
+}
+
+.home-cv-actions {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
 /* Tablet Adjustments (1024px and below) */
 @media (max-width: 1024px) {
     .home-grid {

@@ -190,6 +190,38 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Conta',
         la: 'Ratio'
     },
+    'home.cv_title': {
+        en: 'Your CV on file',
+        es: 'Tu CV guardado',
+        fr: 'Votre CV enregistré',
+        de: 'Dein gespeichertes CV',
+        pt: 'Seu CV armazenado',
+        la: 'Curriculum tuum retentum'
+    },
+    'home.cv_missing': {
+        en: 'No CV uploaded yet. Upload a PDF to preview it here.',
+        es: 'Aún no subiste un CV. Sube un PDF para verlo aquí.',
+        fr: 'Aucun CV téléversé pour le moment. Ajoutez un PDF pour l\'afficher ici.',
+        de: 'Noch kein CV hochgeladen. Lade ein PDF hoch, um es hier zu sehen.',
+        pt: 'Nenhum CV enviado ainda. Envie um PDF para pré-visualizar aqui.',
+        la: 'Nondum curriculum sublatum. PDF mitte ut hic praevideas.'
+    },
+    'home.cv_open_link': {
+        en: 'Open CV in a new tab',
+        es: 'Abrir CV en una nueva pestaña',
+        fr: 'Ouvrir le CV dans un nouvel onglet',
+        de: 'CV in neuem Tab öffnen',
+        pt: 'Abrir o CV em nova aba',
+        la: 'Curriculum in nova scheda aperire'
+    },
+    'home.cv_preview_unavailable': {
+        en: 'We couldn\'t load the preview.',
+        es: 'No pudimos cargar la vista previa.',
+        fr: 'Impossible de charger l\'aperçu.',
+        de: 'Vorschau konnte nicht geladen werden.',
+        pt: 'Não foi possível carregar a pré-visualização.',
+        la: 'Praevisio onerari non potuit.'
+    },
     // Upload Page
     'upload.title': {
         en: 'Dux File Upload',
@@ -214,6 +246,30 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Hochladen...',
         pt: 'Enviando...',
         la: 'Mittendo...'
+    },
+    'upload.no_file_selected': {
+        en: 'Please select a file to upload.',
+        es: 'Por favor, selecciona un archivo para subir.',
+        fr: 'Veuillez sélectionner un fichier à télécharger.',
+        de: 'Bitte wählen Sie eine Datei zum Hochladen aus.',
+        pt: 'Por favor, selecione um arquivo para enviar.',
+        la: 'Elige fasciculum mittendum.'
+    },
+    'upload.failed': {
+        en: 'Upload failed',
+        es: 'La subida falló',
+        fr: 'Le téléchargement a échoué',
+        de: 'Upload fehlgeschlagen',
+        pt: 'Upload falhou',
+        la: 'Sumptio defecit'
+    },
+    'upload.success': {
+        en: 'File uploaded successfully!',
+        es: '¡Archivo subido exitosamente!',
+        fr: 'Fichier téléchargé avec succès!',
+        de: 'Datei erfolgreich hochgeladen!',
+        pt: 'Arquivo enviado com sucesso!',
+        la: 'Fasciculus feliciter sublatus!'
     },
     // Theme
     'theme.light': {

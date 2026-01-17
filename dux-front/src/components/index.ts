@@ -5,4 +5,7 @@ export { default as PreferencesCard } from './PreferencesCard';
 export { default as JobDetail } from './JobDetail';
 export { default as JobOffersCard } from './JobOffersCard';
 export { default as DebugCard } from './DebugCard';
+export { default as WelcomeCard } from './WelcomeCard';
+export { default as CVUploadForm } from './CVUploadForm';
+export { default as CVPreview } from './CVPreview';
 

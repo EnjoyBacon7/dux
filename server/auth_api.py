@@ -130,7 +130,8 @@ async def get_current_user_info(
         "last_name": current_user.last_name,
         "title": current_user.title,
         "profile_picture": current_user.profile_picture,
-        "profile_setup_completed": current_user.profile_setup_completed or False
+        "profile_setup_completed": current_user.profile_setup_completed or False,
+        "cv_filename": current_user.cv_filename
     }
 
 
