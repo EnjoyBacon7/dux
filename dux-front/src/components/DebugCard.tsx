@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLanguage } from "../contexts/useLanguage";
 
 interface UserDebugInfo {
     user_info: {
@@ -38,6 +39,7 @@ interface UserDebugInfo {
 }
 
 const DebugCard: React.FC = () => {
+    const { t } = useLanguage();
     const [debugInfo, setDebugInfo] = useState<UserDebugInfo | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -63,10 +65,10 @@ const DebugCard: React.FC = () => {
                 const data = await response.json();
                 setDebugInfo(data);
             } else {
-                setError('Failed to fetch debug information');
+                setError(t('debug.failed_fetch'));
             }
         } catch (err) {
-            setError('Error fetching debug information');
+            setError(t('debug.error_fetching'));
         } finally {
             setIsLoading(false);
         }
@@ -98,10 +100,10 @@ const DebugCard: React.FC = () => {
                 setChatResponse(data.analysis);
             } else {
                 const error = await response.json();
-                setChatError(error.detail || 'Failed to get response from model');
+                setChatError(error.detail || t('errors.failed_model_response'));
             }
         } catch (err) {
-            setChatError('Error sending request to model');
+            setChatError(t('errors.error_sending_request'));
         } finally {
             setIsChatLoading(false);
         }
@@ -236,7 +238,7 @@ const DebugCard: React.FC = () => {
     };
 
     return (
-        <div className="nb-card">
+        <div className="nb-card home-card debug-card">
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -244,9 +246,9 @@ const DebugCard: React.FC = () => {
                 marginBottom: '1rem'
             }}>
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>🐛 Debug Information</h2>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>🐛 {t('debug.title')}</h2>
                     <p className="nb-text-dim" style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem' }}>
-                        Detailed user data for debugging
+                        {t('debug.description')}
                     </p>
                 </div>
                 <button
@@ -254,7 +256,7 @@ const DebugCard: React.FC = () => {
                     onClick={fetchDebugInfo}
                     disabled={isLoading}
                 >
-                    {isLoading ? 'Loading...' : 'Refresh'}
+                    {isLoading ? t('debug.loading') : t('debug.refresh')}
                 </button>
             </div>
 
@@ -265,7 +267,7 @@ const DebugCard: React.FC = () => {
                     border: '2px solid var(--nb-error)',
                     marginBottom: '1rem'
                 }}>
-                    <strong>Error:</strong> {error}
+                    <strong>{t('common.error')}:</strong> {error}
                 </div>
             )}
 
@@ -276,15 +278,15 @@ const DebugCard: React.FC = () => {
                         onClick={() => setIsExpanded(!isExpanded)}
                         style={{ marginBottom: '1rem', width: '100%' }}
                     >
-                        {isExpanded ? '▼ Hide Details' : '▶ Show Details'}
+                        {isExpanded ? `▼ ${t('debug.hide_details')}` : `▶ ${t('debug.show_details')}`}
                     </button>
 
                     {isExpanded && (
                         <>
-                            {renderTable('User Information', debugInfo.user_info)}
-                            {renderTable('Session Information', debugInfo.session_info)}
-                            {renderArrayTable('Passkey Credentials', debugInfo.passkey_credentials)}
-                            {renderArrayTable('Recent Login Attempts', debugInfo.recent_login_attempts)}
+                            {renderTable(t('debug.user_info'), debugInfo.user_info)}
+                            {renderTable(t('debug.session_info'), debugInfo.session_info)}
+                            {renderArrayTable(t('debug.passkey_credentials'), debugInfo.passkey_credentials)}
+                            {renderArrayTable(t('debug.login_attempts'), debugInfo.recent_login_attempts)}
                         </>
                     )}
                 </div>
@@ -292,22 +294,22 @@ const DebugCard: React.FC = () => {
 
             {isLoading && !debugInfo && (
                 <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <p>Loading debug information...</p>
+                    <p>{t('debug.loading_info')}</p>
                 </div>
             )}
 
             <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '2px solid var(--nb-border)' }}>
-                <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600' }}>🤖 Test Profile Matching</h3>
+                <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600' }}>🤖 {t('debug.test_matching')}</h3>
 
                 <div style={{ marginBottom: '1rem' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.875rem' }}>
-                        Query / Preferences
+                        {t('debug.query_label')}
                     </label>
                     <input
                         type="text"
                         value={chatQuery}
                         onChange={(e) => setChatQuery(e.target.value)}
-                        placeholder="e.g., I'm interested in machine learning positions"
+                        placeholder={t('debug.query_placeholder')}
                         style={{
                             width: '100%',
                             padding: '0.75rem',
@@ -322,13 +324,13 @@ const DebugCard: React.FC = () => {
 
                 <div style={{ marginBottom: '1rem' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.875rem' }}>
-                        Model (optional)
+                        {t('debug.model_label')}
                     </label>
                     <input
                         type="text"
                         value={chatModel}
                         onChange={(e) => setChatModel(e.target.value)}
-                        placeholder="e.g., gpt-4 (leave empty for default)"
+                        placeholder={t('debug.model_placeholder')}
                         style={{
                             width: '100%',
                             padding: '0.75rem',
@@ -347,7 +349,7 @@ const DebugCard: React.FC = () => {
                     disabled={isChatLoading}
                     style={{ marginBottom: '1rem', width: '100%' }}
                 >
-                    {isChatLoading ? 'Sending...' : 'Send Request'}
+                    {isChatLoading ? t('debug.sending') : t('debug.send_request')}
                 </button>
 
                 {chatError && (
@@ -358,7 +360,7 @@ const DebugCard: React.FC = () => {
                         marginBottom: '1rem',
                         fontSize: '0.875rem'
                     }}>
-                        <strong>Error:</strong> {chatError}
+                        <strong>{t('common.error')}:</strong> {chatError}
                     </div>
                 )}
 
@@ -370,7 +372,7 @@ const DebugCard: React.FC = () => {
                         borderRadius: '0.25rem'
                     }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.875rem' }}>
-                            Response
+                            {t('debug.response')}
                         </label>
                         <textarea
                             value={chatResponse}

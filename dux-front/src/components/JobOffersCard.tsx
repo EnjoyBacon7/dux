@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLanguage } from "../contexts/useLanguage";
 import "./jobOffersCard.css";
 
 interface JobOffer {
@@ -12,6 +13,7 @@ interface JobOffer {
 }
 
 const JobOffersCard: React.FC = () => {
+    const { t } = useLanguage();
     const [offers, setOffers] = useState<JobOffer[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -30,7 +32,7 @@ const JobOffersCard: React.FC = () => {
 
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
-                throw new Error(err.detail || "Failed to generate offers");
+                throw new Error(err.detail || t('errors.failed_generate_offers'));
             }
 
             const data = await response.json();
@@ -39,7 +41,7 @@ const JobOffersCard: React.FC = () => {
                 setCurrentIndex(0);
             }
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Error generating offers";
+            const message = err instanceof Error ? err.message : t('errors.error_generating_offers');
             setError(message);
         } finally {
             setLoading(false);
@@ -57,10 +59,10 @@ const JobOffersCard: React.FC = () => {
     if (offers.length === 0 && !loading && !error) {
         return (
             <div className="nb-card home-card job-offers-card">
-                <h2 className="home-card-title">Optimal Offers</h2>
-                <p className="nb-text-dim">Upload a CV and run profile matching to see offers.</p>
+                <h2 className="home-card-title">{t('jobs.optimal_offers')}</h2>
+                <p className="nb-text-dim">{t('jobs.upload_cv_to_match')}</p>
                 <button onClick={generateOffers} className="nb-btn nb-btn--accent">
-                    Find Offers
+                    {t('jobs.find_offers')}
                 </button>
             </div>
         );
@@ -68,9 +70,9 @@ const JobOffersCard: React.FC = () => {
 
     return (
         <div className="nb-card home-card job-offers-card">
-            <h2 className="home-card-title">Optimal Offers</h2>
+            <h2 className="home-card-title">{t('jobs.optimal_offers')}</h2>
 
-            {loading && <p className="nb-text-dim">Loading offers...</p>}
+            {loading && <p className="nb-text-dim">{t('jobs.loading_offers')}</p>}
 
             {error && (
                 <div className="nb-alert nb-alert--danger">
@@ -103,7 +105,7 @@ const JobOffersCard: React.FC = () => {
                                             <p className="offer-location">{offer.location}</p>
 
                                             <div className="offer-section">
-                                                <h4 className="offer-label">Why Match</h4>
+                                                <h4 className="offer-label">{t('jobs.why_match')}</h4>
                                                 <ul className="offer-list">
                                                     {offer.match_reasons.map((reason, i) => (
                                                         <li key={i}>{reason}</li>
@@ -113,7 +115,7 @@ const JobOffersCard: React.FC = () => {
 
                                             {offer.concerns && offer.concerns.length > 0 && (
                                                 <div className="offer-section">
-                                                    <h4 className="offer-label offer-label--concern">Concerns</h4>
+                                                    <h4 className="offer-label offer-label--concern">{t('jobs.concerns')}</h4>
                                                     <ul className="offer-list">
                                                         {offer.concerns.map((concern, i) => (
                                                             <li key={i}>{concern}</li>
@@ -150,7 +152,7 @@ const JobOffersCard: React.FC = () => {
 
             {offers.length > 0 && !loading && (
                 <button onClick={generateOffers} className="nb-btn nb-btn--ghost nb-mt">
-                    Refresh Offers
+                    {t('jobs.refresh_offers')}
                 </button>
             )}
         </div>

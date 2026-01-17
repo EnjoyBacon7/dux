@@ -1397,6 +1397,346 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Verwalten Sie Ihr Konto, Authentifizierungsmethoden und Einstellungen.',
         pt: 'Gerencie sua conta, métodos de autenticação e preferências.',
         la: 'Rationem tuam, methodos authentificationis, et praeferentias administra.'
+    },
+    // Common/Error Messages
+    'common.popup_blocked': {
+        en: 'Popup blocked. Please allow popups.',
+        es: 'Ventana emergente bloqueada. Por favor, permite las ventanas emergentes.',
+        fr: 'Fenêtre contextuelle bloquée. Veuillez autoriser les fenêtres contextuelles.',
+        de: 'Popup blockiert. Bitte erlauben Sie Popups.',
+        pt: 'Pop-up bloqueado. Por favor, permita pop-ups.',
+        la: 'Fenestra erumpens impedita. Fenestras erumpentes permitte.'
+    },
+    'common.popup_blocked_site': {
+        en: 'Popup blocked. Please allow popups for this site.',
+        es: 'Ventana emergente bloqueada. Por favor, permite las ventanas emergentes para este sitio.',
+        fr: 'Fenêtre contextuelle bloquée. Veuillez autoriser les fenêtres contextuelles pour ce site.',
+        de: 'Popup blockiert. Bitte erlauben Sie Popups für diese Seite.',
+        pt: 'Pop-up bloqueado. Por favor, permita pop-ups para este site.',
+        la: 'Fenestra erumpens impedita. Fenestras erumpentes pro hoc sito permitte.'
+    },
+    'common.error': {
+        en: 'Error',
+        es: 'Error',
+        fr: 'Erreur',
+        de: 'Fehler',
+        pt: 'Erro',
+        la: 'Error'
+    },
+    // Job Offers Card
+    'jobs.optimal_offers': {
+        en: 'Optimal Offers',
+        es: 'Ofertas Óptimas',
+        fr: 'Offres Optimales',
+        de: 'Optimale Angebote',
+        pt: 'Ofertas Ideais',
+        la: 'Offerta Optima'
+    },
+    'jobs.find_offers': {
+        en: 'Find Offers',
+        es: 'Encontrar Ofertas',
+        fr: 'Trouver des Offres',
+        de: 'Angebote Finden',
+        pt: 'Encontrar Ofertas',
+        la: 'Offerta Invenire'
+    },
+    'jobs.refresh_offers': {
+        en: 'Refresh Offers',
+        es: 'Actualizar Ofertas',
+        fr: 'Actualiser les Offres',
+        de: 'Angebote Aktualisieren',
+        pt: 'Atualizar Ofertas',
+        la: 'Offerta Renovare'
+    },
+    'jobs.upload_cv_to_match': {
+        en: 'Upload a CV and run profile matching to see offers.',
+        es: 'Sube un CV y ejecuta el emparejamiento de perfil para ver ofertas.',
+        fr: 'Téléchargez un CV et lancez la correspondance de profil pour voir les offres.',
+        de: 'Laden Sie einen Lebenslauf hoch und führen Sie das Profil-Matching durch, um Angebote zu sehen.',
+        pt: 'Envie um currículo e execute a correspondência de perfil para ver ofertas.',
+        la: 'Curriculum mitte et comparationem profili exerce ut offerta videas.'
+    },
+    'jobs.loading_offers': {
+        en: 'Loading offers...',
+        es: 'Cargando ofertas...',
+        fr: 'Chargement des offres...',
+        de: 'Angebote werden geladen...',
+        pt: 'Carregando ofertas...',
+        la: 'Offerta onerando...'
+    },
+    'jobs.why_match': {
+        en: 'Why Match',
+        es: 'Por qué Coincide',
+        fr: 'Pourquoi Correspond',
+        de: 'Warum Passt',
+        pt: 'Por que Corresponde',
+        la: 'Cur Congruit'
+    },
+    'jobs.concerns': {
+        en: 'Concerns',
+        es: 'Preocupaciones',
+        fr: 'Préoccupations',
+        de: 'Bedenken',
+        pt: 'Preocupações',
+        la: 'Sollicitudines'
+    },
+    // Debug Card
+    'debug.title': {
+        en: 'Debug Information',
+        es: 'Información de Depuración',
+        fr: 'Informations de Débogage',
+        de: 'Debug-Informationen',
+        pt: 'Informações de Depuração',
+        la: 'Informationes Emendationis'
+    },
+    'debug.description': {
+        en: 'Detailed user data for debugging',
+        es: 'Datos detallados del usuario para depuración',
+        fr: 'Données utilisateur détaillées pour le débogage',
+        de: 'Detaillierte Benutzerdaten zum Debuggen',
+        pt: 'Dados detalhados do usuário para depuração',
+        la: 'Data usoris detaliata pro emendatione'
+    },
+    'debug.refresh': {
+        en: 'Refresh',
+        es: 'Actualizar',
+        fr: 'Actualiser',
+        de: 'Aktualisieren',
+        pt: 'Atualizar',
+        la: 'Renovare'
+    },
+    'debug.loading': {
+        en: 'Loading...',
+        es: 'Cargando...',
+        fr: 'Chargement...',
+        de: 'Laden...',
+        pt: 'Carregando...',
+        la: 'Onerando...'
+    },
+    'debug.show_details': {
+        en: 'Show Details',
+        es: 'Mostrar Detalles',
+        fr: 'Afficher les Détails',
+        de: 'Details Anzeigen',
+        pt: 'Mostrar Detalhes',
+        la: 'Detalia Monstrare'
+    },
+    'debug.hide_details': {
+        en: 'Hide Details',
+        es: 'Ocultar Detalles',
+        fr: 'Masquer les Détails',
+        de: 'Details Ausblenden',
+        pt: 'Ocultar Detalhes',
+        la: 'Detalia Celare'
+    },
+    'debug.loading_info': {
+        en: 'Loading debug information...',
+        es: 'Cargando información de depuración...',
+        fr: 'Chargement des informations de débogage...',
+        de: 'Debug-Informationen werden geladen...',
+        pt: 'Carregando informações de depuração...',
+        la: 'Informationes emendationis onerando...'
+    },
+    'debug.test_matching': {
+        en: 'Test Profile Matching',
+        es: 'Probar Emparejamiento de Perfil',
+        fr: 'Tester la Correspondance de Profil',
+        de: 'Profil-Matching Testen',
+        pt: 'Testar Correspondência de Perfil',
+        la: 'Comparationem Profili Probare'
+    },
+    'debug.query_label': {
+        en: 'Query / Preferences',
+        es: 'Consulta / Preferencias',
+        fr: 'Requête / Préférences',
+        de: 'Abfrage / Einstellungen',
+        pt: 'Consulta / Preferências',
+        la: 'Quaestio / Praeferentiae'
+    },
+    'debug.query_placeholder': {
+        en: 'e.g., I\'m interested in machine learning positions',
+        es: 'p. ej., Me interesan las posiciones de aprendizaje automático',
+        fr: 'p. ex., Je suis intéressé par les postes en apprentissage automatique',
+        de: 'z.B., Ich interessiere mich für Positionen im maschinellen Lernen',
+        pt: 'ex., Estou interessado em posições de aprendizado de máquina',
+        la: 'e.g., Positiones machinae disciplinae me intersunt'
+    },
+    'debug.model_label': {
+        en: 'Model (optional)',
+        es: 'Modelo (opcional)',
+        fr: 'Modèle (facultatif)',
+        de: 'Modell (optional)',
+        pt: 'Modelo (opcional)',
+        la: 'Exemplar (optionale)'
+    },
+    'debug.model_placeholder': {
+        en: 'e.g., gpt-4 (leave empty for default)',
+        es: 'p. ej., gpt-4 (dejar vacío para predeterminado)',
+        fr: 'p. ex., gpt-4 (laisser vide pour défaut)',
+        de: 'z.B., gpt-4 (leer lassen für Standard)',
+        pt: 'ex., gpt-4 (deixe em branco para padrão)',
+        la: 'e.g., gpt-4 (vacuum relinque pro praedeterminato)'
+    },
+    'debug.send_request': {
+        en: 'Send Request',
+        es: 'Enviar Solicitud',
+        fr: 'Envoyer la Requête',
+        de: 'Anfrage Senden',
+        pt: 'Enviar Solicitação',
+        la: 'Petitionem Mittere'
+    },
+    'debug.sending': {
+        en: 'Sending...',
+        es: 'Enviando...',
+        fr: 'Envoi...',
+        de: 'Senden...',
+        pt: 'Enviando...',
+        la: 'Mittendo...'
+    },
+    'debug.response': {
+        en: 'Response',
+        es: 'Respuesta',
+        fr: 'Réponse',
+        de: 'Antwort',
+        pt: 'Resposta',
+        la: 'Responsum'
+    },
+    'debug.failed_fetch': {
+        en: 'Failed to fetch debug information',
+        es: 'Error al obtener información de depuración',
+        fr: 'Échec de la récupération des informations de débogage',
+        de: 'Fehler beim Abrufen der Debug-Informationen',
+        pt: 'Falha ao obter informações de depuração',
+        la: 'Informationes emendationis petere defecit'
+    },
+    'debug.error_fetching': {
+        en: 'Error fetching debug information',
+        es: 'Error al obtener información de depuración',
+        fr: 'Erreur lors de la récupération des informations de débogage',
+        de: 'Fehler beim Abrufen der Debug-Informationen',
+        pt: 'Erro ao obter informações de depuração',
+        la: 'Error petendo informationes emendationis'
+    },
+    'debug.user_info': {
+        en: 'User Information',
+        es: 'Información del Usuario',
+        fr: 'Informations Utilisateur',
+        de: 'Benutzerinformationen',
+        pt: 'Informações do Usuário',
+        la: 'Informationes Usoris'
+    },
+    'debug.session_info': {
+        en: 'Session Information',
+        es: 'Información de Sesión',
+        fr: 'Informations de Session',
+        de: 'Sitzungsinformationen',
+        pt: 'Informações da Sessão',
+        la: 'Informationes Sessionis'
+    },
+    'debug.passkey_credentials': {
+        en: 'Passkey Credentials',
+        es: 'Credenciales de Passkey',
+        fr: 'Identifiants Passkey',
+        de: 'Passkey-Anmeldedaten',
+        pt: 'Credenciais de Passkey',
+        la: 'Credentiales Clavis'
+    },
+    'debug.login_attempts': {
+        en: 'Recent Login Attempts',
+        es: 'Intentos Recientes de Inicio de Sesión',
+        fr: 'Tentatives de Connexion Récentes',
+        de: 'Letzte Anmeldeversuche',
+        pt: 'Tentativas Recentes de Login',
+        la: 'Conatus Intrandi Recentes'
+    },
+    // Additional Error Messages
+    'errors.failed_delete_account': {
+        en: 'Failed to delete account',
+        es: 'Error al eliminar la cuenta',
+        fr: 'Échec de la suppression du compte',
+        de: 'Konto konnte nicht gelöscht werden',
+        pt: 'Falha ao excluir a conta',
+        la: 'Rationem delere defecit'
+    },
+    'errors.select_file': {
+        en: 'Please select a file to upload.',
+        es: 'Por favor, selecciona un archivo para subir.',
+        fr: 'Veuillez sélectionner un fichier à télécharger.',
+        de: 'Bitte wählen Sie eine Datei zum Hochladen aus.',
+        pt: 'Por favor, selecione um arquivo para enviar.',
+        la: 'Fasciculum mittendum elige.'
+    },
+    'errors.select_cv_file': {
+        en: 'Please select a CV file to upload.',
+        es: 'Por favor, selecciona un archivo de CV para subir.',
+        fr: 'Veuillez sélectionner un fichier CV à télécharger.',
+        de: 'Bitte wählen Sie eine CV-Datei zum Hochladen aus.',
+        pt: 'Por favor, selecione um arquivo de CV para enviar.',
+        la: 'Fasciculum CV mittendum elige.'
+    },
+    'errors.failed_save_profile': {
+        en: 'Failed to save profile',
+        es: 'Error al guardar el perfil',
+        fr: 'Échec de l\'enregistrement du profil',
+        de: 'Profil konnte nicht gespeichert werden',
+        pt: 'Falha ao salvar o perfil',
+        la: 'Professionem servare defecit'
+    },
+    'errors.failed_linkedin_auth': {
+        en: 'Failed to complete LinkedIn authentication',
+        es: 'Error al completar la autenticación de LinkedIn',
+        fr: 'Échec de l\'authentification LinkedIn',
+        de: 'LinkedIn-Authentifizierung fehlgeschlagen',
+        pt: 'Falha ao completar autenticação do LinkedIn',
+        la: 'Authentificationem LinkedIn perficere defecit'
+    },
+    'errors.failed_fetch_jobs': {
+        en: 'Failed to fetch jobs',
+        es: 'Error al obtener empleos',
+        fr: 'Échec de la récupération des emplois',
+        de: 'Fehler beim Abrufen von Stellen',
+        pt: 'Falha ao buscar vagas',
+        la: 'Opera petere defecit'
+    },
+    'errors.failed_generate_offers': {
+        en: 'Failed to generate offers',
+        es: 'Error al generar ofertas',
+        fr: 'Échec de la génération des offres',
+        de: 'Fehler beim Erstellen von Angeboten',
+        pt: 'Falha ao gerar ofertas',
+        la: 'Offerta generare defecit'
+    },
+    'errors.error_generating_offers': {
+        en: 'Error generating offers',
+        es: 'Error al generar ofertas',
+        fr: 'Erreur lors de la génération des offres',
+        de: 'Fehler beim Erstellen von Angeboten',
+        pt: 'Erro ao gerar ofertas',
+        la: 'Error generando offerta'
+    },
+    'errors.failed_linkedin_link': {
+        en: 'Failed to initiate LinkedIn linking',
+        es: 'Error al iniciar la vinculación de LinkedIn',
+        fr: 'Échec du lancement de la liaison LinkedIn',
+        de: 'Fehler beim Starten der LinkedIn-Verknüpfung',
+        pt: 'Falha ao iniciar vinculação do LinkedIn',
+        la: 'Conexionem LinkedIn initiare defecit'
+    },
+    'errors.failed_model_response': {
+        en: 'Failed to get response from model',
+        es: 'Error al obtener respuesta del modelo',
+        fr: 'Échec de l\'obtention de la réponse du modèle',
+        de: 'Fehler beim Abrufen der Modellantwort',
+        pt: 'Falha ao obter resposta do modelo',
+        la: 'Responsum ab exemplari petere defecit'
+    },
+    'errors.error_sending_request': {
+        en: 'Error sending request to model',
+        es: 'Error al enviar solicitud al modelo',
+        fr: 'Erreur lors de l\'envoi de la requête au modèle',
+        de: 'Fehler beim Senden der Anfrage an das Modell',
+        pt: 'Erro ao enviar solicitação ao modelo',
+        la: 'Error mittendo petitionem ad exemplar'
     }
 };
 

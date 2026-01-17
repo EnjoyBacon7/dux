@@ -114,7 +114,7 @@ const AuthPage: React.FC = () => {
             if (!popup || popup.closed) {
                 setIsLinkedInLoading(false);
                 window.removeEventListener('message', handleMessage);
-                alert('Popup blocked. Please allow popups for this site.');
+                alert(t('common.popup_blocked_site'));
             }
         } catch {
             setIsLinkedInLoading(false);

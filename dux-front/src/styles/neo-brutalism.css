@@ -467,6 +467,7 @@ select:focus {
     align-items: center;
     justify-content: center;
     color: var(--nb-fg);
+    min-height: 44px;
 }
 
 .nb-theme-btn:last-child {

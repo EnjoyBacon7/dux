@@ -73,7 +73,7 @@ const PreferencesCard: React.FC = () => {
                 window.location.href = '/login';
             } else {
                 const data = await response.json();
-                setDeleteError(data.detail || 'Failed to delete account');
+                setDeleteError(data.detail || t('errors.failed_delete_account'));
             }
         } catch (error) {
             setDeleteError('An error occurred while deleting your account');
@@ -93,51 +93,54 @@ const PreferencesCard: React.FC = () => {
     ];
 
     return (
-        <div className="nb-card">
+        <div className="nb-card home-card preferences-card">
             <h2 style={{ marginTop: 0 }}>{t('preferences.title')}</h2>
 
-            {/* Language Setting */}
-            <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>{t('preferences.language')}</h3>
-                <div className="nb-theme-selector">
-                    {languages.map((lang) => (
-                        <button
-                            key={lang.code}
-                            onClick={() => setLanguage(lang.code)}
-                            className={`nb-theme-btn ${language === lang.code ? 'nb-theme-btn--active' : ''}`}
-                            title={lang.code === 'auto' ? t('language.auto') : lang.label}
-                        >
-                            {lang.label}
-                        </button>
-                    ))}
+            {/* Language and Theme Settings */}
+            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                {/* Language Setting */}
+                <div>
+                    <h3 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>{t('preferences.language')}</h3>
+                    <div className="nb-theme-selector">
+                        {languages.map((lang) => (
+                            <button
+                                key={lang.code}
+                                onClick={() => setLanguage(lang.code)}
+                                className={`nb-theme-btn ${language === lang.code ? 'nb-theme-btn--active' : ''}`}
+                                title={lang.code === 'auto' ? t('language.auto') : lang.label}
+                            >
+                                {lang.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-            </div>
 
-            {/* Theme Setting */}
-            <div>
-                <h3 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>{t('preferences.theme')}</h3>
-                <div className="nb-theme-selector">
-                    <button
-                        onClick={() => handleThemeChange('light')}
-                        className={`nb-theme-btn ${theme === 'light' ? 'nb-theme-btn--active' : ''}`}
-                        title={t('theme.light')}
-                    >
-                        <SunIcon />
-                    </button>
-                    <button
-                        onClick={() => handleThemeChange('auto')}
-                        className={`nb-theme-btn ${theme === 'auto' ? 'nb-theme-btn--active' : ''}`}
-                        title={t('theme.auto')}
-                    >
-                        <AutoIcon />
-                    </button>
-                    <button
-                        onClick={() => handleThemeChange('dark')}
-                        className={`nb-theme-btn ${theme === 'dark' ? 'nb-theme-btn--active' : ''}`}
-                        title={t('theme.dark')}
-                    >
-                        <MoonIcon />
-                    </button>
+                {/* Theme Setting */}
+                <div>
+                    <h3 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>{t('preferences.theme')}</h3>
+                    <div className="nb-theme-selector">
+                        <button
+                            onClick={() => handleThemeChange('light')}
+                            className={`nb-theme-btn ${theme === 'light' ? 'nb-theme-btn--active' : ''}`}
+                            title={t('theme.light')}
+                        >
+                            <SunIcon />
+                        </button>
+                        <button
+                            onClick={() => handleThemeChange('auto')}
+                            className={`nb-theme-btn ${theme === 'auto' ? 'nb-theme-btn--active' : ''}`}
+                            title={t('theme.auto')}
+                        >
+                            <AutoIcon />
+                        </button>
+                        <button
+                            onClick={() => handleThemeChange('dark')}
+                            className={`nb-theme-btn ${theme === 'dark' ? 'nb-theme-btn--active' : ''}`}
+                            title={t('theme.dark')}
+                        >
+                            <MoonIcon />
+                        </button>
+                    </div>
                 </div>
             </div>
 

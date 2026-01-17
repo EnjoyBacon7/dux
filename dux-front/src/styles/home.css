@@ -54,7 +54,6 @@
     flex-direction: column;
     overflow: hidden;
 }
-}
 
 /* Actions */
 .home-actions {
@@ -136,6 +135,21 @@
     justify-content: flex-end;
 }
 
+/* Settings Page Grid Layout */
+.home-card.account-settings-card {
+    grid-column: 1;
+    grid-row: span 2;
+}
+
+.home-card.preferences-card {
+    grid-column: 2;
+    grid-row: span 2;
+}
+
+.home-card.debug-card {
+    grid-column: 1 / -1;
+}
+
 /* Desktop and tablet adjustments (768px and above) */
 @media (min-width: 768px) {
     .home-grid {
@@ -164,6 +178,14 @@
     }
 
     .home-card.cv-preview-card {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    /* Settings page mobile adjustments */
+    .home-card.account-settings-card,
+    .home-card.preferences-card,
+    .home-card.debug-card {
         grid-column: 1;
         grid-row: auto;
     }

@@ -55,7 +55,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onUpdate }) => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to initiate LinkedIn linking');
+                throw new Error(t('errors.failed_linkedin_link'));
             }
 
             const data = await response.json();
@@ -93,7 +93,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onUpdate }) => {
             window.addEventListener('message', handleMessage);
 
             if (!popup || popup.closed) {
-                setMessage({ type: 'error', text: 'Popup blocked. Please allow popups.' });
+                setMessage({ type: 'error', text: t('common.popup_blocked') });
                 setIsLoading(false);
                 window.removeEventListener('message', handleMessage);
             }
@@ -167,7 +167,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onUpdate }) => {
     };
 
     return (
-        <div className="nb-card">
+        <div className="nb-card home-card account-settings-card">
             <h2 style={{ margin: '0 0 1rem 0' }}>{t('settings.auth_methods')}</h2>
             <p className="nb-text-dim" style={{ marginBottom: '1.5rem' }}>
                 {t('settings.auth_methods_desc')}
