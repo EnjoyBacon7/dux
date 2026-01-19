@@ -20,12 +20,12 @@ if errorlevel 1 (
 )
 
 :: Check if PostgreSQL service is running
-pg_isready -h localhost -p 5432 >nul 2>&1
+pg_isready -h localhost -p 5433 >nul 2>&1
 if errorlevel 1 (
     echo Starting PostgreSQL service...
     net start postgresql-x64-13 >nul 2>&1
     timeout /t 30 >nul
-    pg_isready -h localhost -p 5432 >nul 2>&1
+    pg_isready -h localhost -p 5433 >nul 2>&1
     if errorlevel 1 (
         echo Warning: PostgreSQL failed to start. Database operations may fail.
     ) else (

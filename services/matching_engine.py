@@ -1,76 +1,121 @@
+import os
 import json
-from sqlalchemy.orm import Session
-from services.ai_engine import get_llm, enrichir_requete_avec_ref, get_vectorstore_retriever
-
-# ✅ Import depuis models.py
+import logging
+from openai import OpenAI
 from server.models import User, Offres_FT
 
+# Configuration du logger
+logger = logging.getLogger(__name__)
+
 class MatchingEngine:
-    def __init__(self, db: Session):
-        self.db = db
-        self.llm = get_llm()
-
-    def analyser_match(self, user: User, offre: Offres_FT):
+    def __init__(self, db_session):
+        self.db = db_session
+        # On récupère la configuration depuis le .env
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.base_url = os.getenv("OPENAI_BASE_URL")
+        self.model = os.getenv("OPENAI_MODEL")
         
-        # 1. Enrichissement ROME
-        query_enrichie = enrichir_requete_avec_ref(self.db, offre.intitule, offre.description)
+        # Initialisation du client compatible OpenAI (pour Linagora/Mistral)
+        try:
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url
+            )
+        except Exception as e:
+            logger.error(f"Erreur init OpenAI: {e}")
+            self.client = None
+
+    def _generate_prompt(self, user: User, job: Offres_FT) -> str:
+        """Prépare les données pour l'IA"""
         
-        # 2. RAG (Recherche dans le CV vectorisé)
-        # user.id est un int, on le convertit en str pour ChromaDB
-        retriever = get_vectorstore_retriever(str(user.id), k=4)
-        docs = retriever.invoke(query_enrichie)
-        context_cv = "\n".join([d.page_content for d in docs])
+        # 1. Préparation du Profil Candidat
+        skills = ", ".join(user.skills) if user.skills else "Non renseigné"
+        
+        experiences_txt = "Aucune expérience listée."
+        # Note: Tes expériences sont stockées dans une table liée, on assume que l'ORM les charge
+        if hasattr(user, 'experiences') and user.experiences:
+            experiences_txt = "\n".join([
+                f"- {exp.title} chez {exp.company} ({exp.description or ''})" 
+                for exp in user.experiences
+            ])
+            
+        # 2. Préparation de l'Offre (Nettoyage des JSON stockés en string)
+        job_skills = job.competences
+        # Si c'est du JSON stringifié par pull_france_travail, on essaie de le rendre lisible
+        if isinstance(job_skills, str) and job_skills.startswith("["):
+            try:
+                loaded = json.loads(job_skills)
+                # France Travail renvoie souvent des objets {libelle: "...", ...}
+                if isinstance(loaded, list) and len(loaded) > 0 and isinstance(loaded[0], dict):
+                    job_skills = ", ".join([s.get('libelle', '') for s in loaded])
+            except:
+                pass # On garde la string brute si ça échoue
 
-        # Construction du profil candidat
-        infos_candidat = f"Nom: {user.first_name} {user.last_name}\n"
-        infos_candidat += f"Titre: {user.headline}\n"
-        infos_candidat += f"Résumé: {user.summary}\n"
-        if user.skills:
-            # skills est un ARRAY dans Postgres, Python le voit comme une liste
-            infos_candidat += f"Compétences déclarées: {', '.join(user.skills)}\n"
-
-        # 3. Prompt
         prompt = f"""
-        Tu es un expert Recrutement IA. 
-        Évalue la compatibilité entre ce candidat et cette offre France Travail.
+        Tu es un expert en recrutement. Analyse la compatibilité (matching) entre ce candidat et cette offre.
 
-        --- OFFRE ---
-        INTITULÉ : {offre.intitule}
-        DESCRIPTION : {offre.description}
-        LIEU : {offre.lieuTravail_libelle}
-        CONTRAT : {offre.typeContratLibelle}
-        
-        --- CANDIDAT ---
-        PROFIL : {infos_candidat}
-        EXTRAITS DU CV (Preuves) :
-        {context_cv}
-        
-        --- INSTRUCTIONS ---
-        Note sur 3 axes (0 à 100) :
-        1. Technique : Compétences clés présentes ?
-        2. Expérience : Séniorité correspondante ?
-        3. Global : Cohérence générale.
+        PROFIL CANDIDAT:
+        - Titre: {user.headline or 'Non spécifié'}
+        - Résumé: {user.summary or 'Non spécifié'}
+        - Compétences: {skills}
+        - Expériences:
+        {experiences_txt}
 
-        Donne ta réponse UNIQUEMENT au format JSON strict :
+        OFFRE D'EMPLOI:
+        - Titre: {job.intitule}
+        - Entreprise: {job.entreprise_nom}
+        - Description: {job.description}
+        - Compétences requises: {job_skills}
+
+        TA MISSION:
+        Retourne UNIQUEMENT un JSON valide (sans markdown ```json) avec cette structure exacte :
         {{
-            "score_technique": int,
-            "score_experience": int,
-            "score_global_final": int,
-            "points_manquants": ["point 1", "point 2"],
-            "verdict": "explication courte"
+            "score_technique": (entier 0-100),
+            "score_culturel": (entier 0-100, estimation basée sur le ton),
+            "match_reasons": ["Point fort 1", "Point fort 2"],
+            "missing_skills": ["Compétence manquante 1", "Compétence manquante 2"],
+            "verdict": "Phrase de synthèse courte et directe."
         }}
         """
+        return prompt
+
+    def analyser_match(self, user: User, job: Offres_FT) -> dict:
+        """Exécute l'analyse"""
+        logger.info(f" Analyse IA : {user.username} vs Job {job.id}")
+        
+        if not self.client:
+            raise Exception("Client IA non initialisé (vérifier .env)")
+
+        prompt = self._generate_prompt(user, job)
 
         try:
-            response = self.llm.invoke(prompt)
-            content_clean = response.content.replace("```json", "").replace("```", "").strip()
-            return json.loads(content_clean)
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Tu es un moteur de matching JSON strict."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2,
+                max_tokens=800
+            )
+            
+            content = response.choices[0].message.content.strip()
+            
+            # Nettoyage Markdown éventuel
+            if content.startswith("```json"):
+                content = content.replace("```json", "").replace("```", "")
+            elif content.startswith("```"):
+                content = content.replace("```", "")
+            
+            return json.loads(content)
+
         except Exception as e:
-            print(f"❌ Erreur Scoring: {e}")
+            logger.error(f" Erreur IA : {e}")
+            # En cas d'erreur critique, on renvoie une structure vide pour ne pas crasher le front
             return {
-                "score_technique": 0, 
-                "score_experience": 0, 
-                "score_global_final": -1,
-                "points_manquants": ["Erreur IA"],
-                "verdict": "Erreur technique"
+                "score_technique": 0,
+                "score_culturel": 0,
+                "match_reasons": ["Erreur lors de l'analyse IA"],
+                "missing_skills": [],
+                "verdict": f"Impossible d'analyser l'offre pour le moment. ({str(e)})"
             }

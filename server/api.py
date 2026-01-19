@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 router.include_router(chat_router.router)
 router.include_router(profile_router.router)
 router.include_router(jobs_router.router)
-router.include_router(jobs_ahmed.router)
 
 
 # ============================================================================
