@@ -165,6 +165,22 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Entrar com LinkedIn',
         la: 'Intrare cum LinkedIn'
     },
+    'auth.registration_successful': {
+        en: 'Registration successful! You can now log in.',
+        es: '¡Registro exitoso! Ahora puedes iniciar sesión.',
+        fr: 'Inscription réussie! Vous pouvez maintenant vous connecter.',
+        de: 'Registrierung erfolgreich! Sie können sich jetzt anmelden.',
+        pt: 'Registro bem-sucedido! Você pode fazer login agora.',
+        la: 'Inscriptio feliciter peracta! Modo intrare potes.'
+    },
+    'auth.passkey_registered_success': {
+        en: 'Passkey registered successfully! You can now log in.',
+        es: '¡Clave registrada exitosamente! Ahora puedes iniciar sesión.',
+        fr: 'Clé enregistrée avec succès! Vous pouvez maintenant vous connecter.',
+        de: 'Passkey erfolgreich registriert! Sie können sich jetzt anmelden.',
+        pt: 'Chave registrada com sucesso! Você pode fazer login agora.',
+        la: 'Clavis feliciter inscripta! Modo intrare potes.'
+    },
     // Home Page
     'home.welcome': {
         en: 'Welcome to Dux',
@@ -2153,6 +2169,22 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Fehler beim Starten der LinkedIn-Verknüpfung',
         pt: 'Falha ao iniciar vinculação do LinkedIn',
         la: 'Conexionem LinkedIn initiare defecit'
+    },
+    'errors.linkedin_signin_failed': {
+        en: 'Failed to sign in with LinkedIn',
+        es: 'Error al iniciar sesión con LinkedIn',
+        fr: 'Échec de la connexion avec LinkedIn',
+        de: 'Fehler beim Anmelden mit LinkedIn',
+        pt: 'Falha ao entrar com LinkedIn',
+        la: 'Intrare cum LinkedIn defecit'
+    },
+    'errors.linkedin_signin_initiate_failed': {
+        en: 'Failed to initiate LinkedIn sign in',
+        es: 'Error al iniciar sesión con LinkedIn',
+        fr: 'Échec du lancement de la connexion LinkedIn',
+        de: 'Fehler beim Starten der LinkedIn-Anmeldung',
+        pt: 'Falha ao iniciar entrada do LinkedIn',
+        la: 'Initiare intrare cum LinkedIn defecit'
     },
     'errors.failed_model_response': {
         en: 'Failed to get response from model',
