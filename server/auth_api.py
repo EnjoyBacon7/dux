@@ -254,7 +254,8 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db_sessi
 
                 existing_user = db.query(User).filter(User.linkedin_id == linkedin_id).first()
                 if existing_user and existing_user.id != session_user.id:
-                    raise HTTPException(status_code=400, detail="This LinkedIn account is already linked to another user")
+                    raise HTTPException(
+                        status_code=400, detail="This LinkedIn account is already linked to another user")
 
                 session_user.linkedin_id = linkedin_id
                 if not session_user.first_name and profile_data.get('first_name'):

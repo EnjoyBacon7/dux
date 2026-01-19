@@ -18,6 +18,7 @@ from server.models import Fiche_Metier_ROME
 from server.database import get_db_session
 from server.methods.job_search import search_job_offers
 from server.methods.FT_job_search import search_france_travail
+from server.thread_pool import run_blocking_in_executor
 
 # ============================================================================
 # Router Setup
@@ -65,7 +66,7 @@ def search_jobs(
 
 
 @router.post("/load_offers", summary="Load offers from France Travail API")
-def load_offers(
+async def load_offers(
     nb_offres: int = Query(150, description="Nombre d'offres à récupérer"),
     accesTravailleurHandicape: bool = Query(None, description="Offres ouvertes aux Bénéficiaires de l'Obligation d'Emploi"),
     appellation: str = Query(None, description="Code appellation ROME de l'offre"),
@@ -160,8 +161,12 @@ def load_offers(
             "typeContrat": typeContrat,
         }
 
-        # Use centralized search method
-        offers = search_france_travail(ft_parameters, nb_offres=nb_offres)
+        # Use centralized search method in thread pool to avoid blocking other clients
+        offers = await run_blocking_in_executor(
+            search_france_travail,
+            ft_parameters,
+            nb_offres
+        )
         return offers
 
     except ValueError as e:

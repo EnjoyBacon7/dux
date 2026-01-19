@@ -21,6 +21,7 @@ from server.api import router as api_router
 from server.auth_api import router as auth_router
 from server.database import init_db
 from server.config import settings
+from server.thread_pool import shutdown_thread_pool
 
 # ============================================================================
 # Logging Configuration
@@ -145,6 +146,16 @@ async def startup_event():
     Currently initializes the database connection and schema.
     """
     init_db()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """
+    Cleanup on application shutdown.
+
+    Gracefully shuts down the thread pool executor used for blocking operations.
+    """
+    shutdown_thread_pool()
 
 
 # ============================================================================
