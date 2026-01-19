@@ -5,7 +5,8 @@ uploads
 *.log
 htmlcov
 .VSCodeCounter
-static
+/static
 cvs
 .idea
 chroma_db
+build
