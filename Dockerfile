@@ -1,6 +1,8 @@
 
 # Build frontend
 FROM node:20 AS frontend-build
+ARG APP_VERSION=dev
+ENV VITE_APP_VERSION=${APP_VERSION}
 WORKDIR /frontend
 COPY dux-front/package.json dux-front/package-lock.json ./
 RUN npm ci
