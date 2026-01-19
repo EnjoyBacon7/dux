@@ -475,6 +475,446 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Publicado há {weeks} semanas',
         la: 'Ante {weeks} hebdomadas publicatum'
     },
+    'jobs.keywords': {
+        en: 'Keywords',
+        es: 'Palabras clave',
+        fr: 'Mots-clés',
+        de: 'Schlüsselwörter',
+        pt: 'Palavras-chave',
+        la: 'Verba Clavis'
+    },
+    'jobs.keywords_placeholder': {
+        en: 'e.g., Developer, Project Manager...',
+        es: 'Ej: Desarrollador, Director de Proyecto...',
+        fr: 'Ex: Développeur, Chef de projet...',
+        de: 'z.B. Entwickler, Projektmanager...',
+        pt: 'Ex: Desenvolvedor, Gerente de Projeto...',
+        la: 'Exempli gratia: Programmator, Magister Operis...'
+    },
+    'jobs.location': {
+        en: 'Location',
+        es: 'Ubicación',
+        fr: 'Localisation',
+        de: 'Standort',
+        pt: 'Localização',
+        la: 'Locus'
+    },
+    'jobs.commune': {
+        en: 'Municipality (INSEE Code)',
+        es: 'Municipio (Código INSEE)',
+        fr: 'Commune (Code INSEE)',
+        de: 'Gemeinde (INSEE-Code)',
+        pt: 'Município (Código INSEE)',
+        la: 'Municipium (Codex INSEE)'
+    },
+    'jobs.commune_placeholder': {
+        en: 'e.g., 75056',
+        es: 'Ej: 75056',
+        fr: 'Ex: 75056',
+        de: 'z.B. 75056',
+        pt: 'Ex: 75056',
+        la: 'Exempli gratia: 75056'
+    },
+    'jobs.department': {
+        en: 'Department',
+        es: 'Departamento',
+        fr: 'Département',
+        de: 'Departement',
+        pt: 'Departamento',
+        la: 'Departamentum'
+    },
+    'jobs.department_placeholder': {
+        en: 'e.g., 75',
+        es: 'Ej: 75',
+        fr: 'Ex: 75',
+        de: 'z.B. 75',
+        pt: 'Ex: 75',
+        la: 'Exempli gratia: 75'
+    },
+    'jobs.region': {
+        en: 'Region',
+        es: 'Región',
+        fr: 'Région',
+        de: 'Region',
+        pt: 'Região',
+        la: 'Regio'
+    },
+    'jobs.region_placeholder': {
+        en: 'e.g., Île-de-France',
+        es: 'Ej: Île-de-France',
+        fr: 'Ex: Île-de-France',
+        de: 'z.B. Île-de-France',
+        pt: 'Ex: Île-de-France',
+        la: 'Exempli gratia: Île-de-France'
+    },
+    'jobs.distance': {
+        en: 'Distance (km)',
+        es: 'Distancia (km)',
+        fr: 'Distance (km)',
+        de: 'Entfernung (km)',
+        pt: 'Distância (km)',
+        la: 'Distantia (km)'
+    },
+    'jobs.distance_placeholder': {
+        en: 'e.g., 10',
+        es: 'Ej: 10',
+        fr: 'Ex: 10',
+        de: 'z.B. 10',
+        pt: 'Ex: 10',
+        la: 'Exempli gratia: 10'
+    },
+    'jobs.contract_type': {
+        en: 'Contract Type',
+        es: 'Tipo de Contrato',
+        fr: 'Type de contrat',
+        de: 'Vertragsart',
+        pt: 'Tipo de Contrato',
+        la: 'Species Contractus'
+    },
+    'jobs.all_types': {
+        en: 'All types',
+        es: 'Todos los tipos',
+        fr: 'Tous les types',
+        de: 'Alle Arten',
+        pt: 'Todos os tipos',
+        la: 'Omnes species'
+    },
+    'jobs.contract_cdi': {
+        en: 'Permanent (CDI)',
+        es: 'Indefinido (CDI)',
+        fr: 'CDI',
+        de: 'Unbefristet (CDI)',
+        pt: 'Efetivo (CDI)',
+        la: 'Permanens (CDI)'
+    },
+    'jobs.contract_cdd': {
+        en: 'Fixed-term (CDD)',
+        es: 'Temporal (CDD)',
+        fr: 'CDD',
+        de: 'Befristet (CDD)',
+        pt: 'Temporário (CDD)',
+        la: 'Temporarius (CDD)'
+    },
+    'jobs.contract_mis': {
+        en: 'Temporary (MIS)',
+        es: 'Interino (MIS)',
+        fr: 'MIS (Mission intérimaire)',
+        de: 'Zeitarbeit (MIS)',
+        pt: 'Temporário (MIS)',
+        la: 'Interimarius (MIS)'
+    },
+    'jobs.contract_sai': {
+        en: 'Seasonal (SAI)',
+        es: 'Estacional (SAI)',
+        fr: 'SAI (Saisonnier)',
+        de: 'Saisonal (SAI)',
+        pt: 'Sazonal (SAI)',
+        la: 'Sesonalis (SAI)'
+    },
+    'jobs.contract_lib': {
+        en: 'Freelance (LIB)',
+        es: 'Autónomo (LIB)',
+        fr: 'LIB (Libéral)',
+        de: 'Freiberuflich (LIB)',
+        pt: 'Autônomo (LIB)',
+        la: 'Liberalis (LIB)'
+    },
+    'jobs.contract_rep': {
+        en: 'Takeover/Succession (REP)',
+        es: 'Sucesión (REP)',
+        fr: 'REP (Reprise/Succession)',
+        de: 'Übernahme/Nachfolge (REP)',
+        pt: 'Sucessão (REP)',
+        la: 'Successio (REP)'
+    },
+    'jobs.contract_fra': {
+        en: 'Franchise (FRA)',
+        es: 'Franquicia (FRA)',
+        fr: 'FRA (Franchise)',
+        de: 'Franchise (FRA)',
+        pt: 'Franquia (FRA)',
+        la: 'Franchisia (FRA)'
+    },
+    'jobs.contract_cce': {
+        en: 'Project Contract (CCE)',
+        es: 'Contrato de Obra (CCE)',
+        fr: 'CCE (Contrat de chantier)',
+        de: 'Baustellenvertrag (CCE)',
+        pt: 'Contrato de Obra (CCE)',
+        la: 'Contractus Operis (CCE)'
+    },
+    'jobs.contract_cpe': {
+        en: 'Professional Contract (CPE)',
+        es: 'Contrato Profesional (CPE)',
+        fr: 'CPE (Contrat de professionnalisation)',
+        de: 'Berufsvertrag (CPE)',
+        pt: 'Contrato Profissional (CPE)',
+        la: 'Contractus Professionalis (CPE)'
+    },
+    'jobs.experience_level': {
+        en: 'Experience Level',
+        es: 'Nivel de Experiencia',
+        fr: 'Niveau d\'expérience',
+        de: 'Erfahrungsniveau',
+        pt: 'Nível de Experiência',
+        la: 'Gradus Experientiae'
+    },
+    'jobs.all_levels': {
+        en: 'All levels',
+        es: 'Todos los niveles',
+        fr: 'Tous niveaux',
+        de: 'Alle Stufen',
+        pt: 'Todos os níveis',
+        la: 'Omnes gradus'
+    },
+    'jobs.experience_beginner': {
+        en: 'Beginner accepted',
+        es: 'Se acepta principiante',
+        fr: 'Débutant accepté',
+        de: 'Anfänger akzeptiert',
+        pt: 'Iniciante aceito',
+        la: 'Incipiens acceptus'
+    },
+    'jobs.experience_1_3': {
+        en: '1 to 3 years',
+        es: '1 a 3 años',
+        fr: '1 à 3 ans',
+        de: '1 bis 3 Jahre',
+        pt: '1 a 3 anos',
+        la: '1 ad 3 annos'
+    },
+    'jobs.experience_3_plus': {
+        en: '3 years and more',
+        es: '3 años y más',
+        fr: '3 ans et plus',
+        de: '3 Jahre und mehr',
+        pt: '3 anos e mais',
+        la: '3 annos et plus'
+    },
+    'jobs.qualification': {
+        en: 'Qualification',
+        es: 'Cualificación',
+        fr: 'Qualification',
+        de: 'Qualifikation',
+        pt: 'Qualificação',
+        la: 'Qualificatio'
+    },
+    'jobs.all': {
+        en: 'All',
+        es: 'Todos',
+        fr: 'Tous',
+        de: 'Alle',
+        pt: 'Todos',
+        la: 'Omnes'
+    },
+    'jobs.non_executive': {
+        en: 'Non-executive',
+        es: 'No ejecutivo',
+        fr: 'Non cadre',
+        de: 'Nicht leitend',
+        pt: 'Não executivo',
+        la: 'Non cadrus'
+    },
+    'jobs.executive': {
+        en: 'Executive',
+        es: 'Ejecutivo',
+        fr: 'Cadre',
+        de: 'Leitend',
+        pt: 'Executivo',
+        la: 'Cadrus'
+    },
+    'jobs.time_type': {
+        en: 'Full/Part Time',
+        es: 'Tiempo completo/parcial',
+        fr: 'Temps plein / partiel',
+        de: 'Vollzeit/Teilzeit',
+        pt: 'Tempo integral/parcial',
+        la: 'Tempus Plenum/Partiale'
+    },
+    'jobs.min_salary': {
+        en: 'Minimum Salary (€)',
+        es: 'Salario Mínimo (€)',
+        fr: 'Salaire minimum (€)',
+        de: 'Mindestgehalt (€)',
+        pt: 'Salário Mínimo (€)',
+        la: 'Salarium Minimum (€)'
+    },
+    'jobs.min_salary_placeholder': {
+        en: 'e.g., 30000',
+        es: 'Ej: 30000',
+        fr: 'Ex: 30000',
+        de: 'z.B. 30000',
+        pt: 'Ex: 30000',
+        la: 'Exempli gratia: 30000'
+    },
+    'jobs.published_since': {
+        en: 'Published Since',
+        es: 'Publicado Desde',
+        fr: 'Publiée depuis',
+        de: 'Veröffentlicht Seit',
+        pt: 'Publicado Desde',
+        la: 'Publicatum Ex'
+    },
+    'jobs.all_dates': {
+        en: 'All dates',
+        es: 'Todas las fechas',
+        fr: 'Toutes les dates',
+        de: 'Alle Daten',
+        pt: 'Todas as datas',
+        la: 'Omnes dies'
+    },
+    'jobs.today': {
+        en: 'Today',
+        es: 'Hoy',
+        fr: 'Aujourd\'hui',
+        de: 'Heute',
+        pt: 'Hoje',
+        la: 'Hodie'
+    },
+    'jobs.last_3_days': {
+        en: 'Last 3 days',
+        es: 'Últimos 3 días',
+        fr: '3 derniers jours',
+        de: 'Letzte 3 Tage',
+        pt: 'Últimos 3 dias',
+        la: 'Ultimi 3 dies'
+    },
+    'jobs.last_7_days': {
+        en: 'Last 7 days',
+        es: 'Últimos 7 días',
+        fr: '7 derniers jours',
+        de: 'Letzte 7 Tage',
+        pt: 'Últimos 7 dias',
+        la: 'Ultimi 7 dies'
+    },
+    'jobs.last_14_days': {
+        en: 'Last 14 days',
+        es: 'Últimos 14 días',
+        fr: '14 derniers jours',
+        de: 'Letzte 14 Tage',
+        pt: 'Últimos 14 dias',
+        la: 'Ultimi 14 dies'
+    },
+    'jobs.last_30_days': {
+        en: 'Last 30 days',
+        es: 'Últimos 30 días',
+        fr: '30 derniers jours',
+        de: 'Letzte 30 Tage',
+        pt: 'Últimos 30 dias',
+        la: 'Ultimi 30 dies'
+    },
+    'jobs.rome_code': {
+        en: 'ROME Code',
+        es: 'Código ROME',
+        fr: 'Code ROME',
+        de: 'ROME-Code',
+        pt: 'Código ROME',
+        la: 'Codex ROME'
+    },
+    'jobs.rome_code_placeholder': {
+        en: 'e.g., M1805',
+        es: 'Ej: M1805',
+        fr: 'Ex: M1805',
+        de: 'z.B. M1805',
+        pt: 'Ex: M1805',
+        la: 'Exempli gratia: M1805'
+    },
+    'jobs.sector': {
+        en: 'Industry Sector',
+        es: 'Sector de Actividad',
+        fr: 'Secteur d\'activité',
+        de: 'Branche',
+        pt: 'Setor de Atividade',
+        la: 'Sector Activitatis'
+    },
+    'jobs.sector_placeholder': {
+        en: 'e.g., IT',
+        es: 'Ej: Informática',
+        fr: 'Ex: Informatique',
+        de: 'z.B. IT',
+        pt: 'Ex: TI',
+        la: 'Exempli gratia: Computatio'
+    },
+    'jobs.reset_filters': {
+        en: 'Reset filters',
+        es: 'Restablecer filtros',
+        fr: 'Réinitialiser les filtres',
+        de: 'Filter zurücksetzen',
+        pt: 'Redefinir filtros',
+        la: 'Renovare colationes'
+    },
+    'jobs.offers_found_singular': {
+        en: 'offer found',
+        es: 'oferta encontrada',
+        fr: 'offre trouvée',
+        de: 'Angebot gefunden',
+        pt: 'oferta encontrada',
+        la: 'oblatio inventa'
+    },
+    'jobs.offers_found_plural': {
+        en: 'offers found',
+        es: 'ofertas encontradas',
+        fr: 'offres trouvées',
+        de: 'Angebote gefunden',
+        pt: 'ofertas encontradas',
+        la: 'oblationes inventae'
+    },
+    'jobs.loading': {
+        en: 'Loading...',
+        es: 'Cargando...',
+        fr: 'Chargement...',
+        de: 'Laden...',
+        pt: 'Carregando...',
+        la: 'Onerans...'
+    },
+    'jobs.loading_offers': {
+        en: 'Loading offers...',
+        es: 'Cargando ofertas...',
+        fr: 'Chargement des offres...',
+        de: 'Angebote laden...',
+        pt: 'Carregando ofertas...',
+        la: 'Onerans oblationes...'
+    },
+    'jobs.error': {
+        en: 'Error',
+        es: 'Error',
+        fr: 'Erreur',
+        de: 'Fehler',
+        pt: 'Erro',
+        la: 'Error'
+    },
+    'jobs.no_offers_found': {
+        en: 'No offers found',
+        es: 'No se encontraron ofertas',
+        fr: 'Aucune offre trouvée',
+        de: 'Keine Angebote gefunden',
+        pt: 'Nenhuma oferta encontrada',
+        la: 'Nullae oblationes inventae'
+    },
+    'jobs.untitled': {
+        en: 'Untitled',
+        es: 'Sin título',
+        fr: 'Sans titre',
+        de: 'Ohne Titel',
+        pt: 'Sem título',
+        la: 'Sine titulo'
+    },
+    'jobs.company_not_specified': {
+        en: 'Company not specified',
+        es: 'Empresa no especificada',
+        fr: 'Entreprise non spécifiée',
+        de: 'Unternehmen nicht angegeben',
+        pt: 'Empresa não especificada',
+        la: 'Societas non specificata'
+    },
+    'jobs.view_details': {
+        en: 'View details',
+        es: 'Ver detalles',
+        fr: 'Voir les détails',
+        de: 'Details anzeigen',
+        pt: 'Ver detalhes',
+        la: 'Videre particulas'
+    },
     // Privacy Policy
     'privacy.title': {
         en: 'Privacy Policy',
@@ -1455,14 +1895,6 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Laden Sie einen Lebenslauf hoch und führen Sie das Profil-Matching durch, um Angebote zu sehen.',
         pt: 'Envie um currículo e execute a correspondência de perfil para ver ofertas.',
         la: 'Curriculum mitte et comparationem profili exerce ut offerta videas.'
-    },
-    'jobs.loading_offers': {
-        en: 'Loading offers...',
-        es: 'Cargando ofertas...',
-        fr: 'Chargement des offres...',
-        de: 'Angebote werden geladen...',
-        pt: 'Carregando ofertas...',
-        la: 'Offerta onerando...'
     },
     'jobs.why_match': {
         en: 'Why Match',

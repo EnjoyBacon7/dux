@@ -148,12 +148,12 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Mots-clés
+                                {t('jobs.keywords')}
                             </label>
                             <input
                                 type="text"
                                 className="nb-input"
-                                placeholder="Ex: Développeur, Chef de projet..."
+                                placeholder={t('jobs.keywords_placeholder')}
                                 value={filters.motsCles || ''}
                                 onChange={(e) => updateFilter('motsCles', e.target.value)}
                                 style={{ width: '100%' }}
@@ -167,7 +167,7 @@ const JobSearch: React.FC = () => {
                             borderRadius: '6px'
                         }}>
                             <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600 }}>
-                                Localisation
+                                {t('jobs.location')}
                             </h3>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -180,12 +180,12 @@ const JobSearch: React.FC = () => {
                                         fontWeight: 600,
                                         opacity: 0.8
                                     }}>
-                                        Commune (Code INSEE)
+                                        {t('jobs.commune')}
                                     </label>
                                     <input
                                         type="text"
                                         className="nb-input"
-                                        placeholder="Ex: 75056"
+                                        placeholder={t('jobs.commune_placeholder')}
                                         value={filters.commune || ''}
                                         onChange={(e) => updateFilter('commune', e.target.value)}
                                         style={{ width: '100%' }}
@@ -201,12 +201,12 @@ const JobSearch: React.FC = () => {
                                         fontWeight: 600,
                                         opacity: 0.8
                                     }}>
-                                        Département
+                                        {t('jobs.department')}
                                     </label>
                                     <input
                                         type="text"
                                         className="nb-input"
-                                        placeholder="Ex: 75"
+                                        placeholder={t('jobs.department_placeholder')}
                                         value={filters.departement || ''}
                                         onChange={(e) => updateFilter('departement', e.target.value)}
                                         style={{ width: '100%' }}
@@ -222,12 +222,12 @@ const JobSearch: React.FC = () => {
                                         fontWeight: 600,
                                         opacity: 0.8
                                     }}>
-                                        Région
+                                        {t('jobs.region')}
                                     </label>
                                     <input
                                         type="text"
                                         className="nb-input"
-                                        placeholder="Ex: Île-de-France"
+                                        placeholder={t('jobs.region_placeholder')}
                                         value={filters.region || ''}
                                         onChange={(e) => updateFilter('region', e.target.value)}
                                         style={{ width: '100%' }}
@@ -243,12 +243,12 @@ const JobSearch: React.FC = () => {
                                         fontWeight: 600,
                                         opacity: 0.8
                                     }}>
-                                        Distance (km)
+                                        {t('jobs.distance')}
                                     </label>
                                     <input
                                         type="number"
                                         className="nb-input"
-                                        placeholder="Ex: 10"
+                                        placeholder={t('jobs.distance_placeholder')}
                                         value={filters.distance || ''}
                                         onChange={(e) => updateFilter('distance', e.target.value ? Number(e.target.value) : undefined)}
                                         style={{ width: '100%' }}
@@ -266,7 +266,7 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Type de contrat
+                                {t('jobs.contract_type')}
                             </label>
                             <select
                                 className="nb-input"
@@ -274,16 +274,16 @@ const JobSearch: React.FC = () => {
                                 onChange={(e) => updateFilter('typeContrat', e.target.value)}
                                 style={{ width: '100%' }}
                             >
-                                <option value="">Tous les types</option>
-                                <option value="CDI">CDI</option>
-                                <option value="CDD">CDD</option>
-                                <option value="MIS">MIS (Mission intérimaire)</option>
-                                <option value="SAI">SAI (Saisonnier)</option>
-                                <option value="LIB">LIB (Libéral)</option>
-                                <option value="REP">REP (Reprise/Succession)</option>
-                                <option value="FRA">FRA (Franchise)</option>
-                                <option value="CCE">CCE (Contrat de chantier)</option>
-                                <option value="CPE">CPE (Contrat de professionnalisation)</option>
+                                <option value="">{t('jobs.all_types')}</option>
+                                <option value="CDI">{t('jobs.contract_cdi')}</option>
+                                <option value="CDD">{t('jobs.contract_cdd')}</option>
+                                <option value="MIS">{t('jobs.contract_mis')}</option>
+                                <option value="SAI">{t('jobs.contract_sai')}</option>
+                                <option value="LIB">{t('jobs.contract_lib')}</option>
+                                <option value="REP">{t('jobs.contract_rep')}</option>
+                                <option value="FRA">{t('jobs.contract_fra')}</option>
+                                <option value="CCE">{t('jobs.contract_cce')}</option>
+                                <option value="CPE">{t('jobs.contract_cpe')}</option>
                             </select>
                         </div>
 
@@ -296,7 +296,7 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Niveau d'expérience
+                                {t('jobs.experience_level')}
                             </label>
                             <select
                                 className="nb-input"
@@ -304,10 +304,10 @@ const JobSearch: React.FC = () => {
                                 onChange={(e) => updateFilter('experienceExigence', e.target.value)}
                                 style={{ width: '100%' }}
                             >
-                                <option value="">Tous niveaux</option>
-                                <option value="D">Débutant accepté</option>
-                                <option value="S">1 à 3 ans</option>
-                                <option value="E">3 ans et plus</option>
+                                <option value="">{t('jobs.all_levels')}</option>
+                                <option value="D">{t('jobs.experience_beginner')}</option>
+                                <option value="S">{t('jobs.experience_1_3')}</option>
+                                <option value="E">{t('jobs.experience_3_plus')}</option>
                             </select>
                         </div>
 
@@ -320,7 +320,7 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Qualification
+                                {t('jobs.qualification')}
                             </label>
                             <select
                                 className="nb-input"
@@ -328,9 +328,9 @@ const JobSearch: React.FC = () => {
                                 onChange={(e) => updateFilter('qualification', e.target.value)}
                                 style={{ width: '100%' }}
                             >
-                                <option value="">Tous</option>
-                                <option value="0">Non cadre</option>
-                                <option value="9">Cadre</option>
+                                <option value="">{t('jobs.all')}</option>
+                                <option value="0">{t('jobs.non_executive')}</option>
+                                <option value="9">{t('jobs.executive')}</option>
                             </select>
                         </div>
 
@@ -343,7 +343,7 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Temps plein / partiel
+                                {t('jobs.time_type')}
                             </label>
                             <select
                                 className="nb-input"
@@ -351,9 +351,9 @@ const JobSearch: React.FC = () => {
                                 onChange={(e) => updateFilter('tempsPlein', e.target.value === '' ? undefined : e.target.value === 'true')}
                                 style={{ width: '100%' }}
                             >
-                                <option value="">Tous</option>
-                                <option value="true">Temps plein</option>
-                                <option value="false">Temps partiel</option>
+                                <option value="">{t('jobs.all')}</option>
+                                <option value="true">{t('jobs.type_fulltime')}</option>
+                                <option value="false">{t('jobs.type_parttime')}</option>
                             </select>
                         </div>
 
@@ -366,12 +366,12 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Salaire minimum (€)
+                                {t('jobs.min_salary')}
                             </label>
                             <input
                                 type="number"
                                 className="nb-input"
-                                placeholder="Ex: 30000"
+                                placeholder={t('jobs.min_salary_placeholder')}
                                 value={filters.salaireMin || ''}
                                 onChange={(e) => updateFilter('salaireMin', e.target.value)}
                                 style={{ width: '100%' }}
@@ -387,7 +387,7 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Publiée depuis
+                                {t('jobs.published_since')}
                             </label>
                             <select
                                 className="nb-input"
@@ -395,12 +395,12 @@ const JobSearch: React.FC = () => {
                                 onChange={(e) => updateFilter('publieeDepuis', e.target.value ? Number(e.target.value) : undefined)}
                                 style={{ width: '100%' }}
                             >
-                                <option value="">Toutes les dates</option>
-                                <option value="1">Aujourd'hui</option>
-                                <option value="3">3 derniers jours</option>
-                                <option value="7">7 derniers jours</option>
-                                <option value="14">14 derniers jours</option>
-                                <option value="30">30 derniers jours</option>
+                                <option value="">{t('jobs.all_dates')}</option>
+                                <option value="1">{t('jobs.today')}</option>
+                                <option value="3">{t('jobs.last_3_days')}</option>
+                                <option value="7">{t('jobs.last_7_days')}</option>
+                                <option value="14">{t('jobs.last_14_days')}</option>
+                                <option value="30">{t('jobs.last_30_days')}</option>
                             </select>
                         </div>
 
@@ -413,12 +413,12 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Code ROME
+                                {t('jobs.rome_code')}
                             </label>
                             <input
                                 type="text"
                                 className="nb-input"
-                                placeholder="Ex: M1805"
+                                placeholder={t('jobs.rome_code_placeholder')}
                                 value={filters.codeROME || ''}
                                 onChange={(e) => updateFilter('codeROME', e.target.value)}
                                 style={{ width: '100%' }}
@@ -434,12 +434,12 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Secteur d'activité
+                                {t('jobs.sector')}
                             </label>
                             <input
                                 type="text"
                                 className="nb-input"
-                                placeholder="Ex: Informatique"
+                                placeholder={t('jobs.sector_placeholder')}
                                 value={filters.secteurActivite || ''}
                                 onChange={(e) => updateFilter('secteurActivite', e.target.value)}
                                 style={{ width: '100%' }}
@@ -454,7 +454,7 @@ const JobSearch: React.FC = () => {
                                     className="nb-btn-secondary"
                                     style={{ fontSize: '0.875rem', width: '100%' }}
                                 >
-                                    Réinitialiser les filtres
+                                    {t('jobs.reset_filters')}
                                 </button>
                             </div>
                         )}
@@ -470,7 +470,7 @@ const JobSearch: React.FC = () => {
                             fontSize: '0.875rem',
                             fontWeight: 600
                         }}>
-                            {loading ? 'Chargement...' : `${total} offre${total > 1 ? 's' : ''} trouvée${total > 1 ? 's' : ''}`}
+                            {loading ? t('jobs.loading') : `${total} ${total > 1 ? t('jobs.offers_found_plural') : t('jobs.offers_found_singular')}`}
                         </div>
                     </div>
                 </div>
@@ -489,19 +489,19 @@ const JobSearch: React.FC = () => {
                         {loading ? (
                             <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                                 <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7 }}>
-                                    Chargement des offres...
+                                    {t('jobs.loading_offers')}
                                 </p>
                             </div>
                         ) : error ? (
                             <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                                 <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7, color: 'red' }}>
-                                    Erreur: {error}
+                                    {t('jobs.error')}: {error}
                                 </p>
                             </div>
                         ) : jobs.length === 0 ? (
                             <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                                 <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7 }}>
-                                    Aucune offre trouvée
+                                    {t('jobs.no_offers_found')}
                                 </p>
                             </div>
                         ) : (
@@ -518,10 +518,10 @@ const JobSearch: React.FC = () => {
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                                 <div style={{ flex: 1 }}>
                                                     <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem' }}>
-                                                        {job.intitule || 'Sans titre'}
+                                                        {job.intitule || t('jobs.untitled')}
                                                     </h3>
                                                     <p style={{ margin: 0, fontSize: '1rem', opacity: 0.8 }}>
-                                                        {job["entreprise_nom"] || 'Entreprise non spécifiée'}
+                                                        {job["entreprise_nom"] || t('jobs.company_not_specified')}
                                                     </p>
                                                 </div>
                                                 {job["salaire_libelle"] && (
@@ -577,7 +577,7 @@ const JobSearch: React.FC = () => {
                                                     }}
                                                     className="nb-btn"
                                                 >
-                                                    Voir les détails
+                                                    {t('jobs.view_details')}
                                                 </button>
                                             </div>
                                         </div>
