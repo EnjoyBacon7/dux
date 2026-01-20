@@ -6,31 +6,31 @@
 
 /* Dux app color palette - neo-brutalism theme */
 :root {
-  /* Light mode palette matching dux-front */
-  --ifm-background-color: #ffffff;
-  --ifm-background-surface-color: #f7f6f5;
-  --ifm-color-primary: #6366f1;
-  --ifm-color-primary-dark: #4f46e5;
-  --ifm-color-primary-darker: #4338ca;
-  --ifm-color-primary-darkest: #3730a3;
-  --ifm-color-primary-light: #818cf8;
-  --ifm-color-primary-lighter: #a5b4fc;
-  --ifm-color-primary-lightest: #c7d2fe;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.1);
+    /* Light mode palette matching dux-front */
+    --ifm-background-color: #ffffff;
+    --ifm-background-surface-color: #f7f6f5;
+    --ifm-color-primary: #6366f1;
+    --ifm-color-primary-dark: #4f46e5;
+    --ifm-color-primary-darker: #4338ca;
+    --ifm-color-primary-darkest: #3730a3;
+    --ifm-color-primary-light: #818cf8;
+    --ifm-color-primary-lighter: #a5b4fc;
+    --ifm-color-primary-lightest: #c7d2fe;
+    --ifm-code-font-size: 95%;
+    --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.1);
 }
 
 /* For readability concerns, you should choose a darker palette in dark mode. */
 [data-theme='dark'] {
-  /* Dark mode palette matching dux-front */
-  --ifm-background-color: #0f0f0f;
-  --ifm-background-surface-color: #1a1a1a;
-  --ifm-color-primary: #818cf8;
-  --ifm-color-primary-dark: #a5b4fc;
-  --ifm-color-primary-darker: #c7d2fe;
-  --ifm-color-primary-darkest: #e0e7ff;
-  --ifm-color-primary-light: #6366f1;
-  --ifm-color-primary-lighter: #4f46e5;
-  --ifm-color-primary-lightest: #4338ca;
-  --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.2);
+    /* Dark mode palette matching dux-front */
+    --ifm-background-color: #0f0f0f;
+    --ifm-background-surface-color: #1a1a1a;
+    --ifm-color-primary: #818cf8;
+    --ifm-color-primary-dark: #a5b4fc;
+    --ifm-color-primary-darker: #c7d2fe;
+    --ifm-color-primary-darkest: #e0e7ff;
+    --ifm-color-primary-light: #6366f1;
+    --ifm-color-primary-lighter: #4f46e5;
+    --ifm-color-primary-lightest: #4338ca;
+    --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.2);
 }
