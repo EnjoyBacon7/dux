@@ -99,6 +99,7 @@ def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
 # Router Setup
 # ============================================================================
 
+
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 logger = logging.getLogger(__name__)
 
