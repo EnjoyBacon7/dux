@@ -162,6 +162,8 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
         || job["entreprise_url"]
     );
 
+    const companyUrl = normalizeUrl(job["entreprise_url"]);
+
     const isAppLink = (val: unknown) => {
         if (typeof val !== "string") return false;
         const trimmed = val.trim();
@@ -299,7 +301,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                         </div>
                     )}
 
-                    {(job["entreprise_nom"] || job.secteurActiviteLibelle || job.secteurActivite || job.codeNAF || job.trancheEffectifEtab || job["entreprise_entrepriseAdaptee"] || job.entrepriseAdaptee || job.employeurHandiEngage || job["entreprise_url"]) && (
+                    {(job["entreprise_nom"] || job.secteurActiviteLibelle || job.secteurActivite || job.codeNAF || job.trancheEffectifEtab || job["entreprise_entrepriseAdaptee"] || job.entrepriseAdaptee || job.employeurHandiEngage || companyUrl) && (
                         <div className="jd-section">
                             <h3>Entreprise</h3>
                             {renderField('Nom', job["entreprise_nom"])}
@@ -308,10 +310,10 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                             {renderField('Tranche effectif', job.trancheEffectifEtab)}
                             {renderField('Entreprise adaptée', job["entreprise_entrepriseAdaptee"] ?? job.entrepriseAdaptee)}
                             {renderField('Employeur handi-engagé', job.employeurHandiEngage)}
-                            {job["entreprise_url"] && (
+                            {companyUrl && (
                                 <a
                                     className="nb-btn nb-btn--secondary"
-                                    href={job["entreprise_url"]}
+                                    href={companyUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     style={{ marginTop: '0.5rem' }}
