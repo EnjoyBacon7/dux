@@ -8,7 +8,7 @@ import logging
 import asyncio
 import requests
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Union
 
 from fastapi import APIRouter, Query, Depends, HTTPException
 from sqlalchemy import create_engine, text
@@ -25,7 +25,6 @@ from services.matching_engine import MatchingEngine
 
 
 from pydantic import BaseModel
-from typing import Optional, Any, List, Union
 
 def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize France Travail offers to the flat shape expected by the UI."""
@@ -239,14 +238,11 @@ def load_fiche_metier():
             "Accept": "application/json"
         }
 
-        resp = requests.get(API_URL_FICHE_METIER, headers=headers)
+        resp = requests.get(API_URL_FICHE_METIER, headers=headers, timeout=30)
         resp.raise_for_status()
         fiche_metier = resp.json()
 
         logger.info(f"Récupération des fiches métiers : {len(fiche_metier)} obtenues.")
-
-        # Utilisation d'un engine dédié ici (comme dans ton code original)
-        # Note: Idéalement, il faudrait utiliser `db: Session = Depends(get_db_session)`
         engine = create_engine(DATABASE_URL)
         SessionLocal = sessionmaker(bind=engine)
         session = SessionLocal()
@@ -265,12 +261,16 @@ def load_fiche_metier():
                 )
                 try:
                     session.add(fiche_insert)
-                except:
-                    pass
+                except Exception as e:
+                    # On loggue l'erreur avec la stack trace complète et l'ID de la fiche
+                    logger.exception(f"Erreur lors de l'ajout de la fiche {fiche.get('code')}: {e}")
+                    # On continue la boucle pour traiter les fiches suivantes
+                    continue
+
             session.commit()
         except Exception as e:
             session.rollback()
-            logger.error(f"Erreur sauvegarde ROME : {e}")
+            logger.error(f"Erreur globale lors de la transaction ROME : {e}")
         finally:
             session.close()
 
@@ -281,8 +281,54 @@ def load_fiche_metier():
 
 
 # ============================================================================
-#  Analyse IA
+#  Analyse IA (Helpers & Routes)
 # ============================================================================
+
+def _run_analysis_in_thread(
+    user_id: int,
+    job_id: Optional[str],
+    job_payload: Optional[Dict[str, Any]],
+    bind,
+):
+    """
+    Fonction exécutée dans un thread séparé.
+    Elle crée sa propre session DB à partir du 'bind' (Engine) pour éviter
+    les erreurs de type DetachedInstanceError avec les objets ORM.
+    """
+    # On crée une nouvelle session dédiée à ce thread
+    SessionLocal = sessionmaker(bind=bind)
+    with SessionLocal() as session:
+        # On recharge l'utilisateur "frais" depuis la DB
+        user = session.get(User, user_id)
+        if not user:
+            raise ValueError("Utilisateur introuvable dans le thread")
+
+        # Soit on cherche l'offre en DB, soit on la crée depuis le payload
+        if job_payload is None:
+            # Cas Analyse par ID (GET)
+            job = session.query(Offres_FT).filter(Offres_FT.id == job_id).first()
+            if not job:
+                raise ValueError("Offre introuvable dans le thread")
+        else:
+            # Cas Analyse Directe (POST)
+            # On recrée l'objet temporaire
+            # Gestion des compétences pour qu'elles soient en string JSON si besoin
+            comps = job_payload.get('competences')
+            if isinstance(comps, (list, dict)):
+                comps = json.dumps(comps)
+            
+            job = Offres_FT(
+                id=job_payload.get('id'),
+                intitule=job_payload.get('intitule'),
+                description=job_payload.get('description'),
+                entreprise_nom=job_payload.get('entreprise_nom'),
+                competences=comps
+            )
+
+        # On lance le moteur avec cette session locale au thread
+        engine = MatchingEngine(session)
+        return engine.analyser_match(user, job)
+
 
 @router.get("/analyze/{job_id}")
 async def analyze_specific_job(
@@ -291,23 +337,27 @@ async def analyze_specific_job(
     db: Session = Depends(get_db_session)
 ):
     """
-    Analyse "On-Demand" : Calcule le score entre l'utilisateur CONNECTÉ et une offre.
+    Analyse "On-Demand" via DB (Thread-Safe).
     """
-    
-    # 1. Vérifier l'offre dans la base locale
-    offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
-    
-    if not offre:
-        raise HTTPException(status_code=404, detail="Offre introuvable")
+    # On récupère le 'bind' (la connexion moteur) pour la passer au thread
+    bind = db.get_bind()
+    user_id = current_user.id
 
-    logger.info(f" Analyse demandée par : {current_user.username} pour l'offre {offre.id}")
+    logger.info(f" Analyse demandée par : {current_user.username} pour l'offre {job_id}")
 
-    # 2. Initialiser le moteur
-    engine = MatchingEngine(db)
-    
     try:
-        # 3. Lancer l'analyse (non-bloquante)
-        evaluation = await asyncio.to_thread(engine.analyser_match, current_user, offre)
+        # On lance l'analyse dans un thread en passant uniquement des IDs et le bind
+        evaluation = await asyncio.to_thread(
+            _run_analysis_in_thread,
+            user_id,
+            job_id,
+            None, # Pas de payload, on utilise l'ID
+            bind
+        )
+        
+        # Pour la réponse HTTP, on peut utiliser la session normale du routeur
+        # pour récupérer les infos basiques
+        offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
         
         return {
             "status": "success",
@@ -316,9 +366,9 @@ async def analyze_specific_job(
                 "titre": current_user.headline
             },
             "job": {
-                "id": offre.id,
-                "intitule": offre.intitule,
-                "entreprise": offre.entreprise_nom
+                "id": job_id,
+                "intitule": offre.intitule if offre else "N/A",
+                "entreprise": offre.entreprise_nom if offre else "N/A"
             },
             "analysis": evaluation
         }
@@ -326,18 +376,14 @@ async def analyze_specific_job(
     except Exception as e:
         logger.error(f"Erreur critique lors de l'analyse : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-    
-# ============================================================================
-# NOUVELLE ROUTE : Analyse IA DIRECTE (Sans DB)
-# ============================================================================
 
-# Modèle pour valider les données reçues du Frontend
+
 class JobDataForAnalysis(BaseModel):
     id: str
     intitule: Optional[str] = None
     description: Optional[str] = None
     entreprise_nom: Optional[str] = None
-    competences: Optional[Any] = None # Peut être une liste, un dict ou une string
+    competences: Optional[Any] = None
 
 @router.post("/analyze")
 async def analyze_job_direct(
@@ -346,31 +392,24 @@ async def analyze_job_direct(
     db: Session = Depends(get_db_session)
 ):
     """
-    Analyse directe : Reçoit l'objet Job du frontend et lance l'IA sans lire la DB.
+    Analyse directe (Thread-Safe).
     """
-    logger.info(f" Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
-
-    # 1. On crée un objet "virtuel" Offres_FT pour que le MatchingEngine puisse le lire
-    # On convertit les compétences en string si nécessaire pour le prompt
-    comps = job_data.competences
-    if isinstance(comps, (list, dict)):
-        import json
-        comps = json.dumps(comps)
-
-    offre_virtuelle = Offres_FT(
-        id=job_data.id,
-        intitule=job_data.intitule,
-        description=job_data.description,
-        entreprise_nom=job_data.entreprise_nom,
-        competences=comps
-    )
-
-    # 2. Initialiser le moteur
-    engine = MatchingEngine(db)
+    bind = db.get_bind()
+    user_id = current_user.id
     
+    logger.info(f"🎯 Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
+
     try:
-        # 3. Lancer l'analyse (non-bloquante)
-        evaluation = await asyncio.to_thread(engine.analyser_match, current_user, offre_virtuelle)
+        # On prépare le payload sous forme de dict simple
+        payload = job_data.model_dump() # ou .dict()
+
+        evaluation = await asyncio.to_thread(
+            _run_analysis_in_thread,
+            user_id,
+            None, # Pas d'ID DB
+            payload, # On fournit le payload
+            bind
+        )
         
         return {
             "status": "success",
@@ -387,5 +426,5 @@ async def analyze_job_direct(
         }
         
     except Exception as e:
-        logger.error(f" Erreur critique lors de l'analyse : {str(e)}")
+        logger.error(f"Erreur critique lors de l'analyse directe : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

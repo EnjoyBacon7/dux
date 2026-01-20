@@ -16,6 +16,7 @@ from server.models import Base
 # Si le .env n'est pas lu, ça prend "sqlite://..." et ça plante à cause des ARRAYs.
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dux.db")
 
+# Create engine
 print(f"🔌 Connexion à la base de données : {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'SQLite (Local)'}")
 
 engine = create_engine(

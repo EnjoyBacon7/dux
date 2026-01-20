@@ -10,12 +10,21 @@ logger = logging.getLogger(__name__)
 class MatchingEngine:
     def __init__(self, db_session):
         self.db = db_session
-        # On récupère la configuration depuis le .env
         self.api_key = os.getenv("OPENAI_API_KEY")
         self.base_url = os.getenv("OPENAI_BASE_URL")
         self.model = os.getenv("OPENAI_MODEL")
         
-        # Initialisation du client compatible OpenAI (pour Linagora/Mistral)
+        missing_vars = []
+        if not self.api_key: missing_vars.append("OPENAI_API_KEY")
+        if not self.base_url: missing_vars.append("OPENAI_BASE_URL")
+        if not self.model: missing_vars.append("OPENAI_MODEL")
+
+        if missing_vars:
+            error_msg = f"Configuration MatchingEngine incomplète. Variables manquantes : {', '.join(missing_vars)}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        # ---------------------------------
+
         try:
             self.client = OpenAI(
                 api_key=self.api_key,
@@ -23,33 +32,35 @@ class MatchingEngine:
             )
         except Exception as e:
             logger.error(f"Erreur init OpenAI: {e}")
-            self.client = None
+            # On relève l'erreur pour ne pas démarrer avec un moteur cassé
+            raise ValueError(f"Impossible d'initialiser le client OpenAI : {e}")
 
     def _generate_prompt(self, user: User, job: Offres_FT) -> str:
-        """Prépare les données pour l'IA"""
-        
-        # 1. Préparation du Profil Candidat
         skills = ", ".join(user.skills) if user.skills else "Non renseigné"
         
         experiences_txt = "Aucune expérience listée."
-        # Note: Tes expériences sont stockées dans une table liée, on assume que l'ORM les charge
-        if hasattr(user, 'experiences') and user.experiences:
+        if user.experiences:
             experiences_txt = "\n".join([
                 f"- {exp.title} chez {exp.company} ({exp.description or ''})" 
                 for exp in user.experiences
             ])
             
-        # 2. Préparation de l'Offre (Nettoyage des JSON stockés en string)
         job_skills = job.competences
-        # Si c'est du JSON stringifié par pull_france_travail, on essaie de le rendre lisible
-        if isinstance(job_skills, str) and job_skills.startswith("["):
+        # Tentative de parsing si c'est une chaîne JSON (format France Travail)
+        if isinstance(job_skills, str) and job_skills.strip().startswith("["):
             try:
                 loaded = json.loads(job_skills)
-                # France Travail renvoie souvent des objets {libelle: "...", ...}
                 if isinstance(loaded, list) and len(loaded) > 0 and isinstance(loaded[0], dict):
-                    job_skills = ", ".join([s.get('libelle', '') for s in loaded])
-            except:
-                pass # On garde la string brute si ça échoue
+                    # Extraction propre des libellés
+                    job_skills = ", ".join([s.get('libelle', '') for s in loaded if s.get('libelle')])
+            except (json.JSONDecodeError, TypeError, ValueError) as e:
+                # Log l'erreur avec le contexte (ID du job et début de la chaîne problématique)
+                # On utilise warning car ce n'est pas bloquant (on garde la chaîne brute)
+                logger.warning(
+                    f" Erreur parsing JSON compétences pour Job {job.id}. "
+                    f"Erreur: {e}. Raw Data (50 premiers chars): {job_skills[:50]}..."
+                )
+                # Fallback implicite : on garde job_skills tel quel
 
         prompt = f"""
         Tu es un expert en recrutement. Analyse la compatibilité (matching) entre ce candidat et cette offre.
