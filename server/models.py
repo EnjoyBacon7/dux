@@ -288,6 +288,10 @@ class CVEvaluation(Base):
     evaluation_id = Column(String, nullable=True)  # Pipeline evaluation ID
     processing_time_seconds = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Status tracking
+    evaluation_status = Column(String, nullable=True, default="completed")  # "completed", "failed", "pending"
+    error_message = Column(Text, nullable=True)  # Error message if evaluation failed
 
     # Relationship
     user = relationship("User", back_populates="cv_evaluations")

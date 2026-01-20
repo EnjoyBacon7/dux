@@ -10,8 +10,13 @@ Defines all data models for:
 
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
+
+
+def utc_now() -> datetime:
+    """Return current UTC time as timezone-aware datetime."""
+    return datetime.now(timezone.utc)
 
 
 # =============================================================================
@@ -109,7 +114,7 @@ class StructuredCV(BaseModel):
     languages: list[Language] = Field(default_factory=list)
     
     # Metadata
-    extraction_timestamp: datetime = Field(default_factory=datetime.utcnow)
+    extraction_timestamp: datetime = Field(default_factory=utc_now)
     extraction_warnings: list[str] = Field(default_factory=list, description="Any warnings during extraction")
 
 
@@ -181,7 +186,7 @@ class DerivedFeatures(BaseModel):
     has_skills: bool = Field(False, description="Has skills section")
     
     # Validation metadata
-    validation_timestamp: datetime = Field(default_factory=datetime.utcnow)
+    validation_timestamp: datetime = Field(default_factory=utc_now)
     validation_warnings: list[str] = Field(default_factory=list)
 
 
@@ -222,7 +227,7 @@ class CVScores(BaseModel):
     recommendations: list[str] = Field(default_factory=list, description="Actionable improvement suggestions")
     
     # Metadata
-    scoring_timestamp: datetime = Field(default_factory=datetime.utcnow)
+    scoring_timestamp: datetime = Field(default_factory=utc_now)
 
 
 # =============================================================================
@@ -247,7 +252,7 @@ class EvaluationResult(BaseModel):
     
     # Pipeline metadata
     pipeline_version: str = Field("1.0.0", description="Pipeline version")
-    evaluation_timestamp: datetime = Field(default_factory=datetime.utcnow)
+    evaluation_timestamp: datetime = Field(default_factory=utc_now)
     processing_time_seconds: Optional[float] = Field(None, description="Total processing time")
     errors: list[str] = Field(default_factory=list, description="Any errors during processing")
 

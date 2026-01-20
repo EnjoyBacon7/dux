@@ -57,6 +57,8 @@ class EvaluationResponse(BaseModel):
     feedback: EvaluationFeedbackResponse
     cv_filename: Optional[str] = None
     created_at: Optional[str] = None
+    evaluation_status: Optional[str] = None  # "completed", "failed", "pending"
+    error_message: Optional[str] = None  # Error message if failed
 
 
 class EvaluationHistoryItem(BaseModel):
@@ -115,7 +117,9 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
         logger.info(f"CV evaluation completed for user {user_id}: score={result.scores.overall_score}")
         
     except Exception as e:
-        logger.error(f"CV evaluation failed for user {user_id}: {e}", exc_info=True)
+        logger.error(f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}: {e}", exc_info=True)
+        # Persist failure state to database
+        save_failed_evaluation_to_db(db, user_id, cv_filename, str(e))
     finally:
         db.close()
 
@@ -162,6 +166,9 @@ def save_evaluation_to_db(db: Session, user_id: int, result: EvaluationResult, c
         
         # Metadata
         processing_time_seconds=int(result.processing_time_seconds) if result.processing_time_seconds else None,
+        
+        # Status
+        evaluation_status="completed",
     )
     
     db.add(evaluation)
@@ -169,6 +176,29 @@ def save_evaluation_to_db(db: Session, user_id: int, result: EvaluationResult, c
     db.refresh(evaluation)
     
     return evaluation
+
+
+def save_failed_evaluation_to_db(db: Session, user_id: int, cv_filename: str, error_message: str) -> None:
+    """
+    Save a failed evaluation record to the database.
+    
+    Args:
+        db: Database session
+        user_id: User ID
+        cv_filename: CV filename at time of evaluation
+        error_message: Error message (truncated to 500 chars)
+    """
+    try:
+        evaluation = CVEvaluation(
+            user_id=user_id,
+            cv_filename=cv_filename,
+            evaluation_status="failed",
+            error_message=error_message[:500] if error_message else "Unknown error",
+        )
+        db.add(evaluation)
+        db.commit()
+    except Exception as persist_error:
+        logger.exception(f"Failed to persist evaluation failure status for user {user_id}: {persist_error}")
 
 
 def evaluation_to_response(evaluation: CVEvaluation) -> EvaluationResponse:
@@ -194,6 +224,8 @@ def evaluation_to_response(evaluation: CVEvaluation) -> EvaluationResponse:
         ),
         cv_filename=evaluation.cv_filename,
         created_at=evaluation.created_at.isoformat() if evaluation.created_at else None,
+        evaluation_status=evaluation.evaluation_status,
+        error_message=evaluation.error_message,
     )
 
 
