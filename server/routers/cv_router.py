@@ -23,6 +23,9 @@ from server.cv.cv_schemas import EvaluationResult
 router = APIRouter(prefix="/cv", tags=["CV Evaluation"])
 logger = logging.getLogger(__name__)
 
+# Constants
+MAX_EVAL_LIMIT = 100  # Maximum number of evaluations to return in history
+
 
 # ============================================================================
 # Response Models
@@ -238,9 +241,7 @@ def evaluation_to_response(evaluation: CVEvaluation) -> EvaluationResponse:
 
 @router.post("/evaluate", summary="Trigger CV evaluation")
 async def evaluate_cv(
-    request: Request,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -313,11 +314,14 @@ async def get_evaluation_history(
     Get the evaluation history for the current user.
     
     Args:
-        limit: Maximum number of evaluations to return (default: 10)
+        limit: Maximum number of evaluations to return (default: 10, max: 100)
     
     Returns:
         List of evaluation history items (summary view)
     """
+    # Clamp limit to valid range
+    limit = max(1, min(limit, MAX_EVAL_LIMIT))
+    
     evaluations = (
         db.query(CVEvaluation)
         .filter(CVEvaluation.user_id == current_user.id)
