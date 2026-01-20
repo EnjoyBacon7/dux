@@ -10,3 +10,5 @@ cvs
 .idea
 chroma_db
 build
+/chroma_db
+cvs/*.pdf
