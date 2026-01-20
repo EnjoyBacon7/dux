@@ -150,10 +150,23 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
         return <span>{trimmed}</span>;
     };
 
-    const applicationUrl = job["contact_urlPostulation"]
+    const normalizeUrl = (val: string | null | undefined) => {
+        if (!val) return null;
+        const trimmed = val.trim();
+        return /^(https?:\/\/|mailto:)/i.test(trimmed) ? trimmed : null;
+    };
+
+    const applicationUrl = normalizeUrl(
+        job["contact_urlPostulation"]
         || job["origineOffre_urlOrigine"]
-        || job["entreprise_url"];
-    const isAppLink = (val: unknown) => typeof val === "string" && (val.includes('Pour postuler') || (applicationUrl && val.trim() === applicationUrl));
+        || job["entreprise_url"]
+    );
+
+    const isAppLink = (val: unknown) => {
+        if (typeof val !== "string") return false;
+        const trimmed = val.trim();
+        return trimmed.includes('Pour postuler') || (applicationUrl && trimmed === applicationUrl);
+    };
     const contactEmail = (job["contact_courriel"] || job["agence_courriel"]) && !isAppLink(job["contact_courriel"] || job["agence_courriel"]) ? (job["contact_courriel"] || job["agence_courriel"]) : null;
     const contactPhone = job["contact_telephone"] || job["contact_coordonnees1"];
     const locationLabel = job["lieuTravail_libelle"];
@@ -293,7 +306,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                             {renderField("Secteur d'activité", job.secteurActiviteLibelle || job.secteurActivite)}
                             {renderField('Code NAF', job.codeNAF)}
                             {renderField('Tranche effectif', job.trancheEffectifEtab)}
-                            {renderField('Entreprise adaptée', job["entreprise_entrepriseAdaptee"] || job.entrepriseAdaptee)}
+                            {renderField('Entreprise adaptée', job["entreprise_entrepriseAdaptee"] ?? job.entrepriseAdaptee)}
                             {renderField('Employeur handi-engagé', job.employeurHandiEngage)}
                             {job["entreprise_url"] && (
                                 <a
