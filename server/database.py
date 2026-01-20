@@ -1,12 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
-import os
 from server.models import Base
+from server.config import settings
 
-# Get database URL from environment variable
-# Default to SQLite for development if DATABASE_URL is not set
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dux.db")
+# Get database URL from settings (loaded from .env via pydantic-settings)
+DATABASE_URL = settings.database_url
 
 # Create engine
 engine = create_engine(
