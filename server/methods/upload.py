@@ -122,6 +122,17 @@ def extract_text_from_txt(file_path: Path) -> str:
         raise HTTPException(status_code=400, detail=f"Failed to read TXT file: {str(e)}")
 
 
+def sanitize_text(text: str) -> str:
+    """
+    Remove NUL (0x00) characters and other problematic characters from text.
+    These characters can cause database errors when storing in text fields.
+    """
+    if not text:
+        return text
+    # Remove NUL characters (0x00) which PostgreSQL and other DBs can't store in text fields
+    return text.replace('\x00', '')
+
+
 def extract_text_from_file(file_path: Path, file_extension: str) -> str:
     """
     Extract text from file based on its extension.
@@ -139,13 +150,16 @@ def extract_text_from_file(file_path: Path, file_extension: str) -> str:
         HTTPException: If file type is unsupported or extraction fails
     """
     if file_extension == ".pdf":
-        return extract_text_from_pdf(file_path)
+        text = extract_text_from_pdf(file_path)
     elif file_extension == ".docx" or file_extension == ".doc":
-        return extract_text_from_docx(file_path)
+        text = extract_text_from_docx(file_path)
     elif file_extension == ".txt":
-        return extract_text_from_txt(file_path)
+        text = extract_text_from_txt(file_path)
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_extension}")
+    
+    # Sanitize text to remove problematic characters before returning
+    return sanitize_text(text)
 
 
 # ============================================================================

@@ -6,7 +6,7 @@ Provides endpoints for user profile setup, CV upload, and experience/education m
 import logging
 from typing import List, Optional, Dict, Any
 
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, BackgroundTasks
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -15,6 +15,7 @@ import mimetypes
 from server.methods.upload import UPLOAD_DIR, upload_file
 from server.database import get_db_session
 from server.models import User, Experience, Education
+from server.dependencies import get_current_user
 
 # ============================================================================
 # Router Setup
@@ -58,36 +59,6 @@ class ProfileSetupRequest(BaseModel):
     experiences: List[ExperienceData] = []
     educations: List[EducationData] = []
 
-
-# ============================================================================
-# Dependencies
-# ============================================================================
-
-
-def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
-    """
-    Dependency to extract and validate the current authenticated user from session.
-
-    Args:
-        request: FastAPI request object containing session
-        db: Database session
-
-    Returns:
-        User: The currently authenticated user
-
-    Raises:
-        HTTPException: If user is not authenticated or not found in database
-    """
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(User).filter(User.username == request.session["username"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return user
-
-
 # ============================================================================
 # File Upload Endpoints
 # ============================================================================
@@ -96,6 +67,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)) ->
 @router.post("/upload", summary="Upload CV file")
 async def upload_endpoint(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
@@ -104,10 +76,11 @@ async def upload_endpoint(
     Upload and process a CV file (PDF, DOCX, or TXT).
 
     Handles file validation, text extraction, and storage of CV data
-    in the user's profile.
+    in the user's profile. Automatically triggers CV evaluation in the background.
 
     Args:
         request: FastAPI request object
+        background_tasks: FastAPI background tasks
         file: The CV file to upload (multipart/form-data)
         db: Database session
         current_user: Current authenticated user
@@ -124,6 +97,21 @@ async def upload_endpoint(
     current_user.cv_filename = result["filename"]
     current_user.cv_text = result["extracted_text"]
     db.commit()
+
+    # Trigger CV evaluation in the background
+    if result.get("extracted_text"):
+        from server.routers.cv_router import run_cv_evaluation
+        from server.database import SessionLocal
+        
+        background_tasks.add_task(
+            run_cv_evaluation,
+            user_id=current_user.id,
+            cv_text=result["extracted_text"],
+            cv_filename=result["filename"],
+            db_session_factory=SessionLocal,
+        )
+        result["evaluation_status"] = "started"
+        logger.info(f"CV evaluation triggered for user {current_user.id}")
 
     return result
 
