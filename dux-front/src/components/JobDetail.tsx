@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+import { useLanguage } from "../contexts/useLanguage"; // 1. Import du hook de traduction
+// Import the new analysis component
+import JobMatchAnalysis from "./JobMatchAnalysis";
 
 // Full job offer interface matching backend columns
 export interface JobOffer {
@@ -71,7 +74,39 @@ interface JobDetailProps {
     onClose: () => void;
 }
 
+// 2. Helper pour ne sélectionner que les champs pertinents et non-sensibles
+const pickAnalysisFields = (job: JobOffer): JobOffer => {
+    // On crée un objet partiel ne contenant que les données métier utiles pour l'IA
+    // et on exclut explicitement toutes les données de contact (PII)
+    const safeJob: Partial<JobOffer> = {
+        id: job.id,
+        intitule: job.intitule,
+        description: job.description,
+        entreprise_nom: job.entreprise_nom,
+        competences: job.competences,
+        formations: job.formations,
+        qualitesProfessionnelles: job.qualitesProfessionnelles,
+        experienceLibelle: job.experienceLibelle,
+        experienceExige: job.experienceExige,
+        qualificationLibelle: job.qualificationLibelle,
+        qualificationCode: job.qualificationCode,
+        romeCode: job.romeCode,
+        romeLibelle: job.romeLibelle,
+        secteurActivite: job.secteurActivite,
+        secteurActiviteLibelle: job.secteurActiviteLibelle,
+        typeContrat: job.typeContrat,
+        typeContratLibelle: job.typeContratLibelle,
+        lieuTravail_libelle: job.lieuTravail_libelle
+    };
+    
+    // On le cast en JobOffer pour satisfaire TypeScript (les champs manquants seront undefined)
+    return safeJob as JobOffer;
+};
+
 const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
+    const { t } = useLanguage(); // Utilisation du hook de traduction
+    const [showAnalysis, setShowAnalysis] = useState(false);
+
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'N/A';
         try {
@@ -166,6 +201,26 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                                 📍 {job["lieuTravail_libelle"]}
                             </div>
                         )}
+                        
+                        {/* --- NEW BUTTON: AI MATCH ANALYSIS (LOCALIZED) --- */}
+                        <div style={{ marginTop: '1rem' }}>
+                            <button
+                                onClick={() => setShowAnalysis(true)}
+                                className="nb-btn"
+                                style={{ 
+                                    backgroundColor: 'var(--nb-accent)', 
+                                    color: 'white',
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem'
+                                }}
+                            >
+                                <span>⚡</span> {t('analyze_match_ai')}
+                            </button>
+                        </div>
+                        {/* ------------------------------------- */}
+
                     </div>
                     <button
                         onClick={onClose}
@@ -301,6 +356,14 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     </>
                 ))}
             </div>
+
+            {/* Render the Analysis Modal when showAnalysis is true */}
+            {showAnalysis && (
+                <JobMatchAnalysis 
+                    job={pickAnalysisFields(job)} // <--- On envoie la version "nettoyée" ici !
+                    onClose={() => setShowAnalysis(false)} 
+                />
+            )}
         </div>
     );
 };
