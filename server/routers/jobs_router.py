@@ -15,14 +15,19 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 
 from server.config import settings
-from server.models import Fiche_Metier_ROME
+from server.models import Fiche_Metier_ROME, User, Offres_FT
 from server.database import get_db_session
 from server.methods.job_search import search_job_offers
 from server.methods.FT_job_search import search_france_travail
 from server.thread_pool import run_blocking_in_executor
+from server.dependencies import get_current_user
+from server.methods.matching_engine import MatchingEngine
+import asyncio
+
 
 
 from pydantic import BaseModel
+from fastapi import HTTPException
 
 def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize France Travail offers to the flat shape expected by the UI."""

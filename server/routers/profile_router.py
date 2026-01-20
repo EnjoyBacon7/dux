@@ -15,6 +15,7 @@ import mimetypes
 from server.methods.upload import UPLOAD_DIR, upload_file
 from server.database import get_db_session
 from server.models import User, Experience, Education
+from server.dependencies import get_current_user
 
 # ============================================================================
 # Router Setup
@@ -57,36 +58,6 @@ class ProfileSetupRequest(BaseModel):
     skills: List[str] = []
     experiences: List[ExperienceData] = []
     educations: List[EducationData] = []
-
-
-# ============================================================================
-# Dependencies
-# ============================================================================
-
-
-def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
-    """
-    Dependency to extract and validate the current authenticated user from session.
-
-    Args:
-        request: FastAPI request object containing session
-        db: Database session
-
-    Returns:
-        User: The currently authenticated user
-
-    Raises:
-        HTTPException: If user is not authenticated or not found in database
-    """
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(User).filter(User.username == request.session["username"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return user
-
 
 # ============================================================================
 # File Upload Endpoints
