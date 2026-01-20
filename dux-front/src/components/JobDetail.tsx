@@ -1,6 +1,4 @@
-import React, { useState } from "react";
-// Import the new analysis component
-import JobMatchAnalysis from "./JobMatchAnalysis";
+import React from "react";
 
 // Full job offer interface matching backend columns
 export interface JobOffer {
@@ -74,9 +72,6 @@ interface JobDetailProps {
 }
 
 const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
-    // State to manage the visibility of the analysis modal
-    const [showAnalysis, setShowAnalysis] = useState(false);
-
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'N/A';
         try {
@@ -171,26 +166,6 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                                 📍 {job["lieuTravail_libelle"]}
                             </div>
                         )}
-                        
-                        {/* --- NEW BUTTON: AI MATCH ANALYSIS --- */}
-                        <div style={{ marginTop: '1rem' }}>
-                            <button
-                                onClick={() => setShowAnalysis(true)}
-                                className="nb-btn"
-                                style={{ 
-                                    backgroundColor: 'var(--nb-accent)', 
-                                    color: 'white',
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '0.5rem',
-                                    padding: '0.5rem 1rem'
-                                }}
-                            >
-                                <span>⚡</span> Analyze Match (AI)
-                            </button>
-                        </div>
-                        {/* ------------------------------------- */}
-
                     </div>
                     <button
                         onClick={onClose}
@@ -326,14 +301,6 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     </>
                 ))}
             </div>
-
-            {/* Render the Analysis Modal when showAnalysis is true */}
-            {showAnalysis && (
-                <JobMatchAnalysis 
-                    job={job}  // <--- On passe l'objet entier ici !
-                    onClose={() => setShowAnalysis(false)} 
-                />
-            )}
         </div>
     );
 };

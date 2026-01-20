@@ -2,37 +2,30 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
 import os
-from dotenv import load_dotenv  # <--- INDISPENSABLE
-
-# On charge le fichier .env immédiatement
-load_dotenv()
-
-# IMPORTANT : L'ordre des imports compte parfois. 
-# On importe Base après avoir chargé les variables si besoin, 
-# mais ici c'est surtout DATABASE_URL qui compte.
 from server.models import Base
 
-# Récupération de l'URL. 
-# Si le .env n'est pas lu, ça prend "sqlite://..." et ça plante à cause des ARRAYs.
+# Get database URL from environment variable
+# Default to SQLite for development if DATABASE_URL is not set
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dux.db")
 
-print(f"🔌 Connexion à la base de données : {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'SQLite (Local)'}")
-
+# Create engine
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,
+    pool_pre_ping=True,  # Verify connections before using
     pool_size=5,
     max_overflow=10
 )
 
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def init_db():
     """
     Initialize the database by creating all tables
     """
-    # Création des tables selon les modèles définis dans server/models.py
     Base.metadata.create_all(bind=engine)
+
 
 @contextmanager
 def get_db():
@@ -48,6 +41,7 @@ def get_db():
         raise
     finally:
         db.close()
+
 
 def get_db_session() -> Session:
     """
