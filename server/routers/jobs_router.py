@@ -28,7 +28,17 @@ from pydantic import BaseModel
 from typing import Optional, Any, List, Union
 
 def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
-    """Normalize France Travail offers to the flat shape expected by the UI."""
+    """
+    Convert a France Travail offer object into the flat dictionary shape expected by the UI.
+    
+    Nested fields (entreprise, lieuTravail, salaire, contact, origineOffre, contexteTravail, agence) are exposed as top-level keys with descriptive prefixes (for example, `entreprise_nom`, `lieuTravail_libelle`, `salaire_libelle`). Missing nested keys produce `None` values for the corresponding flattened entries.
+    
+    Parameters:
+        offer (Dict[str, Any]): The raw France Travail offer payload.
+    
+    Returns:
+        Dict[str, Any]: A flattened offer dictionary containing original top-level fields and normalized nested attributes under prefixed keys.
+    """
     entreprise = offer.get("entreprise") or {}
     lieu = offer.get("lieuTravail") or {}
     salaire = offer.get("salaire") or {}
@@ -122,7 +132,15 @@ def search_jobs(
     db: Session = Depends(get_db_session)
 ) -> Dict[str, Any]:
     """
-    Search job offers from the local database with text search and pagination.
+    Perform a text search for job offers in the local database with pagination.
+    
+    Returns:
+        dict: Search result payload containing:
+            - `results` (list): Matched job offers (possibly empty).
+            - `page` (int): Current page number.
+            - `page_size` (int): Number of results per page.
+            - `total` (int): Total number of matching offers.
+            On error, includes an `error` (str) key and returns `results` as an empty list with `total` set to 0.
     """
     try:
         result = search_job_offers(db, query=q, page=page, page_size=page_size)
@@ -180,7 +198,16 @@ async def load_offers(
     typeContrat: str = Query(None),
 ):
     """
-    Charge des données depuis l'API France Travail.
+    Load job offers from the France Travail API and return them in the flat shape expected by the UI.
+    
+    Builds request parameters from the function arguments, maps the `content_range` alias to the `range` parameter sent to the France Travail API, and fetches up to `nb_offres` results. When the API returns a list of offers each offer is normalized with the module's flattening logic before being returned.
+    
+    Parameters:
+        content_range (str): If present, this value is sent as the `range` parameter to the France Travail API.
+    
+    Returns:
+        list[dict]: A list of normalized (flattened) offer dictionaries when the API returns multiple offers.
+        dict: The raw API response when it is not a list, or an error object like `{"error": "<message>"}` on failure.
     """
     try:
         # Reconstitution du dictionnaire de paramètres (simplifié pour la lecture)
@@ -213,7 +240,13 @@ async def load_offers(
 @router.post("/load_fiche_metier", summary="Load fiche metier from France Travail API (ROME)")
 def load_fiche_metier():
     """
-    Charge des données depuis l'API France Travail (ROME).
+    Load ROME "fiche métier" data from the France Travail API into the database.
+    
+    Obtains an OAuth token using client credentials from settings, retrieves fiche métier records from the configured API, truncates the Fiche_Metier_ROME table, and inserts the fetched records (serializing nested structures as JSON where needed). Any insertion errors for individual items are ignored; the entire operation returns a summary or an error payload.
+    
+    Returns:
+        dict: On success, {"message": "<n> fiches métiers ROME chargées."} where <n> is the number of records fetched.
+              On failure, {"error": "<error message>"} with the caught exception message.
     """
     try:
         CLIENT_ID = settings.client_id
@@ -291,7 +324,21 @@ async def analyze_specific_job(
     db: Session = Depends(get_db_session)
 ):
     """
-    Analyse "On-Demand" : Calcule le score entre l'utilisateur CONNECTÉ et une offre.
+    Compute a compatibility score between the authenticated user and a specific job offer.
+    
+    Parameters:
+        job_id (str): Identifier of the job offer to analyze.
+    
+    Returns:
+        dict: Payload containing:
+            - status: "success" on successful analysis.
+            - candidat: object with `nom` (full name) and `titre` (headline) of the user.
+            - job: object with `id`, `intitule`, and `entreprise` of the offer.
+            - analysis: evaluation result produced by the matching engine.
+    
+    Raises:
+        HTTPException: 404 if the job offer is not found.
+        HTTPException: 500 if an error occurs during analysis.
     """
     
     # 1. Vérifier l'offre dans la base locale
@@ -346,7 +393,19 @@ async def analyze_job_direct(
     db: Session = Depends(get_db_session)
 ):
     """
-    Analyse directe : Reçoit l'objet Job du frontend et lance l'IA sans lire la DB.
+    Perform an on-demand AI matching analysis for a provided job payload without reading from the database.
+    
+    The function constructs a virtual job object from `job_data`, runs the MatchingEngine analysis using the authenticated `current_user`, and returns a structured result containing the candidate's name and title, the job's id/intitule/entreprise, and the analysis evaluation.
+    
+    Returns:
+        dict: A payload with keys:
+            - "status": "success" on successful analysis.
+            - "candidat": dict with "nom" (full name) and "titre" (headline) of the current user.
+            - "job": dict with "id", "intitule", and "entreprise" from the provided job data.
+            - "analysis": the evaluation result produced by the MatchingEngine.
+    
+    Raises:
+        HTTPException: with status code 500 and the error detail if the analysis fails.
     """
     logger.info(f" Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
 

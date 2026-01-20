@@ -37,7 +37,12 @@ def init_db():
 @contextmanager
 def get_db():
     """
-    Context manager for database sessions
+    Provide a transactional SQLAlchemy session for use as a context manager or dependency.
+    
+    Yields an active Session bound to the configured engine. Commits the transaction when the caller exits normally, rolls back the transaction if an exception is raised, and always closes the session on exit.
+    
+    Returns:
+        db (Session): An open SQLAlchemy session bound to the application's engine.
     """
     db = SessionLocal()
     try:
@@ -51,7 +56,12 @@ def get_db():
 
 def get_db_session() -> Session:
     """
-    Dependency for FastAPI endpoints to get database session
+    Provide a SQLAlchemy Session for FastAPI dependency injection.
+    
+    Yields an active database Session to the caller and ensures the session is closed when the dependency completes.
+    
+    Returns:
+        Session: Active SQLAlchemy session instance.
     """
     db = SessionLocal()
     try:

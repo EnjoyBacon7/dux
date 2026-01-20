@@ -9,6 +9,14 @@ logger = logging.getLogger(__name__)
 
 class MatchingEngine:
     def __init__(self, db_session):
+        """
+        Initialize the MatchingEngine with a database session and configure an OpenAI-compatible client from environment variables.
+        
+        Reads OPENAI_API_KEY, OPENAI_BASE_URL and OPENAI_MODEL from the environment, stores them on the instance, and attempts to construct an OpenAI-compatible client; if client initialization fails the `client` attribute is set to None and the error is logged.
+        
+        Parameters:
+            db_session: Database session or connection used by the engine for persistence and lookups.
+        """
         self.db = db_session
         # On récupère la configuration depuis le .env
         self.api_key = os.getenv("OPENAI_API_KEY")
@@ -26,7 +34,22 @@ class MatchingEngine:
             self.client = None
 
     def _generate_prompt(self, user: User, job: Offres_FT) -> str:
-        """Prépare les données pour l'IA"""
+        """
+        Builds a single textual prompt describing a candidate and a job offer for strict JSON matching by an AI.
+        
+        The prompt contains a candidate profile (title, summary, skills, experiences), a job offer block (title, company, description, required skills) and an instruction to return ONLY a valid JSON with the exact structure:
+        {
+          "score_technique": integer 0-100,
+          "score_culturel": integer 0-100,
+          "match_reasons": [string, ...],
+          "missing_skills": [string, ...],
+          "verdict": "short synthesis sentence"
+        }
+        Job required skills are normalized when stored as a JSON string (attempts to extract readable labels).
+        
+        Returns:
+            prompt (str): The assembled multi-line prompt to send to the AI.
+        """
         
         # 1. Préparation du Profil Candidat
         skills = ", ".join(user.skills) if user.skills else "Non renseigné"
@@ -80,7 +103,22 @@ class MatchingEngine:
         return prompt
 
     def analyser_match(self, user: User, job: Offres_FT) -> dict:
-        """Exécute l'analyse"""
+        """
+        Analyze a candidate and a job offer with the configured AI client and return a structured matching result.
+        
+        Sends a prompt describing the candidate and the job to the AI model and parses the model's JSON response into a dictionary with a fixed schema. If the AI client is not initialized the function raises an exception; on other errors it returns a safe default structure.
+        
+        Raises:
+            Exception: If the AI client is not initialized (check environment/config).
+        
+        Returns:
+            dict: Matching result with the following keys:
+                - "score_technique" (int): Technical fit score from 0 to 100.
+                - "score_culturel" (int): Cultural fit score from 0 to 100.
+                - "match_reasons" (list[str]): Array of short reasons supporting the match.
+                - "missing_skills" (list[str]): Array of skills missing for the candidate.
+                - "verdict" (str): Short synthesis sentence summarizing the outcome.
+        """
         logger.info(f" Analyse IA : {user.username} vs Job {job.id}")
         
         if not self.client:
