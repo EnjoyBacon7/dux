@@ -118,6 +118,8 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
         
     except Exception as e:
         logger.error(f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}: {e}", exc_info=True)
+        # Rollback any pending changes before persisting failure state
+        db.rollback()
         # Persist failure state to database
         save_failed_evaluation_to_db(db, user_id, cv_filename, str(e))
     finally:
