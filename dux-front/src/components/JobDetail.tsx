@@ -91,17 +91,20 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
         return exigence;
     };
 
-    const normalizeArray = (value: unknown): any[] => {
-        if (!value) return [];
+    const normalizeArray = (value: unknown, fieldName?: string): any[] => {
+        if (value === null || value === undefined) return [];
         if (Array.isArray(value)) return value;
         if (typeof value === "string") {
             try {
                 const parsed = JSON.parse(value);
                 return Array.isArray(parsed) ? parsed : [];
-            } catch {
+            } catch (error) {
+                console.error(`normalizeArray: failed to parse JSON for ${fieldName ?? 'value'}`, error, value);
                 return [];
             }
         }
+        // Unexpected shape, log to surface backend contract issues.
+        console.error(`normalizeArray: unexpected value for ${fieldName ?? 'value'}`, value);
         return [];
     };
 
@@ -156,12 +159,15 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
     const locationLabel = job["lieuTravail_libelle"];
     const contractLabel = job.typeContratLibelle || job.typeContrat;
     const company = job["entreprise_nom"] || 'Entreprise non spécifiée';
-    const competencesList = normalizeArray(job.competences);
-    const qualitesList = normalizeArray(job.qualitesProfessionnelles);
-    const formationsList = normalizeArray(job.formations);
-    const horairesList = normalizeArray(job["contexteTravail_horaires"]);
-    const salaireComplementsList = normalizeArray(job["salaire_listeComplements"]);
-    const permisList = normalizeArray(job.permis);
+    const competencesList = normalizeArray(job.competences, 'competences');
+    const qualitesList = normalizeArray(job.qualitesProfessionnelles, 'qualitesProfessionnelles');
+    const formationsList = normalizeArray(job.formations, 'formations');
+    const horairesList = normalizeArray(job["contexteTravail_horaires"], 'contexteTravail_horaires');
+    const salaireComplementsList = normalizeArray(job["salaire_listeComplements"], 'salaire_listeComplements');
+    const permisList = normalizeArray(job.permis, 'permis');
+    const lat = job["lieuTravail_latitude"];
+    const lng = job["lieuTravail_longitude"];
+    const hasCoords = typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0);
 
     return (
         <div className="jd-overlay">
@@ -178,7 +184,9 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                             <div className="jd-badges">
                                 {contractLabel && <span className="jd-badge">💼 {contractLabel}</span>}
                                 {job.romeCode && <span className="jd-badge">ROME {job.romeCode}</span>}
-                                {job.publieeDepuis && <span className="jd-badge">Publié: {job.publieeDepuis} jours</span>}
+                                {job.publieeDepuis !== null && job.publieeDepuis !== undefined && (
+                                    <span className="jd-badge">Publié: {job.publieeDepuis} jours</span>
+                                )}
                                 {(job.dateActualisation || job.dateCreation) && (
                                     <span className="jd-badge">📅 {formatDate(job.dateActualisation || job.dateCreation)}</span>
                                 )}
@@ -384,12 +392,13 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
 
                     <div className="jd-section jd-section--map">
                         <h3>Lieu de travail{locationLabel ? ` — ${locationLabel}` : ''}</h3>
-                        {job["lieuTravail_latitude"] && job["lieuTravail_longitude"] ? (
+                        {hasCoords ? (
                             <iframe
                                 width="100%"
                                 style={{ border: 0, minHeight: '180px' }}
                                 loading="lazy"
-                                src={`https://www.openstreetmap.org/export/embed.html?bbox=${job["lieuTravail_longitude"] - 0.01},${job["lieuTravail_latitude"] - 0.01},${job["lieuTravail_longitude"] + 0.01},${job["lieuTravail_latitude"] + 0.01}&layer=mapnik&marker=${job["lieuTravail_latitude"]},${job["lieuTravail_longitude"]}`}
+                                title={`Carte du lieu de travail${locationLabel ? ` — ${locationLabel}` : ''}`}
+                                src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}&layer=mapnik&marker=${lat},${lng}`}
                             />
                         ) : (
                             <p className="jd-subtitle">Coordonnées non disponibles</p>
