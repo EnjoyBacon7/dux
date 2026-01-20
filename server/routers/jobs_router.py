@@ -24,6 +24,9 @@ from server.dependencies import get_current_user
 from services.matching_engine import MatchingEngine
 
 
+from pydantic import BaseModel
+from typing import Optional, Any, List, Union
+
 def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize France Travail offers to the flat shape expected by the UI."""
     entreprise = offer.get("entreprise") or {}
@@ -322,4 +325,67 @@ async def analyze_specific_job(
         
     except Exception as e:
         logger.error(f"Erreur critique lors de l'analyse : {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+# ============================================================================
+# NOUVELLE ROUTE : Analyse IA DIRECTE (Sans DB)
+# ============================================================================
+
+# Modèle pour valider les données reçues du Frontend
+class JobDataForAnalysis(BaseModel):
+    id: str
+    intitule: Optional[str] = None
+    description: Optional[str] = None
+    entreprise_nom: Optional[str] = None
+    competences: Optional[Any] = None # Peut être une liste, un dict ou une string
+
+@router.post("/analyze")
+async def analyze_job_direct(
+    job_data: JobDataForAnalysis, 
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_session)
+):
+    """
+    Analyse directe : Reçoit l'objet Job du frontend et lance l'IA sans lire la DB.
+    """
+    logger.info(f" Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
+
+    # 1. On crée un objet "virtuel" Offres_FT pour que le MatchingEngine puisse le lire
+    # On convertit les compétences en string si nécessaire pour le prompt
+    comps = job_data.competences
+    if isinstance(comps, (list, dict)):
+        import json
+        comps = json.dumps(comps)
+
+    offre_virtuelle = Offres_FT(
+        id=job_data.id,
+        intitule=job_data.intitule,
+        description=job_data.description,
+        entreprise_nom=job_data.entreprise_nom,
+        competences=comps
+    )
+
+    # 2. Initialiser le moteur
+    engine = MatchingEngine(db)
+    
+    try:
+        # 3. Lancer l'analyse (non-bloquante)
+        evaluation = await asyncio.to_thread(engine.analyser_match, current_user, offre_virtuelle)
+        
+        return {
+            "status": "success",
+            "candidat": {
+                "nom": f"{current_user.first_name} {current_user.last_name}",
+                "titre": current_user.headline
+            },
+            "job": {
+                "id": job_data.id,
+                "intitule": job_data.intitule,
+                "entreprise": job_data.entreprise_nom
+            },
+            "analysis": evaluation
+        }
+        
+    except Exception as e:
+        logger.error(f" Erreur critique lors de l'analyse : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

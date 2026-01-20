@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import type { JobOffer } from './JobDetail'; // On réutilise ton type existant
 
 interface AnalysisResult {
     score_technique: number;
@@ -9,14 +10,11 @@ interface AnalysisResult {
 }
 
 interface JobMatchAnalysisProps {
-    jobId: string;
-    jobTitle: string;
+    job: JobOffer; // On reçoit l'objet complet maintenant
     onClose: () => void;
 }
 
-const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ jobId, jobTitle, onClose }) => {
-    // Si tu n'as pas de traduction pour ça, on met du texte en dur pour l'instant
-    // const { t } = useLanguage();  <-- Ligne supprimée ou commentée
+const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => {
     
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [loading, setLoading] = useState(true);
@@ -25,7 +23,24 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ jobId, jobTitle, on
     useEffect(() => {
         const fetchAnalysis = async () => {
             try {
-                const response = await fetch(`/api/jobs/analyze/${jobId}`);
+                // On prépare les données minimales nécessaires pour l'IA
+                // (On évite d'envoyer tout l'objet s'il est énorme, mais ici ça va)
+                const payload = {
+                    id: job.id,
+                    intitule: job.intitule,
+                    description: job.description,
+                    entreprise_nom: job["entreprise_nom"], // Attention aux guillemets si c'est ta convention
+                    competences: job.competences
+                };
+
+                const response = await fetch(`/api/jobs/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
                 if (!response.ok) throw new Error("Analysis failed");
                 
                 const data = await response.json();
@@ -38,7 +53,7 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ jobId, jobTitle, on
         };
 
         fetchAnalysis();
-    }, [jobId]);
+    }, [job]); // Dépendance sur l'objet job
 
     const getScoreColor = (score: number) => {
         if (score >= 75) return '#10B981'; // Green
@@ -49,7 +64,7 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ jobId, jobTitle, on
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1100, // Higher z-index than JobDetail
+            backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1100, 
             display: 'flex', justifyContent: 'center', alignItems: 'center',
             backdropFilter: 'blur(4px)'
         }} onClick={onClose}>
@@ -80,7 +95,7 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ jobId, jobTitle, on
                 </div>
 
                 <div style={{ marginBottom: '1rem', opacity: 0.8, fontSize: '0.9rem' }}>
-                   Ref: {jobTitle}
+                   Ref: {job.intitule}
                 </div>
 
                 {loading ? (

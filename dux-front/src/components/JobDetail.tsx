@@ -330,8 +330,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
             {/* Render the Analysis Modal when showAnalysis is true */}
             {showAnalysis && (
                 <JobMatchAnalysis 
-                    jobId={job.id} 
-                    jobTitle={job.intitule || 'Job'} 
+                    job={job}  // <--- On passe l'objet entier ici !
                     onClose={() => setShowAnalysis(false)} 
                 />
             )}
