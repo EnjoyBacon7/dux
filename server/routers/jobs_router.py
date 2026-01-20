@@ -20,6 +20,81 @@ from server.methods.job_search import search_job_offers
 from server.methods.FT_job_search import search_france_travail
 from server.thread_pool import run_blocking_in_executor
 
+
+def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize France Travail offers to the flat shape expected by the UI."""
+    entreprise = offer.get("entreprise") or {}
+    lieu = offer.get("lieuTravail") or {}
+    salaire = offer.get("salaire") or {}
+    contact = offer.get("contact") or {}
+    origine = offer.get("origineOffre") or {}
+    contexte = offer.get("contexteTravail") or {}
+    agence = offer.get("agence") or {}
+
+    return {
+        "id": offer.get("id"),
+        "intitule": offer.get("intitule"),
+        "description": offer.get("description"),
+        "dateCreation": offer.get("dateCreation"),
+        "dateActualisation": offer.get("dateActualisation"),
+        "romeCode": offer.get("romeCode"),
+        "romeLibelle": offer.get("romeLibelle"),
+        "appellationlibelle": offer.get("appellationlibelle"),
+        "typeContrat": offer.get("typeContrat"),
+        "typeContratLibelle": offer.get("typeContratLibelle"),
+        "natureContrat": offer.get("natureContrat"),
+        "experienceExige": offer.get("experienceExige"),
+        "experienceLibelle": offer.get("experienceLibelle"),
+        "competences": offer.get("competences"),
+        "dureeTravailLibelle": offer.get("dureeTravailLibelle"),
+        "dureeTravailLibelleConverti": offer.get("dureeTravailLibelleConverti"),
+        "alternance": offer.get("alternance"),
+        "nombrePostes": offer.get("nombrePostes"),
+        "accessibleTH": offer.get("accessibleTH"),
+        "qualificationCode": offer.get("qualificationCode"),
+        "qualificationLibelle": offer.get("qualificationLibelle"),
+        "codeNAF": offer.get("codeNAF"),
+        "secteurActivite": offer.get("secteurActivite"),
+        "secteurActiviteLibelle": offer.get("secteurActiviteLibelle"),
+        "offresManqueCandidats": offer.get("offresManqueCandidats"),
+        "entrepriseAdaptee": offer.get("entrepriseAdaptee"),
+        "employeurHandiEngage": offer.get("employeurHandiEngage"),
+        "lieuTravail_libelle": lieu.get("libelle"),
+        "lieuTravail_latitude": lieu.get("latitude"),
+        "lieuTravail_longitude": lieu.get("longitude"),
+        "lieuTravail_codePostal": lieu.get("codePostal"),
+        "lieuTravail_commune": lieu.get("commune"),
+        "entreprise_nom": entreprise.get("nom"),
+        "entreprise_entrepriseAdaptee": entreprise.get("entrepriseAdaptee"),
+        "salaire_libelle": salaire.get("libelle"),
+        "salaire_complement1": salaire.get("complement1"),
+        "salaire_listeComplements": salaire.get("listeComplements"),
+        "contact_nom": contact.get("nom"),
+        "contact_coordonnees1": contact.get("coordonnees1"),
+        "contact_coordonnees2": contact.get("coordonnees2"),
+        "contact_coordonnees3": contact.get("coordonnees3"),
+        "contact_courriel": contact.get("courriel"),
+        "contact_urlPostulation": contact.get("urlPostulation"),
+        "contact_telephone": contact.get("telephone"),
+        "origineOffre_origine": origine.get("origine"),
+        "origineOffre_urlOrigine": origine.get("urlOrigine"),
+        "contexteTravail_horaires": contexte.get("horaires"),
+        "contexteTravail_conditionsExercice": contexte.get("conditionsExercice"),
+        "formations": offer.get("formations"),
+        "qualitesProfessionnelles": offer.get("qualitesProfessionnelles"),
+        "langues": offer.get("langues"),
+        "permis": offer.get("permis"),
+        "entreprise_logo": entreprise.get("logo"),
+        "entreprise_description": entreprise.get("description"),
+        "entreprise_url": entreprise.get("url"),
+        "agence_courriel": agence.get("courriel"),
+        "salaire_commentaire": salaire.get("commentaire"),
+        "deplacementCode": offer.get("deplacementCode"),
+        "deplacementLibelle": offer.get("deplacementLibelle"),
+        "trancheEffectifEtab": offer.get("trancheEffectifEtab"),
+        "experienceCommentaire": offer.get("experienceCommentaire"),
+    }
+
 # ============================================================================
 # Router Setup
 # ============================================================================
@@ -167,6 +242,8 @@ async def load_offers(
             ft_parameters,
             nb_offres
         )
+        if isinstance(offers, list):
+            return [_flatten_offer(offer) for offer in offers]
         return offers
 
     except ValueError as e:
