@@ -49,10 +49,10 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Dux',
+      title: '',
       logo: {
         alt: 'Dux Logo',
-        src: 'img/logo.svg',
+        src: 'img/dux_logo.png',
       },
       items: [
         {

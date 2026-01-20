@@ -4,27 +4,33 @@
  * work well for content-centric websites.
  */
 
-/* You can override the default Infima variables here. */
+/* Dux app color palette - neo-brutalism theme */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  /* Light mode palette matching dux-front */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f7f6f5;
+  --ifm-color-primary: #6366f1;
+  --ifm-color-primary-dark: #4f46e5;
+  --ifm-color-primary-darker: #4338ca;
+  --ifm-color-primary-darkest: #3730a3;
+  --ifm-color-primary-light: #818cf8;
+  --ifm-color-primary-lighter: #a5b4fc;
+  --ifm-color-primary-lightest: #c7d2fe;
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.1);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* For readability concerns, you should choose a darker palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  /* Dark mode palette matching dux-front */
+  --ifm-background-color: #0f0f0f;
+  --ifm-background-surface-color: #1a1a1a;
+  --ifm-color-primary: #818cf8;
+  --ifm-color-primary-dark: #a5b4fc;
+  --ifm-color-primary-darker: #c7d2fe;
+  --ifm-color-primary-darkest: #e0e7ff;
+  --ifm-color-primary-light: #6366f1;
+  --ifm-color-primary-lighter: #4f46e5;
+  --ifm-color-primary-lightest: #4338ca;
+  --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.2);
 }
