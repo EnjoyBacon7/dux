@@ -21,6 +21,7 @@ from server.api import router as api_router
 from server.auth_api import router as auth_router
 from server.database import init_db
 from server.config import settings
+from server.thread_pool import shutdown_thread_pool
 
 # ============================================================================
 # Logging Configuration
@@ -67,7 +68,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 # FastAPI Application Initialization
 # ============================================================================
 
-app = FastAPI()
+app = FastAPI(docs_url="/apidoc", redoc_url=None)
 
 
 # ============================================================================
@@ -147,6 +148,16 @@ async def startup_event():
     init_db()
 
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    """
+    Cleanup on application shutdown.
+
+    Gracefully shuts down the thread pool executor used for blocking operations.
+    """
+    shutdown_thread_pool()
+
+
 # ============================================================================
 # Route Registration
 # ============================================================================
@@ -167,6 +178,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 static_dir = BASE_DIR / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+# Serve built docs without requiring the /static prefix
+docs_dir = static_dir / "docs"
+if docs_dir.exists():
+    app.mount("/docs", StaticFiles(directory=str(docs_dir), html=True), name="docs")
+
+    @app.get("/docs", include_in_schema=False)
+    async def serve_docs_index():
+        """Serve docs index without requiring a trailing slash."""
+        index_path = docs_dir / "index.html"
+        try:
+            with open(index_path, "r", encoding="utf-8") as f:
+                return HTMLResponse(f.read())
+        except FileNotFoundError:
+            logger.warning(f"Docs index not found at {index_path}")
+            return JSONResponse(status_code=404, content={"detail": "Docs not built"})
 
 
 @app.get("/{full_path:path}")

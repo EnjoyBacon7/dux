@@ -18,6 +18,7 @@ from server.methods.FT_job_search import search_france_travail
 from server.database import get_db_session
 from server.models import User, OptimalOffer
 from server.dependencies import get_current_user
+from server.thread_pool import run_blocking_in_executor
 
 # ============================================================================
 # Router Setup
@@ -112,7 +113,7 @@ async def _get_optimal_offers_with_cache(
             most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
             last_updated = most_recent.updated_at or most_recent.created_at
             cache_age = datetime.now(last_updated.tzinfo) - last_updated
-            
+
             if cache_age < timedelta(hours=cache_hours):
                 # Cache is fresh, return cached results
                 offers_data = [
@@ -127,7 +128,7 @@ async def _get_optimal_offers_with_cache(
                     }
                     for o in cached_offers
                 ]
-                
+
                 return {
                     "success": True,
                     "offers": offers_data,
@@ -138,21 +139,25 @@ async def _get_optimal_offers_with_cache(
     except Exception as e:
         logger.warning(f"Error checking cache: {str(e)}, proceeding with fresh search")
 
-    # Cache is stale or missing, fetch new offers
-    # Use France Travail API to fetch offers with provided parameters
-    offers = search_france_travail(ft_parameters or {}, nb_offres=50)
+    # Cache is stale or missing, fetch new offers in thread pool
+    # Run France Travail API call in thread pool to avoid blocking other clients
+    offers = await run_blocking_in_executor(
+        search_france_travail,
+        ft_parameters or {},
+        50
+    )
 
     if not offers:
         raise ValueError("No job offers found from France Travail API with the provided parameters")
 
-    # Rank the offers using LLM
+    # Rank the offers using LLM (also in thread pool)
     result = await rank_job_offers(
         current_user.cv_text,
         offers,
         preferences=preferences,
         top_k=top_k
     )
-    
+
     # Save optimal offers to database (delete old ones first)
     db.query(OptimalOffer).filter(OptimalOffer.user_id == current_user.id).delete()
 
@@ -171,7 +176,7 @@ async def _get_optimal_offers_with_cache(
         db.add(db_offer)
 
     db.commit()
-    
+
     # Add cache status and offers to result
     result["cached"] = False
     result["offers"] = ranked_offers
@@ -224,7 +229,7 @@ async def match_profile_endpoint(
                 most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
                 last_updated = most_recent.updated_at or most_recent.created_at
                 cache_age = datetime.now(last_updated.tzinfo) - last_updated
-                
+
                 if cache_age < timedelta(hours=24):
                     # Cache is fresh, return cached results without LLM call
                     offers_data = [
@@ -239,7 +244,7 @@ async def match_profile_endpoint(
                         }
                         for o in cached_offers
                     ]
-                    
+
                     return {
                         "success": True,
                         "ft_parameters": {},  # Not needed for cached response

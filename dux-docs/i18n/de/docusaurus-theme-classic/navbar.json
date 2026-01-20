@@ -1,0 +1,26 @@
+{
+    "title": {
+        "message": "Dux",
+        "description": "The title in the navbar"
+    },
+    "logo.alt": {
+        "message": "Dux Logo",
+        "description": "The alt text of navbar logo"
+    },
+    "item.label.For Users": {
+        "message": "Für Benutzer",
+        "description": "Navbar item with label For Users"
+    },
+    "item.label.For Developers": {
+        "message": "Für Entwickler",
+        "description": "Navbar item with label For Developers"
+    },
+    "item.label.GitHub": {
+        "message": "GitHub",
+        "description": "Navbar item with label GitHub"
+    },
+    "item.label.API Docs": {
+        "message": "API-Dokumentation",
+        "description": "Navbar item with label API Docs"
+    }
+}

@@ -63,14 +63,28 @@ fi
 
 
 
+# Ensure static directory exists
+mkdir -p static
+
 # Build the frontend and copy to static
 echo "Building frontend..."
 cd dux-front
 npm install
 npm run build
 cd ..
-mkdir -p static
 rm -rf static/*
 cp -r dux-front/dist/* static/
+
+# Build Docusaurus documentation
+echo "Building documentation..."
+cd dux-docs
+npm install
+npm run build
+cd ..
+# Copy Docusaurus build to static/docs
+mkdir -p static/docs
+rm -rf static/docs/*
+cp -r dux-docs/build/* static/docs/
+echo "Documentation copied to static/docs"
 
 uv run uvicorn server.app:app --reload --host "$HOST" --port "$PORT"
