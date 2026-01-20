@@ -42,16 +42,32 @@ if errorlevel 1 psql -U postgres -c "CREATE DATABASE dux OWNER dux_user;" 2>nul
 
 echo Database setup complete!
 
+:: Ensure static directory exists
+if not exist static mkdir static
+
 :: Build the frontend and copy to static
 echo Building frontend...
 cd dux-front
 call npm install
 call npm run build
 cd ..
-if not exist static mkdir static
 rd /s /q static >nul 2>&1
+mkdir static
 xcopy /e /i /y dux-front\dist\* static\ >nul
 echo Frontend build complete!
+
+:: Build Docusaurus documentation
+echo Building documentation...
+cd dux-docs
+call npm install
+call npm run build
+cd ..
+:: Copy Docusaurus build to static/docs
+if not exist static\docs mkdir static\docs
+rd /s /q static\docs >nul 2>&1
+mkdir static\docs
+xcopy /e /i /y dux-docs\build\* static\docs\ >nul
+echo Documentation copied to static/docs
 
 :: Run the application using uvicorn with environment variables
 uv run uvicorn server.app:app --reload --host %HOST% --port %PORT% --env-file .env

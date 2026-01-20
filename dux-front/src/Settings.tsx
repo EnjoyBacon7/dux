@@ -7,6 +7,7 @@ import "./styles/home.css";
 const Settings: React.FC = () => {
     const { checkAuth } = useAuth();
     const { t } = useLanguage();
+    const version = import.meta.env.VITE_APP_VERSION || import.meta.env.VITE_GIT_TAG || "dev";
 
     return (
         <>
@@ -21,6 +22,7 @@ const Settings: React.FC = () => {
                     <PreferencesCard />
                     <DebugCard />
                 </div>
+                <div className="home-version">Version {version}</div>
             </main>
         </>
     );

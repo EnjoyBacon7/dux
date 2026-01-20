@@ -150,6 +150,13 @@
     grid-column: 1 / -1;
 }
 
+.home-version {
+    padding: clamp(1rem, 4vw, 2rem);
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--nb-text-muted, var(--nb-fg, #6b7280));
+}
+
 /* Desktop and tablet adjustments (768px and above) */
 @media (min-width: 768px) {
     .home-grid {

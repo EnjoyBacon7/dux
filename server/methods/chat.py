@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any, List
 from pathlib import Path
 from openai import OpenAI, APIError
 from server.config import settings
+from server.thread_pool import run_blocking_in_executor
 
 logger = logging.getLogger(__name__)
 
@@ -149,10 +150,10 @@ def _load_prompt_template(template_name: str) -> str:
     """
     prompts_dir = Path(__file__).parent.parent / "prompts"
     template_path = prompts_dir / f"{template_name}.txt"
-    
+
     if not template_path.exists():
         raise FileNotFoundError(f"Prompt template not found: {template_path}")
-    
+
     return template_path.read_text(encoding="utf-8")
 
 
@@ -182,6 +183,43 @@ def _validate_job_offers(job_offers: List[Dict[str, Any]]) -> None:
     """
     if not job_offers or len(job_offers) == 0:
         raise ValueError("No job offers provided to rank.")
+
+
+def _call_openai_sync(
+    prompt: str,
+    system_content: str,
+    temperature: float = 0.7,
+    max_tokens: int = 4000
+) -> Dict[str, Any]:
+    """
+    Synchronous wrapper for OpenAI API call (runs in thread pool).
+
+    This is the blocking operation that needs to run in a thread to avoid
+    blocking the event loop.
+
+    Args:
+        prompt: User message
+        system_content: System message
+        temperature: Model temperature
+        max_tokens: Max tokens for response
+
+    Returns:
+        Response from OpenAI API
+    """
+    model = settings.openai_model
+    client = get_openai_client()
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+
+    return response
 
 
 async def _call_llm(
@@ -225,16 +263,13 @@ async def _call_llm(
     model = settings.openai_model
 
     try:
-        client = get_openai_client()
-
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=temperature,
-            max_tokens=max_tokens
+        # Run blocking OpenAI API call in thread pool
+        response = await run_blocking_in_executor(
+            _call_openai_sync,
+            prompt,
+            system_content,
+            temperature,
+            max_tokens
         )
 
         if not response.choices or len(response.choices) == 0:
@@ -402,11 +437,11 @@ def create_job_ranking_prompt(
     """
     template = _load_prompt_template("job_ranking")
     offers_text = _format_job_offers_for_analysis(job_offers)
-    
+
     preferences_section = ""
     if preferences:
         preferences_section = f"\n## USER'S PREFERENCES\n\n{preferences}\n"
-    
+
     return template.format(
         cv_text=cv_text,
         preferences=preferences_section,

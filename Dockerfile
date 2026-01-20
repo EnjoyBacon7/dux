@@ -1,10 +1,20 @@
 
 # Build frontend
 FROM node:20 AS frontend-build
+ARG APP_VERSION=dev
+ENV VITE_APP_VERSION=${APP_VERSION}
 WORKDIR /frontend
 COPY dux-front/package.json dux-front/package-lock.json ./
 RUN npm ci
 COPY dux-front .
+RUN npm run build
+
+# Build docs (Docusaurus)
+FROM node:20 AS docs-build
+WORKDIR /docs
+COPY dux-docs/package.json dux-docs/package-lock.json ./
+RUN npm ci
+COPY dux-docs .
 RUN npm run build
 
 # Backend and final image
@@ -29,6 +39,9 @@ COPY server ./server
 
 # Copy frontend build to static
 COPY --from=frontend-build /frontend/dist ./static
+
+# Copy docs build
+COPY --from=docs-build /docs/build ./static/docs
 
 # Create uploads directory
 RUN mkdir -p /app/uploads
