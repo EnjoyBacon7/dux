@@ -48,6 +48,7 @@ class User(Base):
     experiences = relationship("Experience", back_populates="user", cascade="all, delete-orphan")
     educations = relationship("Education", back_populates="user", cascade="all, delete-orphan")
     optimal_offers = relationship("OptimalOffer", back_populates="user", cascade="all, delete-orphan")
+    cv_evaluations = relationship("CVEvaluation", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username})>"
@@ -249,3 +250,47 @@ class OptimalOffer(Base):
 
     def __repr__(self):
         return f"<OptimalOffer(id={self.id}, user_id={self.user_id}, title={self.title})>"
+
+
+class CVEvaluation(Base):
+    """Stores CV evaluation results from the AI pipeline."""
+    __tablename__ = "cv_evaluations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    # Scores (0-100)
+    overall_score = Column(Integer, nullable=True)
+    completeness_score = Column(Integer, nullable=True)
+    experience_quality_score = Column(Integer, nullable=True)
+    skills_relevance_score = Column(Integer, nullable=True)
+    impact_evidence_score = Column(Integer, nullable=True)
+    clarity_score = Column(Integer, nullable=True)
+    consistency_score = Column(Integer, nullable=True)
+
+    # Summary text
+    overall_summary = Column(Text, nullable=True)
+
+    # Feedback arrays (stored as JSON)
+    strengths = Column(JSON, nullable=True)
+    weaknesses = Column(JSON, nullable=True)
+    recommendations = Column(JSON, nullable=True)
+    red_flags = Column(JSON, nullable=True)
+    missing_info = Column(JSON, nullable=True)
+
+    # Full data for traceability (stored as JSON)
+    structured_cv = Column(JSON, nullable=True)
+    derived_features = Column(JSON, nullable=True)
+    full_scores = Column(JSON, nullable=True)
+
+    # Metadata
+    cv_filename = Column(String, nullable=True)  # CV filename at time of evaluation
+    evaluation_id = Column(String, nullable=True)  # Pipeline evaluation ID
+    processing_time_seconds = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationship
+    user = relationship("User", back_populates="cv_evaluations")
+
+    def __repr__(self):
+        return f"<CVEvaluation(id={self.id}, user_id={self.user_id}, overall_score={self.overall_score})>"

@@ -8,4 +8,5 @@ export { default as DebugCard } from './DebugCard';
 export { default as WelcomeCard } from './WelcomeCard';
 export { default as CVUploadForm } from './CVUploadForm';
 export { default as CVPreview } from './CVPreview';
+export { default as CVScoreCard } from './CVScoreCard';
 

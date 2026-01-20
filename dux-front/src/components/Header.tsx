@@ -103,7 +103,7 @@ const Header: React.FC = () => {
                                         boxShadow: location.pathname === '/' ? 'var(--nb-shadow-xs)' : 'none'
                                     }}
                                 >
-                                    Home
+                                    {t('header.home')}
                                 </button>
                                 <button
                                     onClick={() => navigate('/jobs')}
@@ -125,7 +125,29 @@ const Header: React.FC = () => {
                                         boxShadow: location.pathname === '/jobs' ? 'var(--nb-shadow-xs)' : 'none'
                                     }}
                                 >
-                                    Jobs
+                                    {t('header.jobs')}
+                                </button>
+                                <button
+                                    onClick={() => navigate('/profile-hub')}
+                                    className={`nb-nav-btn ${location.pathname === '/profile-hub' ? 'nb-nav-btn--active' : ''}`}
+                                    style={{
+                                        appearance: 'none',
+                                        background: location.pathname === '/profile-hub' ? 'var(--nb-accent)' : 'transparent',
+                                        color: location.pathname === '/profile-hub' ? '#fff' : 'var(--nb-fg)',
+                                        border: 'var(--nb-border) solid var(--nb-fg)',
+                                        padding: '0.65rem 1rem',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.875rem',
+                                        fontWeight: location.pathname === '/profile-hub' ? '600' : '500',
+                                        transition: 'var(--nb-transition)',
+                                        boxShadow: location.pathname === '/profile-hub' ? 'var(--nb-shadow-xs)' : 'none'
+                                    }}
+                                >
+                                    {t('header.profile_hub')}
                                 </button>
                             </nav>
                         </>

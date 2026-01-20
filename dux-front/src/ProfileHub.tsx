@@ -1,0 +1,59 @@
+import React from "react";
+import { Header } from "./components";
+import { useLanguage } from "./contexts/useLanguage";
+import { useAuth } from "./contexts/useAuth";
+import "./styles/home.css";
+
+const ProfileHub: React.FC = () => {
+    const { t } = useLanguage();
+    const { user } = useAuth();
+
+    if (!user) return null;
+
+    return (
+        <>
+            <Header />
+            <main className="nb-page home-container">
+                <div className="profile-hub-content">
+                    <div className="nb-card profile-hub-header-card">
+                        <h1 className="profile-hub-title">{t("profile_hub.title")}</h1>
+                        <p className="profile-hub-subtitle">{t("profile_hub.subtitle")}</p>
+                    </div>
+
+                    <div className="profile-hub-grid">
+                        {/* Placeholder cards for future features */}
+                        <div className="nb-card profile-hub-feature-card">
+                            <div className="profile-hub-feature-icon">📊</div>
+                            <h3 className="profile-hub-feature-title">{t("profile_hub.detailed_analysis")}</h3>
+                            <p className="profile-hub-feature-desc">{t("profile_hub.detailed_analysis_desc")}</p>
+                            <span className="profile-hub-coming-soon">{t("profile_hub.coming_soon")}</span>
+                        </div>
+
+                        <div className="nb-card profile-hub-feature-card">
+                            <div className="profile-hub-feature-icon">🎯</div>
+                            <h3 className="profile-hub-feature-title">{t("profile_hub.career_path")}</h3>
+                            <p className="profile-hub-feature-desc">{t("profile_hub.career_path_desc")}</p>
+                            <span className="profile-hub-coming-soon">{t("profile_hub.coming_soon")}</span>
+                        </div>
+
+                        <div className="nb-card profile-hub-feature-card">
+                            <div className="profile-hub-feature-icon">💡</div>
+                            <h3 className="profile-hub-feature-title">{t("profile_hub.skill_gaps")}</h3>
+                            <p className="profile-hub-feature-desc">{t("profile_hub.skill_gaps_desc")}</p>
+                            <span className="profile-hub-coming-soon">{t("profile_hub.coming_soon")}</span>
+                        </div>
+
+                        <div className="nb-card profile-hub-feature-card">
+                            <div className="profile-hub-feature-icon">📝</div>
+                            <h3 className="profile-hub-feature-title">{t("profile_hub.cv_templates")}</h3>
+                            <p className="profile-hub-feature-desc">{t("profile_hub.cv_templates_desc")}</p>
+                            <span className="profile-hub-coming-soon">{t("profile_hub.coming_soon")}</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </>
+    );
+};
+
+export default ProfileHub;

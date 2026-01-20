@@ -2,7 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
 import os
+from dotenv import load_dotenv
 from server.models import Base
+
+# Load .env file
+load_dotenv()
 
 # Get database URL from environment variable
 # Default to SQLite for development if DATABASE_URL is not set

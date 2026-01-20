@@ -2169,6 +2169,233 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Fehler beim Senden der Anfrage an das Modell',
         pt: 'Erro ao enviar solicitação ao modelo',
         la: 'Error mittendo petitionem ad exemplar'
+    },
+    // CV Score Card
+    'cv_score.title': {
+        en: 'CV Score',
+        es: 'Puntuación del CV',
+        fr: 'Score du CV',
+        de: 'Lebenslauf-Bewertung',
+        pt: 'Pontuação do CV',
+        la: 'Punctum Curriculum'
+    },
+    'cv_score.no_cv': {
+        en: 'Upload a CV to get your score',
+        es: 'Sube un CV para obtener tu puntuación',
+        fr: 'Téléchargez un CV pour obtenir votre score',
+        de: 'Laden Sie einen Lebenslauf hoch, um Ihre Bewertung zu erhalten',
+        pt: 'Envie um CV para obter sua pontuação',
+        la: 'Curriculum mitte ut punctum tuum accipias'
+    },
+    'cv_score.evaluating': {
+        en: 'Analyzing your CV...',
+        es: 'Analizando tu CV...',
+        fr: 'Analyse de votre CV...',
+        de: 'Analysiere Ihren Lebenslauf...',
+        pt: 'Analisando seu CV...',
+        la: 'Curriculum tuum examinando...'
+    },
+    'cv_score.no_evaluation': {
+        en: 'No CV evaluation yet',
+        es: 'Aún sin evaluación de CV',
+        fr: 'CV pas encore évalué',
+        de: 'Noch keine Lebenslauf-Bewertung',
+        pt: 'CV ainda não avaliado',
+        la: 'Curriculum nondum aestimatum'
+    },
+    'cv_score.evaluate_now': {
+        en: 'Evaluate Now',
+        es: 'Evaluar Ahora',
+        fr: 'Évaluer Maintenant',
+        de: 'Jetzt Bewerten',
+        pt: 'Avaliar Agora',
+        la: 'Aestima Nunc'
+    },
+    'cv_score.completeness': {
+        en: 'Completeness',
+        es: 'Completitud',
+        fr: 'Complétude',
+        de: 'Vollständigkeit',
+        pt: 'Completude',
+        la: 'Integritas'
+    },
+    'cv_score.experience': {
+        en: 'Experience Quality',
+        es: 'Calidad de Experiencia',
+        fr: 'Qualité de l\'Expérience',
+        de: 'Erfahrungsqualität',
+        pt: 'Qualidade da Experiência',
+        la: 'Qualitas Experientiae'
+    },
+    'cv_score.skills': {
+        en: 'Skills Relevance',
+        es: 'Relevancia de Habilidades',
+        fr: 'Pertinence des Compétences',
+        de: 'Relevanz der Fähigkeiten',
+        pt: 'Relevância das Habilidades',
+        la: 'Pertinentia Artium'
+    },
+    'cv_score.impact': {
+        en: 'Impact Evidence',
+        es: 'Evidencia de Impacto',
+        fr: 'Preuve d\'Impact',
+        de: 'Wirkungsnachweis',
+        pt: 'Evidência de Impacto',
+        la: 'Testimonium Impactus'
+    },
+    'cv_score.clarity': {
+        en: 'Clarity',
+        es: 'Claridad',
+        fr: 'Clarté',
+        de: 'Klarheit',
+        pt: 'Clareza',
+        la: 'Claritas'
+    },
+    'cv_score.consistency': {
+        en: 'Consistency',
+        es: 'Consistencia',
+        fr: 'Cohérence',
+        de: 'Konsistenz',
+        pt: 'Consistência',
+        la: 'Constantia'
+    },
+    'cv_score.recommendations': {
+        en: 'Recommendations',
+        es: 'Recomendaciones',
+        fr: 'Recommandations',
+        de: 'Empfehlungen',
+        pt: 'Recomendações',
+        la: 'Commendationes'
+    },
+    'cv_score.re_evaluate': {
+        en: 'Re-evaluate CV',
+        es: 'Reevaluar CV',
+        fr: 'Réévaluer le CV',
+        de: 'Lebenslauf neu bewerten',
+        pt: 'Reavaliar CV',
+        la: 'Curriculum Rursus Examinare'
+    },
+    'cv_score.view_profile_hub': {
+        en: 'View Profile Hub',
+        es: 'Ver Centro de Perfil',
+        fr: 'Voir le Hub Profil',
+        de: 'Profil-Hub anzeigen',
+        pt: 'Ver Hub do Perfil',
+        la: 'Videre Centrum Profili'
+    },
+    // Header Navigation
+    'header.home': {
+        en: 'Home',
+        es: 'Inicio',
+        fr: 'Accueil',
+        de: 'Startseite',
+        pt: 'Início',
+        la: 'Domus'
+    },
+    'header.jobs': {
+        en: 'Jobs',
+        es: 'Empleos',
+        fr: 'Emplois',
+        de: 'Stellen',
+        pt: 'Vagas',
+        la: 'Opera'
+    },
+    'header.profile_hub': {
+        en: 'Profile Hub',
+        es: 'Centro de Perfil',
+        fr: 'Hub Profil',
+        de: 'Profil-Hub',
+        pt: 'Hub do Perfil',
+        la: 'Centrum Profili'
+    },
+    // Profile Hub Page
+    'profile_hub.title': {
+        en: 'Profile Hub',
+        es: 'Centro de Perfil',
+        fr: 'Hub Profil',
+        de: 'Profil-Hub',
+        pt: 'Hub do Perfil',
+        la: 'Centrum Profili'
+    },
+    'profile_hub.subtitle': {
+        en: 'Your career insights and tools in one place',
+        es: 'Tus perspectivas profesionales y herramientas en un solo lugar',
+        fr: 'Vos insights de carrière et outils en un seul endroit',
+        de: 'Ihre Karriere-Einblicke und Tools an einem Ort',
+        pt: 'Seus insights de carreira e ferramentas em um só lugar',
+        la: 'Perspectiones et instrumenta curriculum tuum uno loco'
+    },
+    'profile_hub.detailed_analysis': {
+        en: 'Detailed Analysis',
+        es: 'Análisis Detallado',
+        fr: 'Analyse Détaillée',
+        de: 'Detaillierte Analyse',
+        pt: 'Análise Detalhada',
+        la: 'Analysis Accurata'
+    },
+    'profile_hub.detailed_analysis_desc': {
+        en: 'Deep dive into your CV scores with explanations and improvement suggestions',
+        es: 'Análisis profundo de tus puntuaciones de CV con explicaciones y sugerencias de mejora',
+        fr: 'Analyse approfondie de vos scores CV avec explications et suggestions d\'amélioration',
+        de: 'Tiefgehende Analyse Ihrer Lebenslauf-Bewertungen mit Erklärungen und Verbesserungsvorschlägen',
+        pt: 'Análise profunda de suas pontuações de CV com explicações e sugestões de melhoria',
+        la: 'Analysis profunda punctorum curriculum cum explicationibus et suggestionibus emendationis'
+    },
+    'profile_hub.career_path': {
+        en: 'Career Path',
+        es: 'Trayectoria Profesional',
+        fr: 'Parcours de Carrière',
+        de: 'Karriereweg',
+        pt: 'Trajetória de Carreira',
+        la: 'Via Curriculum'
+    },
+    'profile_hub.career_path_desc': {
+        en: 'Visualize potential career progressions based on your experience and skills',
+        es: 'Visualiza progresiones profesionales potenciales basadas en tu experiencia y habilidades',
+        fr: 'Visualisez les progressions de carrière potentielles basées sur votre expérience et compétences',
+        de: 'Visualisieren Sie potenzielle Karriereverläufe basierend auf Ihrer Erfahrung und Fähigkeiten',
+        pt: 'Visualize progressões de carreira potenciais com base em sua experiência e habilidades',
+        la: 'Videre progressiones curriculum potentiales ex experientia et artibus tuis'
+    },
+    'profile_hub.skill_gaps': {
+        en: 'Skill Gaps',
+        es: 'Brechas de Habilidades',
+        fr: 'Lacunes de Compétences',
+        de: 'Kompetenzlücken',
+        pt: 'Lacunas de Habilidades',
+        la: 'Lacunae Artium'
+    },
+    'profile_hub.skill_gaps_desc': {
+        en: 'Identify missing skills for your target roles and get learning recommendations',
+        es: 'Identifica habilidades faltantes para tus roles objetivo y obtén recomendaciones de aprendizaje',
+        fr: 'Identifiez les compétences manquantes pour vos rôles cibles et obtenez des recommandations d\'apprentissage',
+        de: 'Identifizieren Sie fehlende Fähigkeiten für Ihre Zielrollen und erhalten Sie Lernempfehlungen',
+        pt: 'Identifique habilidades ausentes para seus cargos-alvo e obtenha recomendações de aprendizado',
+        la: 'Identifica artes deesse pro muneribus scoporum tuorum et accipe commendationes discendi'
+    },
+    'profile_hub.cv_templates': {
+        en: 'CV Templates',
+        es: 'Plantillas de CV',
+        fr: 'Modèles de CV',
+        de: 'Lebenslauf-Vorlagen',
+        pt: 'Modelos de CV',
+        la: 'Exemplaria Curriculum'
+    },
+    'profile_hub.cv_templates_desc': {
+        en: 'Access professional CV templates optimized for your industry',
+        es: 'Accede a plantillas de CV profesionales optimizadas para tu industria',
+        fr: 'Accédez à des modèles de CV professionnels optimisés pour votre industrie',
+        de: 'Greifen Sie auf professionelle Lebenslauf-Vorlagen zu, die für Ihre Branche optimiert sind',
+        pt: 'Acesse modelos de CV profissionais otimizados para sua indústria',
+        la: 'Accede ad exemplaria curriculum professionalia optimata pro industria tua'
+    },
+    'profile_hub.coming_soon': {
+        en: 'Coming Soon',
+        es: 'Próximamente',
+        fr: 'Bientôt Disponible',
+        de: 'Demnächst',
+        pt: 'Em Breve',
+        la: 'Mox Venturum'
     }
 };
 

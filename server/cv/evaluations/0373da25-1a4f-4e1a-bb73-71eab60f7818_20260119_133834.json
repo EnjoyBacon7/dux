@@ -1,0 +1,272 @@
+{
+  "evaluation_id": "5d095ddf-1dc4-41c2-b093-7e26210588f1",
+  "cv_filename": "0373da25-1a4f-4e1a-bb73-71eab60f7818.pdf",
+  "raw_cv_text": "MARS 2024 www.ardata.frJuin\n2023\nPrésentArData  Paris, FranceConsultant(e) spécialisé(e) en R\nDéveloppements R et migrations SAS vers R pour la DREES\nFormations R\nDéveloppements d’applications shiny\nOctobre\n2020\nMai 2023Prime Analytics  Paris, FranceConsultant(e) en Business Intellig ence\nFévrier\n2019\nSeptembre\n2020Banque Internationale Arabe de Tunisie  Tunis, TunisieData Scientist\nSeptembre\n2018\nJanvier\n2019Steps  Tunis, TunisieData Scientist\n2019\nUniversité de Paris en collaboration avec l’Ecole\nNationale d’Ingénieurs de Tunis\n Tunis - TunisieDiplôme de master de recherche en “Sciences,\nTechnologies, Santé, à nalité professionnelle et\nrecherche, Mention Mathématiques et\nInformatique”CONTACT INFO\n Ile de France\n✉ mouna.belaid@ardata.fr\n mounabelaid.netlify.app\n github.com/MounaBelaid\nCOMPÉTENCES CLEFS\nBonnes connaissances de R et de\nson écosystème\nExpertise en traitement et\nvisualisation de données\nDéveloppement des applications\nweb R Shiny\nAutomatisation des processus\nanalytiques\nConception et animation des\nformations techniques\nCOMPÉTENCES\nTECHN IQUES\nStatistique : Analyse statistique,\nvisualisation de données,\nmodélisation prédictive\nLangages de programmation :\nR, Python\nBusiness Intellig ence : R Shiny,\nPower BI, AlteryxM B E\nConsultante spécialisée en R\nJe suis ingénieur(e) spécialisé(e) en statistiques et analyse de\ndonnées. Je suis passionné(e) par R et son écosystème qui est mon\noutil de préférence pour la proposition de solutions analytiques et\nla production de visualisation des données. En plus de mes\ncompéten ces techniques, je réalise des formation à l’utilisation de\nR. Je suis également très actif(ve) au sein de la communauté R-\nLadies, à la fois en tant qu’organisateur(rice) de R-Ladies Paris et\nmembre de l’équipe R-Ladies Global.\nEXPERIENCE\n|\n|\n|\n|\nFORMATION\n\nMARS 2024 www.ardata.fr2018\nEcole Supérieure de la Statistique et de l’Analyse de\nl’Information, Université de Carthage\n Tunis - TunisieDiplôme d’ingénieur en Statistique et Analyse de\nl’Information, Option Intellig ence Articielle\n2015\nFaculté des Sciences de Tunis  Tunis - TunisieConcours National d’Entrée aux Ecoles\nd’Ingénieurs et Classes préparatoires, Mention\nMathématiques et Physique,Bases de données : Oracle SQL\nOutils de gestion de code\nsource : GitHub, Git\nOutils de composition de\ndocuments : R Markdown,\nLaTeX, Overleaf\nOutils de gestion de documents\n: SharePoint",
+  "structured_cv": {
+    "personal_info": {
+      "name": null,
+      "email": "mouna.belaid@ardata.fr",
+      "phone": null,
+      "location": "Ile de France",
+      "linkedin_url": null,
+      "portfolio_url": "mounabelaid.netlify.app",
+      "evidence_quote": "CONTACT INFO\n Ile de France\n✉ mouna.belaid@ardata.fr\n mounabelaid.netlify.app\n github.com/MounaBelaid"
+    },
+    "professional_summary": {
+      "text": "Consultante spécialisée en R\nJe suis ingénieur(e) spécialisé(e) en statistiques et analyse de données. Je suis passionné(e) par R et son écosystème qui est mon outil de préférence pour la proposition de solutions analytiques et la production de visualisation des données. En plus de mes compétences techniques, je réalise des formations à l’utilisation de R. Je suis également très actif(ve) au sein de la communauté R-Ladies, à la fois en tant qu’organisateur(rice) de R-Ladies Paris et membre de l’équipe R-Ladies Global.",
+      "evidence_quote": "Consultante spécialisée en R\nJe suis ingénieur(e) spécialisé(e) en statistiques et analyse de données. Je suis passionné(e) par R et son écosystème qui est mon outil de préférence pour la proposition de solutions analytiques et la production de visualisation des données. En plus de mes compétences techniques, je réalise des formations à l’utilisation de R. Je suis également très actif(ve) au sein de la communauté R-Ladies, à la fois en tant qu’organisateur(rice) de R-Ladies Paris et membre de l’équipe R-Ladies Global."
+    },
+    "work_experience": [
+      {
+        "role": "Consultant(e) spécialisé(e) en R",
+        "company": "ArData",
+        "start_date": "Juin 2023",
+        "end_date": "Présent",
+        "is_current": true,
+        "location": "Paris, France",
+        "responsibilities": [
+          "Développements R et migrations SAS vers R pour la DREES",
+          "Formations R",
+          "Développements d’applications shiny"
+        ],
+        "evidence_quote": "Juin 2023\nPrésent\nArData  Paris, France\nConsultant(e) spécialisé(e) en R\nDéveloppements R et migrations SAS vers R pour la DREES\nFormations R\nDéveloppements d’applications shiny"
+      },
+      {
+        "role": "Consultant(e) en Business Intelligence",
+        "company": "Prime Analytics",
+        "start_date": "Octobre 2020",
+        "end_date": "Mai 2023",
+        "is_current": false,
+        "location": "Paris, France",
+        "responsibilities": [],
+        "evidence_quote": "Octobre 2020\nMai 2023\nPrime Analytics  Paris, France\nConsultant(e) en Business Intelligence"
+      },
+      {
+        "role": "Data Scientist",
+        "company": "Banque Internationale Arabe de Tunisie",
+        "start_date": "Février 2019",
+        "end_date": "Septembre 2020",
+        "is_current": false,
+        "location": "Tunis, Tunisie",
+        "responsibilities": [],
+        "evidence_quote": "Février 2019\nSeptembre 2020\nBanque Internationale Arabe de Tunisie  Tunis, Tunisie\nData Scientist"
+      },
+      {
+        "role": "Data Scientist",
+        "company": "Steps",
+        "start_date": "Septembre 2018",
+        "end_date": "Janvier 2019",
+        "is_current": false,
+        "location": "Tunis, Tunisie",
+        "responsibilities": [],
+        "evidence_quote": "Septembre 2018\nJanvier 2019\nSteps  Tunis, Tunisie\nData Scientist"
+      }
+    ],
+    "education": [
+      {
+        "degree": "Diplôme de master de recherche en “Sciences, Technologies, Santé, à nalité professionnelle et recherche, Mention Mathématiques et Informatique”",
+        "field_of_study": null,
+        "institution": "Université de Paris en collaboration avec l’Ecole Nationale d’Ingénieurs de Tunis",
+        "start_date": "2019",
+        "end_date": null,
+        "gpa": null,
+        "honors": null,
+        "evidence_quote": "2019\nUniversité de Paris en collaboration avec l’Ecole Nationale d’Ingénieurs de Tunis\n Tunis - Tunisie\nDiplôme de master de recherche en “Sciences, Technologies, Santé, à nalité professionnelle et recherche, Mention Mathématiques et Informatique”"
+      },
+      {
+        "degree": "Diplôme d’ingénieur en Statistique et Analyse de l’Information, Option Intellig ence Articielle",
+        "field_of_study": null,
+        "institution": "Ecole Supérieure de la Statistique et de l’Analyse de l’Information, Université de Carthage",
+        "start_date": "2018",
+        "end_date": null,
+        "gpa": null,
+        "honors": null,
+        "evidence_quote": "2018\nEcole Supérieure de la Statistique et de l’Analyse de l’Information, Université de Carthage\n Tunis - Tunisie\nDiplôme d’ingénieur en Statistique et Analyse de l’Information, Option Intellig ence Articielle"
+      },
+      {
+        "degree": "Concours National d’Entrée aux Ecoles d’Ingénieurs et Classes préparatoires, Mention Mathématiques et Physique",
+        "field_of_study": null,
+        "institution": "Faculté des Sciences de Tunis",
+        "start_date": "2015",
+        "end_date": null,
+        "gpa": null,
+        "honors": null,
+        "evidence_quote": "2015\nFaculté des Sciences de Tunis  Tunis - Tunisie\nConcours National d’Entrée aux Ecoles d’Ingénieurs et Classes préparatoires, Mention Mathématiques et Physique"
+      }
+    ],
+    "skills": [
+      {
+        "category": "COMPÉTENCES CLEFS",
+        "skills": [
+          "Bonnes connaissances de R et de son écosystème",
+          "Expertise en traitement et visualisation de données",
+          "Développement des applications web R Shiny",
+          "Automatisation des processus analytiques",
+          "Conception et animation des formations techniques"
+        ],
+        "evidence_quote": "COMPÉTENCES CLEFS\nBonnes connaissances de R et de son écosystème\nExpertise en traitement et visualisation de données\nDéveloppement des applications web R Shiny\nAutomatisation des processus analytiques\nConception et animation des formations techniques"
+      },
+      {
+        "category": "COMPÉTENCES TECHNIQUES",
+        "skills": [
+          "Statistique : Analyse statistique, visualisation de données, modélisation prédictive",
+          "Langages de programmation : R, Python",
+          "Business Intelligence : R Shiny, Power BI, Alteryx",
+          "Bases de données : Oracle SQL",
+          "Outils de gestion de code source : GitHub, Git",
+          "Outils de composition de documents : R Markdown, LaTeX, Overleaf",
+          "Outils de gestion de documents : SharePoint"
+        ],
+        "evidence_quote": "COMPÉTENCES TECHNIQUES\nStatistique : Analyse statistique, visualisation de données, modélisation prédictive\nLangages de programmation : R, Python\nBusiness Intelligence : R Shiny, Power BI, Alteryx\nBases de données : Oracle SQL\nOutils de gestion de code source : GitHub, Git\nOutils de composition de documents : R Markdown, LaTeX, Overleaf\nOutils de gestion de documents : SharePoint"
+      }
+    ],
+    "projects": [],
+    "certifications": [],
+    "languages": [],
+    "extraction_timestamp": "2026-01-19T12:38:02.664438",
+    "extraction_warnings": [
+      "Section header 'FORMATION' is ambiguous as it could refer to either professional experience or education"
+    ]
+  },
+  "derived_features": {
+    "total_experience_months": null,
+    "total_experience_years": null,
+    "experience_count": 4,
+    "education_count": 3,
+    "skills_count": 12,
+    "projects_count": 0,
+    "certifications_count": 0,
+    "has_quantified_results": false,
+    "quantified_results_count": 0,
+    "quantified_examples": [],
+    "timeline_gaps": [],
+    "timeline_overlaps": [],
+    "date_issues": [
+      {
+        "section": "work_experience[0]",
+        "issue_type": "invalid_format",
+        "description": "Could not parse start date 'Juin 2023'"
+      },
+      {
+        "section": "work_experience[1]",
+        "issue_type": "invalid_format",
+        "description": "Could not parse start date 'Octobre 2020'"
+      },
+      {
+        "section": "work_experience[2]",
+        "issue_type": "invalid_format",
+        "description": "Could not parse start date 'Février 2019'"
+      },
+      {
+        "section": "work_experience[3]",
+        "issue_type": "invalid_format",
+        "description": "Could not parse start date 'Septembre 2018'"
+      }
+    ],
+    "avg_tenure_months": null,
+    "shortest_tenure_months": null,
+    "longest_tenure_months": null,
+    "job_hopping_flag": false,
+    "missing_sections": [
+      "name"
+    ],
+    "has_contact_info": true,
+    "has_summary": true,
+    "has_experience": true,
+    "has_education": true,
+    "has_skills": true,
+    "validation_timestamp": "2026-01-19T12:38:02.665300",
+    "validation_warnings": [
+      "Could not parse any work experience dates"
+    ]
+  },
+  "scores": {
+    "overall_score": 55,
+    "overall_summary": "The CV demonstrates a solid foundation in data science and R consulting, with clear skills and experience. However, it suffers from incomplete personal information, lack of quantified achievements, and date formatting issues.",
+    "completeness": {
+      "score": 60,
+      "justification": "The CV includes essential sections like professional summary, work experience, education, and skills. However, it is missing critical personal information such as the name and phone number.",
+      "evidence": [
+        "Missing sections: name",
+        "Has contact info: true",
+        "Has summary: true",
+        "Has experience: true",
+        "Has education: true",
+        "Has skills: true"
+      ]
+    },
+    "experience_quality": {
+      "score": 65,
+      "justification": "The candidate has a variety of relevant roles, but the responsibilities are not detailed for all positions. The experience shows progression, but the lack of tenure data makes it hard to assess fully.",
+      "evidence": [
+        "Experience count: 4",
+        "Current role: Consultant(e) spécialisé(e) en R at ArData",
+        "Previous roles include Data Scientist and Consultant(e) en Business Intelligence"
+      ]
+    },
+    "skills_relevance": {
+      "score": 80,
+      "justification": "The skills are well-organized into categories and are highly relevant to the candidate's roles in data science and R consulting. The breadth and specificity of the skills are strong.",
+      "evidence": [
+        "Skills count: 12",
+        "Categories: COMPÉTENCES CLEFS, COMPÉTENCES TECHNIQUES",
+        "Specific skills: R, Python, R Shiny, Power BI, Alteryx"
+      ]
+    },
+    "impact_evidence": {
+      "score": 20,
+      "justification": "There are no quantified achievements or results provided, making it difficult to assess the candidate's impact in previous roles.",
+      "evidence": [
+        "Has quantified results: false",
+        "Quantified results count: 0"
+      ]
+    },
+    "clarity": {
+      "score": 70,
+      "justification": "The CV is well-structured with a clear professional summary and organized sections. However, there are some ambiguities in section headers and date formatting issues.",
+      "evidence": [
+        "Professional summary present",
+        "Sections are organized",
+        "Evidence quote for contact info and professional summary"
+      ]
+    },
+    "consistency": {
+      "score": 40,
+      "justification": "There are significant date formatting issues and extraction warnings that affect the timeline's coherence. This makes the experience timeline hard to verify.",
+      "evidence": [
+        "Date issues in work experience",
+        "Extraction warnings: Ambiguous section header 'FORMATION'"
+      ]
+    },
+    "strengths": [
+      "Well-organized skills section with relevant technical abilities",
+      "Clear professional summary highlighting key competencies",
+      "Diverse work experience in data science and consulting roles"
+    ],
+    "weaknesses": [
+      "Lack of quantified achievements and results",
+      "Incomplete personal information",
+      "Date formatting issues affecting timeline consistency"
+    ],
+    "missing_info": [
+      "Name",
+      "Phone number",
+      "Quantified achievements",
+      "Detailed responsibilities for all roles"
+    ],
+    "red_flags": [
+      "Significant date formatting issues",
+      "Ambiguous section header 'FORMATION'"
+    ],
+    "recommendations": [
+      "Add missing personal information",
+      "Include quantified achievements to demonstrate impact",
+      "Fix date formatting issues to ensure timeline consistency"
+    ],
+    "scoring_timestamp": "2026-01-19T12:38:34.239182"
+  },
+  "pipeline_version": "1.0.0",
+  "evaluation_timestamp": "2026-01-19T12:38:34.239987",
+  "processing_time_seconds": 111.29,
+  "errors": []
+}
