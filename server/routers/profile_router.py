@@ -23,11 +23,8 @@ from server.dependencies import get_current_user
 # Router Setup
 # ============================================================================
 
-from openai import OpenAI
-
 router = APIRouter(prefix="/profile", tags=["Profile"])
 logger = logging.getLogger(__name__)
-
 
 # ============================================================================
 # Request Models
