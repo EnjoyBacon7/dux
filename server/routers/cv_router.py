@@ -360,16 +360,15 @@ async def get_evaluation(
         EvaluationResponse: The latest evaluation results, or null if none exists
                            or if the evaluation is for an outdated CV
     """
-    # Only return evaluation if it matches the current CV filename
-    if not current_user.cv_filename:
-        return None
+    # Normalize missing filenames to "unknown" (same sentinel used by /evaluate endpoint)
+    filename = current_user.cv_filename or "unknown"
     
     # First check for any evaluation (pending, completed, or failed) for current CV
     evaluation = (
         db.query(CVEvaluation)
         .filter(
             CVEvaluation.user_id == current_user.id,
-            CVEvaluation.cv_filename == current_user.cv_filename,
+            CVEvaluation.cv_filename == filename,
         )
         .order_by(CVEvaluation.created_at.desc())
         .first()
