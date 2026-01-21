@@ -2428,7 +2428,65 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Demnächst',
         pt: 'Em Breve',
         la: 'Mox Venturum'
-    }
+    },
+
+    // Match Analysis Card
+    'analysis.title': {
+        en: 'Match Analysis',
+        es: 'Análisis de Compatibilidad',
+        fr: 'Analyse de Compatibilité',
+        de: 'Übereinstimmungsanalyse',
+        pt: 'Análise de Compatibilidade',
+        la: 'Analysis Congruentiae'
+    },
+    'analysis.loading': {
+        en: 'AI is analyzing your profile...',
+        es: 'La IA está analizando tu perfil...',
+        fr: 'L\'IA analyse votre profil...',
+        de: 'KI analysiert Ihr Profil...',
+        pt: 'A IA está analisando seu perfil...',
+        la: 'IA profilum tuum examinat...'
+    },
+    'analysis.technical_score': {
+        en: 'Technical Score',
+        es: 'Puntuación Técnica',
+        fr: 'Score Technique',
+        de: 'Technischer Wert',
+        pt: 'Pontuação Técnica',
+        la: 'Punctum Technicum'
+    },
+    'analysis.culture_fit': {
+        en: 'Culture Fit',
+        es: 'Ajuste Cultural',
+        fr: 'Fit Culturel',
+        de: 'Kulturelle Passung',
+        pt: 'Ajuste Cultural',
+        la: 'Congruentia Culturalis'
+    },
+    'analysis.match_reasons': {
+        en: 'Match Reasons',
+        es: 'Razones de Coincidencia',
+        fr: 'Points Forts',
+        de: 'Gründe für Übereinstimmung',
+        pt: 'Razões de Compatibilidade',
+        la: 'Causae Congruentiae'
+    },
+    'analysis.missing_skills': {
+        en: 'To Improve',
+        es: 'A Mejorar',
+        fr: 'À Améliorer',
+        de: 'Zu Verbessern',
+        pt: 'A Melhorar',
+        la: 'Emendandum'
+    },
+    'analysis.error': {
+        en: 'Unable to retrieve analysis.',
+        es: 'No se pudo recuperar el análisis.',
+        fr: 'Impossible de récupérer l\'analyse.',
+        de: 'Analyse konnte nicht abgerufen werden.',
+        pt: 'Não foi possível recuperar a análise.',
+        la: 'Analysis recuperari non potuit.'
+    },
 };
 
 // LanguageContext is now defined and exported from LanguageCore.ts
