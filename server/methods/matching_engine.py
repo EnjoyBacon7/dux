@@ -1,8 +1,8 @@
-import os
 import json
 import logging
 from openai import OpenAI
 from server.models import User, Offres_FT
+from server.config import settings
 
 # Configuration du logger
 logger = logging.getLogger(__name__)
@@ -10,20 +10,22 @@ logger = logging.getLogger(__name__)
 class MatchingEngine:
     def __init__(self, db_session):
         self.db = db_session
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        self.base_url = os.getenv("OPENAI_BASE_URL")
-        self.model = os.getenv("OPENAI_MODEL")
         
+        # Récupération via config.py
+        self.api_key = settings.openai_api_key
+        self.base_url = settings.openai_base_url
+        self.model = settings.openai_model
+        
+        # Validation : On vérifie que les valeurs ne sont pas vides
         missing_vars = []
-        if not self.api_key: missing_vars.append("OPENAI_API_KEY")
-        if not self.base_url: missing_vars.append("OPENAI_BASE_URL")
-        if not self.model: missing_vars.append("OPENAI_MODEL")
+        if not self.api_key: missing_vars.append("openai_api_key")
+        if not self.base_url: missing_vars.append("openai_base_url")
+        if not self.model: missing_vars.append("openai_model")
 
         if missing_vars:
-            error_msg = f"Configuration MatchingEngine incomplète. Variables manquantes : {', '.join(missing_vars)}"
+            error_msg = f"Configuration MatchingEngine incomplète (settings). Variables manquantes : {', '.join(missing_vars)}"
             logger.error(error_msg)
             raise ValueError(error_msg)
-        # ---------------------------------
 
         try:
             self.client = OpenAI(
@@ -32,7 +34,6 @@ class MatchingEngine:
             )
         except Exception as e:
             logger.error(f"Erreur init OpenAI: {e}")
-            # On relève l'erreur pour ne pas démarrer avec un moteur cassé
             raise ValueError(f"Impossible d'initialiser le client OpenAI : {e}")
 
     def _generate_prompt(self, user: User, job: Offres_FT) -> str:
@@ -54,13 +55,10 @@ class MatchingEngine:
                     # Extraction propre des libellés
                     job_skills = ", ".join([s.get('libelle', '') for s in loaded if s.get('libelle')])
             except (json.JSONDecodeError, TypeError, ValueError) as e:
-                # Log l'erreur avec le contexte (ID du job et début de la chaîne problématique)
-                # On utilise warning car ce n'est pas bloquant (on garde la chaîne brute)
                 logger.warning(
-                    f" Erreur parsing JSON compétences pour Job {job.id}. "
+                    f"Erreur parsing JSON compétences pour Job {job.id}. "
                     f"Erreur: {e}. Raw Data (50 premiers chars): {job_skills[:50]}..."
                 )
-                # Fallback implicite : on garde job_skills tel quel
 
         prompt = f"""
         Tu es un expert en recrutement. Analyse la compatibilité (matching) entre ce candidat et cette offre.
@@ -92,10 +90,10 @@ class MatchingEngine:
 
     def analyser_match(self, user: User, job: Offres_FT) -> dict:
         """Exécute l'analyse"""
-        logger.info(f" Analyse IA : {user.username} vs Job {job.id}")
+        logger.info(f"Analyse IA : {user.username} vs Job {job.id}")
         
         if not self.client:
-            raise Exception("Client IA non initialisé (vérifier .env)")
+            raise Exception("Client IA non initialisé")
 
         prompt = self._generate_prompt(user, job)
 
@@ -122,7 +120,6 @@ class MatchingEngine:
 
         except Exception as e:
             logger.error(f" Erreur IA : {e}")
-            # En cas d'erreur critique, on renvoie une structure vide pour ne pas crasher le front
             return {
                 "score_technique": 0,
                 "score_culturel": 0,

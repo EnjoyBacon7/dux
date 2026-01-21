@@ -485,7 +485,7 @@ async def analyze_job_direct(
     bind = db.get_bind()
     user_id = current_user.id
     
-    logger.info(f"🎯 Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
+    logger.info(f"Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
 
     try:
         # On prépare le payload sous forme de dict simple

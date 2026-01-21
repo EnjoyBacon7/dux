@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { JobOffer } from './JobDetail'; // On réutilise ton type existant
+import type { JobOffer } from './JobDetail';
 
 interface AnalysisResult {
     score_technique: number;
@@ -10,7 +10,7 @@ interface AnalysisResult {
 }
 
 interface JobMatchAnalysisProps {
-    job: JobOffer; // On reçoit l'objet complet maintenant
+    job: JobOffer; // On reçoit l'objet complet
     onClose: () => void;
 }
 
@@ -24,12 +24,12 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
         const fetchAnalysis = async () => {
             try {
                 // On prépare les données minimales nécessaires pour l'IA
-                // (On évite d'envoyer tout l'objet s'il est énorme, mais ici ça va)
+                // (On évite d'envoyer tout l'objet s'il est énorme)
                 const payload = {
                     id: job.id,
                     intitule: job.intitule,
                     description: job.description,
-                    entreprise_nom: job["entreprise_nom"], // Attention aux guillemets si c'est ta convention
+                    entreprise_nom: job["entreprise_nom"],
                     competences: job.competences
                 };
 

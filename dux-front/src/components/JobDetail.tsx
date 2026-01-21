@@ -5,7 +5,7 @@ import { useLanguage } from "../contexts/useLanguage"; // 1. Import du hook de t
 // Import the new analysis component
 import JobMatchAnalysis from "./JobMatchAnalysis";
 
-// Full job offer interface matching backend columns
+// Full job offer interface 
 export interface JobOffer {
     id: string;
     intitule: string | null;
@@ -77,7 +77,7 @@ interface JobDetailProps {
     onClose: () => void;
 }
 
-// 2. Helper pour ne sélectionner que les champs pertinents et non-sensibles
+//  Helper pour ne sélectionner que les champs pertinents et non-sensibles
 const pickAnalysisFields = (job: JobOffer): JobOffer => {
     // On crée un objet partiel ne contenant que les données métier utiles pour l'IA
     // et on exclut explicitement toutes les données de contact (PII)
