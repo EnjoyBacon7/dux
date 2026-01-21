@@ -81,7 +81,7 @@ class EvaluationHistoryItem(BaseModel):
 def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_factory) -> None:
     """
     Run CV evaluation in the background and save results to database.
-    
+
     Args:
         user_id: ID of the user whose CV is being evaluated
         cv_text: Raw CV text content
@@ -91,16 +91,16 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
     db = db_session_factory()
     try:
         logger.info(f"Starting background CV evaluation for user {user_id}")
-        
+
         # Run the pipeline (don't save to file, we'll save to DB)
         pipeline = CVEvaluationPipeline(save_results=False)
         result = pipeline.evaluate(cv_text, cv_filename=cv_filename)
-        
+
         # Save to database
         save_evaluation_to_db(db, user_id, result, cv_filename)
-        
+
         logger.info(f"CV evaluation completed for user {user_id}: score={result.scores.overall_score}")
-        
+
     except Exception as e:
         logger.error(f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}: {e}", exc_info=True)
         # Rollback any pending changes before persisting failure state
@@ -114,13 +114,13 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
 def save_evaluation_to_db(db: Session, user_id: int, result: EvaluationResult, cv_filename: str) -> CVEvaluation:
     """
     Save an evaluation result to the database.
-    
+
     Args:
         db: Database session
         user_id: User ID
         result: EvaluationResult from the pipeline
         cv_filename: CV filename at time of evaluation
-    
+
     Returns:
         CVEvaluation: The saved database record
     """
@@ -128,7 +128,7 @@ def save_evaluation_to_db(db: Session, user_id: int, result: EvaluationResult, c
         user_id=user_id,
         evaluation_id=result.evaluation_id,
         cv_filename=cv_filename,
-        
+
         # Scores
         overall_score=result.scores.overall_score,
         overall_summary=result.scores.overall_summary,
@@ -138,37 +138,37 @@ def save_evaluation_to_db(db: Session, user_id: int, result: EvaluationResult, c
         impact_evidence_score=result.scores.impact_evidence.score,
         clarity_score=result.scores.clarity.score,
         consistency_score=result.scores.consistency.score,
-        
+
         # Feedback
         strengths=result.scores.strengths,
         weaknesses=result.scores.weaknesses,
         recommendations=result.scores.recommendations,
         red_flags=result.scores.red_flags,
         missing_info=result.scores.missing_info,
-        
+
         # Full data for traceability
         structured_cv=result.structured_cv.model_dump(mode='json'),
         derived_features=result.derived_features.model_dump(mode='json'),
         full_scores=result.scores.model_dump(mode='json'),
-        
+
         # Metadata
         processing_time_seconds=int(result.processing_time_seconds) if result.processing_time_seconds else None,
-        
+
         # Status
         evaluation_status="completed",
     )
-    
+
     db.add(evaluation)
     db.commit()
     db.refresh(evaluation)
-    
+
     return evaluation
 
 
 def save_failed_evaluation_to_db(db: Session, user_id: int, cv_filename: str, error_message: str) -> None:
     """
     Save a failed evaluation record to the database.
-    
+
     Args:
         db: Database session
         user_id: User ID
@@ -228,13 +228,13 @@ async def evaluate_cv(
 ) -> Dict[str, Any]:
     """
     Trigger a CV evaluation for the current user.
-    
+
     The evaluation runs in the background and results are saved to the database.
     Use GET /api/cv/evaluation to retrieve results.
-    
+
     Returns:
         dict: Status message indicating evaluation has started
-    
+
     Raises:
         HTTPException: If user has no CV uploaded
     """
@@ -243,10 +243,10 @@ async def evaluate_cv(
             status_code=400,
             detail="No CV found. Please upload a CV first."
         )
-    
+
     # Import here to avoid circular imports
     from server.database import SessionLocal
-    
+
     # Add evaluation task to background
     background_tasks.add_task(
         run_cv_evaluation,
@@ -255,7 +255,7 @@ async def evaluate_cv(
         cv_filename=current_user.cv_filename or "unknown",
         db_session_factory=SessionLocal,
     )
-    
+
     return {
         "status": "started",
         "message": "CV evaluation started. Results will be available shortly."
@@ -269,7 +269,7 @@ async def get_evaluation(
 ) -> Optional[EvaluationResponse]:
     """
     Get the most recent CV evaluation for the current user.
-    
+
     Returns:
         EvaluationResponse: The latest evaluation results, or null if none exists
     """
@@ -279,10 +279,10 @@ async def get_evaluation(
         .order_by(CVEvaluation.created_at.desc())
         .first()
     )
-    
+
     if not evaluation:
         return None
-    
+
     return evaluation_to_response(evaluation)
 
 
@@ -294,16 +294,16 @@ async def get_evaluation_history(
 ) -> List[EvaluationHistoryItem]:
     """
     Get the evaluation history for the current user.
-    
+
     Args:
         limit: Maximum number of evaluations to return (default: 10, max: 100)
-    
+
     Returns:
         List of evaluation history items (summary view)
     """
     # Clamp limit to valid range
     limit = max(1, min(limit, MAX_EVAL_LIMIT))
-    
+
     evaluations = (
         db.query(CVEvaluation)
         .filter(CVEvaluation.user_id == current_user.id)
@@ -311,7 +311,7 @@ async def get_evaluation_history(
         .limit(limit)
         .all()
     )
-    
+
     return [
         EvaluationHistoryItem(
             id=e.id,
@@ -331,13 +331,13 @@ async def get_evaluation_by_id(
 ) -> EvaluationResponse:
     """
     Get a specific CV evaluation by ID.
-    
+
     Args:
         evaluation_id: The evaluation ID to retrieve
-    
+
     Returns:
         EvaluationResponse: The evaluation results
-    
+
     Raises:
         HTTPException: If evaluation not found or doesn't belong to current user
     """
@@ -349,8 +349,8 @@ async def get_evaluation_by_id(
         )
         .first()
     )
-    
+
     if not evaluation:
         raise HTTPException(status_code=404, detail="Evaluation not found")
-    
+
     return evaluation_to_response(evaluation)
