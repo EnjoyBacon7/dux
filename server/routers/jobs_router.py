@@ -588,7 +588,6 @@ def load_fiche_metier():
     except Exception as e:
         return {"error": str(e)}
 
-
 # ============================================================================
 #  Analyse IA (Helpers & Routes)
 # ============================================================================
@@ -598,30 +597,19 @@ def _run_analysis_in_thread(
     job_id: Optional[str],
     job_payload: Optional[Dict[str, Any]],
     bind,
+    lang: str = "fr"  # <--- Ajout du paramètre
 ):
-    """
-    Fonction exécutée dans un thread séparé.
-    Elle crée sa propre session DB à partir du 'bind' (Engine) pour éviter
-    les erreurs de type DetachedInstanceError avec les objets ORM.
-    """
-    # On crée une nouvelle session dédiée à ce thread
     SessionLocal = sessionmaker(bind=bind)
     with SessionLocal() as session:
-        # On recharge l'utilisateur "frais" depuis la DB
         user = session.get(User, user_id)
         if not user:
             raise ValueError("Utilisateur introuvable dans le thread")
 
-        # Soit on cherche l'offre en DB, soit on la crée depuis le payload
         if job_payload is None:
-            # Cas Analyse par ID (GET)
             job = session.query(Offres_FT).filter(Offres_FT.id == job_id).first()
             if not job:
                 raise ValueError("Offre introuvable dans le thread")
         else:
-            # Cas Analyse Directe (POST)
-            # On recrée l'objet temporaire
-            # Gestion des compétences pour qu'elles soient en string JSON si besoin
             comps = job_payload.get('competences')
             if isinstance(comps, (list, dict)):
                 comps = json.dumps(comps)
@@ -634,9 +622,8 @@ def _run_analysis_in_thread(
                 competences=comps
             )
 
-        # On lance le moteur avec cette session locale au thread
         engine = MatchingEngine(session)
-        return engine.analyser_match(user, job)
+        return engine.analyser_match(user, job, lang)
 
 
 @router.get("/analyze/{job_id}")
@@ -645,45 +632,29 @@ async def analyze_specific_job(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
-    """
-    Analyse "On-Demand" via DB (Thread-Safe).
-    """
-    # On récupère le 'bind' (la connexion moteur) pour la passer au thread
     bind = db.get_bind()
     user_id = current_user.id
-
-    logger.info(f" Analyse demandée par : {current_user.username} pour l'offre {job_id}")
+    logger.info(f"Analyse demandée par : {current_user.username} pour l'offre {job_id}")
 
     try:
-        # On lance l'analyse dans un thread en passant uniquement des IDs et le bind
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
             job_id,
-            None,  # Pas de payload, on utilise l'ID
-            bind
+            None,
+            bind,
+            "fr"
         )
-
-        # Pour la réponse HTTP, on peut utiliser la session normale du routeur
-        # pour récupérer les infos basiques
+        
         offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
-
         return {
             "status": "success",
-            "candidat": {
-                "nom": f"{current_user.first_name} {current_user.last_name}",
-                "titre": current_user.headline
-            },
-            "job": {
-                "id": job_id,
-                "intitule": offre.intitule if offre else "N/A",
-                "entreprise": offre.entreprise_nom if offre else "N/A"
-            },
+            "candidat": { "nom": f"{current_user.first_name} {current_user.last_name}" },
+            "job": { "id": job_id, "intitule": offre.intitule if offre else "N/A" },
             "analysis": evaluation
         }
-
     except Exception as e:
-        logger.error(f"Erreur critique lors de l'analyse : {str(e)}")
+        logger.error(f"Erreur critique analyse : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -693,6 +664,7 @@ class JobDataForAnalysis(BaseModel):
     description: Optional[str] = None
     entreprise_nom: Optional[str] = None
     competences: Optional[Any] = None
+    lang: str = "fr"
 
 
 @router.post("/analyze")
@@ -701,40 +673,30 @@ async def analyze_job_direct(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
-    """
-    Analyse directe (Thread-Safe).
-    """
     bind = db.get_bind()
     user_id = current_user.id
-
-    logger.info(f"Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
+    lang = job_data.lang # <--- On récupère la langue
+    
+    logger.info(f"Analyse directe ({lang}) demandée par : {current_user.username}")
 
     try:
-        # On prépare le payload sous forme de dict simple
-        payload = job_data.model_dump()  # ou .dict()
+        payload = job_data.model_dump()
 
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
-            None,  # Pas d'ID DB
-            payload,  # On fournit le payload
-            bind
+            None, 
+            payload,
+            bind,
+            lang # <--- On la passe au thread
         )
 
         return {
             "status": "success",
-            "candidat": {
-                "nom": f"{current_user.first_name} {current_user.last_name}",
-                "titre": current_user.headline
-            },
-            "job": {
-                "id": job_data.id,
-                "intitule": job_data.intitule,
-                "entreprise": job_data.entreprise_nom
-            },
+            "candidat": { "nom": f"{current_user.first_name} {current_user.last_name}" },
+            "job": { "id": job_data.id },
             "analysis": evaluation
         }
-
     except Exception as e:
-        logger.error(f"Erreur critique lors de l'analyse directe : {str(e)}")
+        logger.error(f"Erreur critique analyse directe : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
