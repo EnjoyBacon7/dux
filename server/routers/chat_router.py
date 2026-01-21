@@ -305,64 +305,6 @@ async def ft_parameters_identification_endpoint(
 # ============================================================================
 
 
-@router.get("/optimal_offers_cache", summary="Get stored optimal offers for current user")
-async def optimal_offers_cache(
-    request: Request,
-    db: Session = Depends(get_db_session),
-    current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Retrieve previously stored optimal offers for the current user.
-
-    Returns the ranked offers that were generated during the last profile match,
-    avoiding the need to re-run the expensive matching operation on page refresh.
-
-    Args:
-        request: FastAPI request object
-        db: Database session
-        current_user: Current authenticated user
-
-    Returns:
-        dict: Stored optimal offers with metadata
-
-    Raises:
-        HTTPException: If retrieval fails
-    """
-    try:
-        offers = db.query(OptimalOffer).filter(
-            OptimalOffer.user_id == current_user.id
-        ).order_by(OptimalOffer.position).all()
-
-        if not offers:
-            return {
-                "success": True,
-                "offers": [],
-                "count": 0
-            }
-
-        offers_data = [
-            {
-                "position": o.position,
-                "title": o.title,
-                "company": o.company,
-                "location": o.location,
-                "score": o.score,
-                "match_reasons": o.match_reasons,
-                "concerns": o.concerns
-            }
-            for o in offers
-        ]
-
-        return {
-            "success": True,
-            "offers": offers_data,
-            "count": len(offers_data)
-        }
-    except Exception as e:
-        logger.error(f"Error retrieving optimal offers: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve optimal offers")
-
-
 @router.post("/optimal_offers", summary="Find optimal job offers based on France Travail parameters")
 async def optimal_offers(
     request: Request,
