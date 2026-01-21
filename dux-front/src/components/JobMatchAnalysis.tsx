@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLanguage } from '../contexts/useLanguage'; // Import du hook
+import { useLanguage } from '../contexts/useLanguage';
 import type { JobOffer } from './JobDetail';
 
 interface AnalysisResult {
@@ -16,6 +16,9 @@ interface JobMatchAnalysisProps {
 }
 
 const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => {
+    const { t, language } = useLanguage(); 
+    
+    // 2. On récupère la fonction de traduction 't' et le code langue 'language'
     const { t, language } = useLanguage(); 
     
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
@@ -83,8 +86,8 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
                     <h2 style={{ margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {/* ICI : On utilise la clé propre définie à l'étape 1 */}
-                        <span>⚡</span> {t('analysis.title')}
+                        {/* 5. Traduction du titre */}
+                        <span>⚡</span> {t('match_analysis_title') || "Match Analysis"}
                     </h2>
                     <button onClick={onClose} className="nb-btn-secondary" style={{ padding: '0.5rem', lineHeight: 1, minWidth: 'auto' }}>✕</button>
                 </div>
@@ -100,7 +103,8 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                             borderTop: '4px solid var(--nb-accent)', borderRadius: '50%', 
                             margin: '0 auto 1rem', animation: 'spin 1s linear infinite' 
                         }}></div>
-                        <p>{t('analysis.loading')}</p>
+                        {/* Traduction du message d'attente */}
+                        <p>{t('analyzing_profile') || "AI is analyzing your profile..."}</p>
                         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                     </div>
                 ) : error ? (
@@ -110,10 +114,10 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                 ) : analysis ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         
-                        {/* Scores : Utilisation des clés analysis.technical et analysis.culture */}
+                        {/* Scores - Traduction des labels */}
                         <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1rem' }}>
-                            <ScoreCircle label={t('analysis.technical')} score={analysis.score_technique} color={getScoreColor(analysis.score_technique)} />
-                            <ScoreCircle label={t('analysis.culture')} score={analysis.score_culturel} color={getScoreColor(analysis.score_culturel)} />
+                            <ScoreCircle label={t('technical_score') || "Technical Score"} score={analysis.score_technique} color={getScoreColor(analysis.score_technique)} />
+                            <ScoreCircle label={t('culture_fit') || "Culture Fit"} score={analysis.score_culturel} color={getScoreColor(analysis.score_culturel)} />
                         </div>
 
                         {/* Verdict */}
@@ -130,7 +134,7 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                             {/* Points Forts */}
                             <div>
                                 <h3 style={{ color: '#10B981', borderBottom: '1px solid #10B981', paddingBottom: '0.5rem', marginTop: 0 }}>
-                                     {t('analysis.strengths')}
+                                     {t('match_reasons') || "Match Reasons"}
                                 </h3>
                                 <ul style={{ listStyle: 'none', padding: 0 }}>
                                     {analysis.match_reasons.map((reason, idx) => (
@@ -144,7 +148,7 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                             {/* Points à améliorer */}
                             <div>
                                 <h3 style={{ color: '#EF4444', borderBottom: '1px solid #EF4444', paddingBottom: '0.5rem', marginTop: 0 }}>
-                                     {t('analysis.weaknesses')}
+                                     {t('missing_skills') || "To Improve"}
                                 </h3>
                                 <ul style={{ listStyle: 'none', padding: 0 }}>
                                     {analysis.missing_skills.map((skill, idx) => (
