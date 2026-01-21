@@ -524,7 +524,7 @@ def load_fiche_metier():
         for code in tqdm(code_metier):
             try:
                 while True:
-                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
+                    resp = requests.get(FT_API_URL_METIER + f"/{code.get('code')}" + champs, headers=headers, timeout=30)
                     if resp.status_code != 429:
                         break
                 
@@ -543,7 +543,7 @@ def load_fiche_metier():
                     "Accept": "application/json"
                 }
                 while True:
-                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
+                    resp = requests.get(FT_API_URL_METIER + f"/{code.get('code')}" + champs, headers=headers, timeout=30)
                     if resp.status_code != 429:
                         break
                 
