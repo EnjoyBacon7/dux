@@ -93,6 +93,14 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
     try:
         logger.info(f"Starting background CV evaluation for user {user_id}")
         
+        # Validate CV text is not empty before starting
+        if not cv_text or not cv_text.strip():
+            error_msg = "CV text is empty or missing. The CV file may have been deleted from the filesystem."
+            logger.error(f"CV evaluation validation failed for user {user_id}: {error_msg}")
+            # Create a failed evaluation record immediately
+            save_failed_evaluation_to_db(db, user_id, cv_filename, error_msg)
+            return
+        
         # Create a pending evaluation record so frontend knows evaluation is in progress
         pending_evaluation = CVEvaluation(
             user_id=user_id,
@@ -114,20 +122,23 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
         logger.info(f"CV evaluation completed for user {user_id}: score={result.scores.overall_score}")
 
     except Exception as e:
-        logger.error(f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}: {e}", exc_info=True)
+        error_msg = str(e) if str(e) else "Unknown error"
+        logger.error(f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}: {error_msg}", exc_info=True)
         db.rollback()
         # If we created a pending record, update it to failed; otherwise create a new failed record
         if pending_evaluation and pending_evaluation.id:
             try:
                 db.query(CVEvaluation).filter(CVEvaluation.id == pending_evaluation.id).update({
                     "evaluation_status": "failed",
-                    "error_message": str(e)[:500] if str(e) else "Unknown error"
+                    "error_message": error_msg[:500]
                 })
                 db.commit()
             except Exception as persist_error:
                 logger.exception(f"Failed to update evaluation failure status: {persist_error}")
+                # Fallback: try to create a new failed record
+                save_failed_evaluation_to_db(db, user_id, cv_filename, error_msg)
         else:
-            save_failed_evaluation_to_db(db, user_id, cv_filename, str(e))
+            save_failed_evaluation_to_db(db, user_id, cv_filename, error_msg)
     finally:
         db.close()
 
@@ -302,10 +313,11 @@ async def evaluate_cv(
     Raises:
         HTTPException: If user has no CV uploaded
     """
-    if not current_user.cv_text:
+    # Validate that CV text exists and is not empty
+    if not current_user.cv_text or not current_user.cv_text.strip():
         raise HTTPException(
             status_code=400,
-            detail="No CV found. Please upload a CV first."
+            detail="No CV text found. The CV file may be missing or corrupted. Please upload a CV again."
         )
 
     # Import here to avoid circular imports
