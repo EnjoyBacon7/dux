@@ -40,11 +40,12 @@ def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: s
     }
     params = {"realm": "/partenaire"}
 
-    resp = requests.post(AUTH_URL, data=data, params=params, timeout = 30)
+    resp = requests.post(AUTH_URL, data=data, params=params, timeout=30)
     resp.raise_for_status()
     token = resp.json()["access_token"]
 
     return token
+
 
 def get_offers(code_rome: str) -> dict:
     FT_CLIENT_ID = settings.ft_client_id
@@ -66,7 +67,9 @@ def get_offers(code_rome: str) -> dict:
     page = 0
     while len(resultat) % 150 == 0 and page < 20:
         try:
-            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers, timeout=30)
+            resp = requests.get(
+                FT_API_OFFRES_URL + f"?codeROME={code_rome} &range={page * 150} -{page * 150 + 149} ", headers=headers,
+                timeout=30)
             resp.raise_for_status()
         except:
             token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
@@ -75,14 +78,16 @@ def get_offers(code_rome: str) -> dict:
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json"
             }
-            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers, timeout=30)
+            resp = requests.get(
+                FT_API_OFFRES_URL + f"?codeROME={code_rome} &range={page * 150} -{page * 150 + 149} ", headers=headers,
+                timeout=30)
             resp.raise_for_status()
 
         try:
             data = resp.json()
         except:
             data = {"resultats": []}
-        
+
         if len(data.get("resultats", [])) == 0:
             break
 
@@ -215,7 +220,7 @@ def calcul_salaire(texte_salaire: Optional[str], texte_heure: Optional[str]) -> 
     dispatch = {
         "mensuel": lambda: _parse_mensuel(ts),
         "horaire": lambda: _parse_horaire(ts, texte_heure),
-        "annuel":  lambda: _parse_annuel(ts),
+        "annuel": lambda: _parse_annuel(ts),
     }
 
     try:
@@ -518,35 +523,41 @@ def load_fiche_metier():
         }
 
         fiche_metier = []
-        
+
         champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
 
         for code in tqdm(code_metier):
             try:
                 while True:
-                    resp = requests.get(FT_API_URL_METIER + f"/{code.get('code')}" + champs, headers=headers, timeout=30)
+                    resp = requests.get(
+                        FT_API_URL_METIER + f"/{code.get('code')} "+champs, headers=headers, timeout=30)
                     if resp.status_code != 429:
                         break
-                
+
                 resp.raise_for_status()
                 data = resp.json()
                 # Getting offers info from france travail API
                 liste_offres = get_offers(code.get("code"))
                 salaire = []
                 for offre in liste_offres:
-                    salaire.append(calcul_salaire(str(offre.get('salaire').get('libelle')), str(offre.get('dureeTravailLibelle'))))
-                
+                    salaire.append(
+                        calcul_salaire(
+                            str(offre.get('salaire').get('libelle')),
+                            str(offre.get('dureeTravailLibelle'))))
+
             except:
-                token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+                token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL,
+                                         "api_rome-metiersv1 nomenclatureRome")
                 headers = {
                     "Authorization": f"Bearer {token}",
                     "Accept": "application/json"
                 }
                 while True:
-                    resp = requests.get(FT_API_URL_METIER + f"/{code.get('code')}" + champs, headers=headers, timeout=30)
+                    resp = requests.get(
+                        FT_API_URL_METIER + f"/{code.get('code')} "+champs, headers=headers, timeout=30)
                     if resp.status_code != 429:
                         break
-                
+
                 resp.raise_for_status()
                 data = resp.json()
 
@@ -554,7 +565,10 @@ def load_fiche_metier():
                 liste_offres = get_offers(code.get("code"))
                 salaire = []
                 for offre in liste_offres:
-                    salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
+                    salaire.append(
+                        calcul_salaire(
+                            str(offre.get("salaire").get('libelle')),
+                            str(offre.get('dureeTravailLibelle'))))
 
             if len(liste_offres) == 0:
                 data['nb_offre'] = 0
@@ -564,7 +578,6 @@ def load_fiche_metier():
                 data['liste_salaire_offre'] = salaire
 
             fiche_metier.append(data.copy())
-
 
         logger = logging.getLogger("uvicorn.info")
         logger.info(f"Récupération des fiches métiers : {len(fiche_metier)} obtenues.")
@@ -582,26 +595,26 @@ def load_fiche_metier():
         try:
             for fiche in fiche_metier:
                 fiche_insert = Metier_ROME(
-                    code = fiche.get("code"),
-                    libelle = fiche.get("libelle"),
-                    accesEmploi = fiche.get("accesEmploi"),
-                    appellations = fiche.get("appellations"),  # Array of appellations
-                    centresInteretsLies = fiche.get("centresInteretsLies"),  # Array of related interest centers
-                    competencesMobilisees = fiche.get("competencesMobilisees"),  # Array of skills
-                    contextesTravail = fiche.get("contextesTravail"),  # Array of work contexts
-                    definition = fiche.get("definition"),
-                    domaineProfessionnel = fiche.get("domaineProfessionnel"),
-                    metiersEnProximite = fiche.get("metiersEnProximite"),
-                    secteursActivitesLies = fiche.get("secteursActivitesLies"),
-                    themes = fiche.get("themes"),  # Array of themes
-                    transitionEcologique = fiche.get("transitionEcologique"),  # Ecological transition info
-                    transitionNumerique = fiche.get("transitionNumerique"),  # Digital transition info
-                    transitionDemographique = fiche.get("transitionDemographique"),  # Demographic transition info
-                    emploiCadre = fiche.get("emploiCadre"),
-                    emploiReglemente = fiche.get("emploiReglemente"),
-                    nb_offre = fiche.get("nb_offre"),
-                    liste_salaire_offre = fiche.get("liste_salaire_offre")
-                                )
+                    code=fiche.get("code"),
+                    libelle=fiche.get("libelle"),
+                    accesEmploi=fiche.get("accesEmploi"),
+                    appellations=fiche.get("appellations"),  # Array of appellations
+                    centresInteretsLies=fiche.get("centresInteretsLies"),  # Array of related interest centers
+                    competencesMobilisees=fiche.get("competencesMobilisees"),  # Array of skills
+                    contextesTravail=fiche.get("contextesTravail"),  # Array of work contexts
+                    definition=fiche.get("definition"),
+                    domaineProfessionnel=fiche.get("domaineProfessionnel"),
+                    metiersEnProximite=fiche.get("metiersEnProximite"),
+                    secteursActivitesLies=fiche.get("secteursActivitesLies"),
+                    themes=fiche.get("themes"),  # Array of themes
+                    transitionEcologique=fiche.get("transitionEcologique"),  # Ecological transition info
+                    transitionNumerique=fiche.get("transitionNumerique"),  # Digital transition info
+                    transitionDemographique=fiche.get("transitionDemographique"),  # Demographic transition info
+                    emploiCadre=fiche.get("emploiCadre"),
+                    emploiReglemente=fiche.get("emploiReglemente"),
+                    nb_offre=fiche.get("nb_offre"),
+                    liste_salaire_offre=fiche.get("liste_salaire_offre")
+                )
                 try:
                     session.add(fiche_insert)
                 except Exception as e:
@@ -657,7 +670,7 @@ def _run_analysis_in_thread(
             comps = job_payload.get('competences')
             if isinstance(comps, (list, dict)):
                 comps = json.dumps(comps)
-            
+
             job = Offres_FT(
                 id=job_payload.get('id'),
                 intitule=job_payload.get('intitule'),
@@ -673,7 +686,7 @@ def _run_analysis_in_thread(
 
 @router.get("/analyze/{job_id}")
 async def analyze_specific_job(
-    job_id: str, 
+    job_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
@@ -692,14 +705,14 @@ async def analyze_specific_job(
             _run_analysis_in_thread,
             user_id,
             job_id,
-            None, # Pas de payload, on utilise l'ID
+            None,  # Pas de payload, on utilise l'ID
             bind
         )
-        
+
         # Pour la réponse HTTP, on peut utiliser la session normale du routeur
         # pour récupérer les infos basiques
         offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
-        
+
         return {
             "status": "success",
             "candidat": {
@@ -713,7 +726,7 @@ async def analyze_specific_job(
             },
             "analysis": evaluation
         }
-        
+
     except Exception as e:
         logger.error(f"Erreur critique lors de l'analyse : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -726,9 +739,10 @@ class JobDataForAnalysis(BaseModel):
     entreprise_nom: Optional[str] = None
     competences: Optional[Any] = None
 
+
 @router.post("/analyze")
 async def analyze_job_direct(
-    job_data: JobDataForAnalysis, 
+    job_data: JobDataForAnalysis,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
@@ -737,21 +751,21 @@ async def analyze_job_direct(
     """
     bind = db.get_bind()
     user_id = current_user.id
-    
+
     logger.info(f"Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
 
     try:
         # On prépare le payload sous forme de dict simple
-        payload = job_data.model_dump() # ou .dict()
+        payload = job_data.model_dump()  # ou .dict()
 
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
-            None, # Pas d'ID DB
-            payload, # On fournit le payload
+            None,  # Pas d'ID DB
+            payload,  # On fournit le payload
             bind
         )
-        
+
         return {
             "status": "success",
             "candidat": {
@@ -765,7 +779,7 @@ async def analyze_job_direct(
             },
             "analysis": evaluation
         }
-        
+
     except Exception as e:
         logger.error(f"Erreur critique lors de l'analyse directe : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
