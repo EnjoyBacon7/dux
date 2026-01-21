@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Boolean, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Boolean, Text, Float
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
@@ -217,19 +217,33 @@ class Offres_FT(Base):
     def __repr__(self):
         return f"<Offres_FT(id={self.id})>"
 
-
-class Fiche_Metier_ROME(Base):
-    __tablename__ = "fiche_metier_rome"
-
-    code = Column(String, unique=True, nullable=False, index=True, primary_key=True)
-    metier = Column(JSON, nullable=False)  # {code, libelle}
-    groupesCompetencesMobilisees = Column(JSON, nullable=False)  # Array of competency groups
-    groupesSavoirs = Column(JSON, nullable=False)  # Array of knowledge groups
+class Metier_ROME(Base):
+    __tablename__ = "metier_rome"
+    
+    code = Column(String, primary_key=True, index=True)
+    libelle = Column(String, nullable=True)
+    accesEmploi = Column(Text, nullable=True)
+    appellations = Column(JSON, nullable=True)  # Array of appellations
+    centresInteretsLies = Column(JSON, nullable=True)  # Array of related interests
+    competencesMobilisees = Column(JSON, nullable=True)  # Array of competencies
+    contextesTravail = Column(JSON, nullable=True)  # Array of work contexts
+    definition = Column(Text, nullable=True)
+    domaineProfessionnel = Column(JSON, nullable=True)  # Professional domain
+    metiersEnProximite = Column(JSON, nullable=True)  # Array of related professions
+    secteursActivitesLies = Column(JSON, nullable=True)  # Array of related activity
+    themes = Column(JSON, nullable=True)  # Array of themes
+    transitionEcologique = Column(Boolean, nullable=True)  # Ecological transition info
+    transitionNumerique = Column(Boolean, nullable=True)  # Digital transition info
+    transitionDemographique = Column(Boolean, nullable=True)  # Demographic transition info
+    emploiCadre = Column(Boolean, nullable=True)
+    emploiReglemente = Column(Boolean, nullable=True)
+    nb_offre = Column(Integer, nullable=True)
+    liste_salaire_offre = Column(ARRAY(Float), nullable=True)
 
     def __repr__(self):
-        return f"<Fiche_Metier_ROME(code={self.code})>"
-
-
+        return f"<Metier_ROME(code={self.code})>"
+    
+    
 class OptimalOffer(Base):
     __tablename__ = "optimal_offers"
 
