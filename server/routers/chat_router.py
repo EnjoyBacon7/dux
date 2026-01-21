@@ -119,12 +119,14 @@ async def _get_optimal_offers_with_cache(
                 offers_data = [
                     {
                         "position": o.position,
+                        "job_id": o.job_id,
                         "title": o.title,
                         "company": o.company,
                         "location": o.location,
                         "score": o.score,
                         "match_reasons": o.match_reasons,
-                        "concerns": o.concerns
+                        "concerns": o.concerns,
+                        "job_data": o.job_data
                     }
                     for o in cached_offers
                 ]
@@ -162,24 +164,41 @@ async def _get_optimal_offers_with_cache(
     db.query(OptimalOffer).filter(OptimalOffer.user_id == current_user.id).delete()
 
     ranked_offers = result.get("ranked_offers", [])
+    # Map ranked offers to full job data using position (1-indexed)
+    offers_with_data = []
     for offer in ranked_offers:
+        position = offer.get("position", 0)
+        # Position is 1-indexed, so subtract 1 to get the correct offer from the list
+        job_data = offers[position - 1] if 0 < position <= len(offers) else None
+        job_id = job_data.get("id") if job_data else None
+
         db_offer = OptimalOffer(
             user_id=current_user.id,
-            position=offer.get("position", 0),
+            position=position,
+            job_id=job_id,
             title=offer.get("title", ""),
             company=offer.get("company", ""),
             location=offer.get("location", ""),
             score=offer.get("score", 0),
             match_reasons=offer.get("match_reasons", []),
-            concerns=offer.get("concerns", [])
+            concerns=offer.get("concerns", []),
+            job_data=job_data
         )
         db.add(db_offer)
+
+        # Build offer with job_data for response
+        offer_with_data = {
+            **offer,
+            "job_id": job_id,
+            "job_data": job_data
+        }
+        offers_with_data.append(offer_with_data)
 
     db.commit()
 
     # Add cache status and offers to result
     result["cached"] = False
-    result["offers"] = ranked_offers
+    result["offers"] = offers_with_data
 
     return result
 

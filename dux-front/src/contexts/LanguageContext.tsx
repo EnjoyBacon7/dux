@@ -1920,6 +1920,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Por que Corresponde',
         la: 'Cur Congruit'
     },
+    'jobs.match_score': {
+        en: 'Match Score',
+        es: 'Puntuación de Coincidencia',
+        fr: 'Score de Correspondance',
+        de: 'Übereinstimmungswert',
+        pt: 'Pontuação de Correspondência',
+        la: 'Punctus Congruentiae'
+    },
     'jobs.concerns': {
         en: 'Concerns',
         es: 'Preocupaciones',

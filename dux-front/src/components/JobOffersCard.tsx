@@ -1,23 +1,29 @@
 import React, { useState } from "react";
 import { useLanguage } from "../contexts/useLanguage";
 import "./jobOffersCard.css";
+import OfferBox from "./OfferBox";
+import JobDetail from "./JobDetail";
+import type { JobOffer as FullJobOffer } from "./JobDetail";
 
-interface JobOffer {
+interface OptimalOffer {
     position: number;
+    job_id?: string;
     title: string;
     company: string;
     location: string;
     score: number;
     match_reasons: string[];
     concerns?: string[];
+    job_data?: FullJobOffer;
 }
 
 const JobOffersCard: React.FC = () => {
     const { t } = useLanguage();
-    const [offers, setOffers] = useState<JobOffer[]>([]);
+    const [offers, setOffers] = useState<OptimalOffer[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedOffer, setSelectedOffer] = useState<OptimalOffer | null>(null);
 
     const generateOffers = async () => {
         setLoading(true);
@@ -56,6 +62,20 @@ const JobOffersCard: React.FC = () => {
         setCurrentIndex((prev) => (prev === offers.length - 1 ? 0 : prev + 1));
     };
 
+    // Helper to get job data for display
+    const getJobDisplayData = (offer: OptimalOffer) => {
+        const jobData = offer.job_data;
+        return {
+            title: jobData?.intitule || offer.title,
+            company: jobData?.entreprise_nom || offer.company,
+            location: jobData?.lieuTravail_libelle || offer.location,
+            contractType: jobData?.typeContratLibelle || undefined,
+            date: jobData?.dateActualisation || jobData?.dateCreation || undefined,
+            description: jobData?.description || undefined,
+            salary: jobData?.salaire_libelle || undefined,
+        };
+    };
+
     if (offers.length === 0 && !loading && !error) {
         return (
             <div className="nb-card home-card job-offers-card">
@@ -92,18 +112,37 @@ const JobOffersCard: React.FC = () => {
                         </button>
 
                         <div className="carousel-content">
-                            <div className="offer-card">
+                            <div className="nb-card" style={{ width: '100%' }}>
                                 {(() => {
                                     const offer = offers[currentIndex];
+                                    const displayData = getJobDisplayData(offer);
                                     return (
                                         <>
-                                            <div className="offer-header">
-                                                <h3 className="offer-title">{offer.title}</h3>
-                                                <div className="offer-score">{offer.score}</div>
-                                            </div>
-                                            <p className="offer-company">{offer.company}</p>
-                                            <p className="offer-location">{offer.location}</p>
+                                            {/* Use standard offer box layout with full job data */}
+                                            <OfferBox
+                                                title={displayData.title}
+                                                company={displayData.company}
+                                                location={displayData.location}
+                                                contractType={displayData.contractType}
+                                                date={displayData.date}
+                                                salary={displayData.salary}
+                                                showViewButton={false}
+                                                onClick={() => setSelectedOffer(offer)}
+                                            />
 
+                                            {/* Match score badge */}
+                                            <div className="offer-score-badge" style={{
+                                                marginTop: '0.75rem',
+                                                padding: '0.5rem',
+                                                backgroundColor: 'var(--nb-accent)',
+                                                borderRadius: '4px',
+                                                textAlign: 'center',
+                                                fontWeight: 600
+                                            }}>
+                                                {t('jobs.match_score')}: {offer.score}/100
+                                            </div>
+
+                                            {/* Why match / concerns sections below the standard box */}
                                             <div className="offer-section">
                                                 <h4 className="offer-label">{t('jobs.why_match')}</h4>
                                                 <ul className="offer-list">
@@ -154,6 +193,72 @@ const JobOffersCard: React.FC = () => {
                 <button onClick={generateOffers} className="nb-btn nb-btn--ghost nb-mt">
                     {t('jobs.refresh_offers')}
                 </button>
+            )}
+
+            {/* Use JobDetail when job_data is available, fallback to simple modal otherwise */}
+            {selectedOffer && selectedOffer.job_data && (
+                <JobDetail
+                    job={selectedOffer.job_data}
+                    onClose={() => setSelectedOffer(null)}
+                />
+            )}
+
+            {/* Fallback modal for offers without full job_data */}
+            {selectedOffer && !selectedOffer.job_data && (
+                <div className="nb-modal-backdrop" onClick={() => setSelectedOffer(null)}>
+                    <div
+                        className="nb-card"
+                        style={{ maxWidth: '520px', width: '90%', margin: '5vh auto', position: 'relative' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            aria-label="Close"
+                            className="nb-btn nb-btn--ghost"
+                            style={{ position: 'absolute', top: '0.75rem', right: '0.75rem' }}
+                            onClick={() => setSelectedOffer(null)}
+                        >
+                            ✕
+                        </button>
+
+                        <OfferBox
+                            title={selectedOffer.title}
+                            company={selectedOffer.company}
+                            location={selectedOffer.location}
+                            showViewButton={false}
+                        />
+
+                        <div className="offer-score-badge" style={{
+                            marginTop: '0.75rem',
+                            padding: '0.5rem',
+                            backgroundColor: 'var(--nb-accent)',
+                            borderRadius: '4px',
+                            textAlign: 'center',
+                            fontWeight: 600
+                        }}>
+                            {t('jobs.match_score')}: {selectedOffer.score}/100
+                        </div>
+
+                        <div className="offer-section" style={{ marginTop: '1rem' }}>
+                            <h4 className="offer-label">{t('jobs.why_match')}</h4>
+                            <ul className="offer-list">
+                                {selectedOffer.match_reasons.map((reason, i) => (
+                                    <li key={i}>{reason}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {selectedOffer.concerns && selectedOffer.concerns.length > 0 && (
+                            <div className="offer-section">
+                                <h4 className="offer-label offer-label--concern">{t('jobs.concerns')}</h4>
+                                <ul className="offer-list">
+                                    {selectedOffer.concerns.map((concern, i) => (
+                                        <li key={i}>{concern}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
             )}
         </div>
     );

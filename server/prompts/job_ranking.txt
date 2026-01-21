@@ -24,7 +24,7 @@ Analyze each offer against the CV and preferences. Score each on a scale of 0-10
 ## Output Format
 
 Return a JSON array with the top {top_k} offers, each containing:
-- position: offer number
+- position: offer number (1-indexed position from the list above)
 - title: job title
 - company: company name
 - location: work location
