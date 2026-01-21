@@ -45,14 +45,35 @@ def get_offers(code_rome: str) -> dict:
         "Accept": "application/json"
     }
 
+    resultat = []
     # Getting the list of offers for the given ROME code
-    resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}", headers=headers)
-    resp.raise_for_status()
-    try:
-        data = resp.json()
-    except:
-        data = {"resultats": []}
-    return data.get("resultats", [])
+    page = 0
+    while len(resultat) % 150 == 0 and page < 20:
+        try:
+            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers)
+            resp.raise_for_status()
+        except:
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
+
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers)
+            resp.raise_for_status()
+
+        try:
+            data = resp.json()
+        except:
+            data = {"resultats": []}
+        
+        if len(data.get("resultats", [])) == 0:
+            break
+
+        resultat += data.get("resultats", [])
+        page += 1
+
+    return resultat
 
 def calcul_salaire(texte_salaire: str, texte_heure: str) -> float:
     if texte_salaire == None:
@@ -215,22 +236,13 @@ def calcul_salaire(texte_salaire: str, texte_heure: str) -> float:
                     salaire_annuel = float(m.group(1).replace(",", "."))
                     nb_mois = 12.0
                 except:
-                    pattern = r"Annuel de\s*([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*Euros\s*à\s*([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*Euros"
-                    m = re.search(pattern, texte_salaire, flags=re.IGNORECASE)
+                    salaire_annuel = None
 
-                    if not m:
-                        raise ValueError("Format non reconnu")
-                    
-                    salaire_annuel_inf = float(m.group(1).replace(",", "."))
-                    salaire_annuel_sup = float(m.group(2).replace(",", "."))
-                    nb_mois = 12.0
-                    salaire_annuel = (salaire_annuel_inf + salaire_annuel_sup) / 2.0
-                    if salaire_annuel > 1000000:
-                        salaire_annuel = salaire_annuel / 1000.0
-
-
-        annuel = salaire_annuel * (nb_mois/12.0)
-        salaire = annuel / 12
+        if salaire_annuel == None:
+            salaire = None
+        else:
+            annuel = salaire_annuel * (nb_mois/12.0)
+            salaire = annuel / 12
     else:
         salaire = None
 
@@ -505,6 +517,7 @@ def load_fiche_metier():
                 liste_offres = get_offers(code.get("code"))
                 salaire = []
                 for offre in liste_offres:
+                    print(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle')))
                     salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
 
             if len(liste_offres) == 0:
