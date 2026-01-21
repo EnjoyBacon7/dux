@@ -2435,7 +2435,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         en: 'Match Analysis',
         es: 'Análisis de Compatibilidad',
         fr: 'Analyse de Compatibilité',
-        de: 'Matching-Analyse',
+        de: 'Übereinstimmungsanalyse',
         pt: 'Análise de Compatibilidade',
         la: 'Analysis Congruentiae'
     },
@@ -2447,7 +2447,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'A IA está analisando seu perfil...',
         la: 'IA profilum tuum examinat...'
     },
-    'analysis.technical': {
+    'analysis.technical_score': {
         en: 'Technical Score',
         es: 'Puntuación Técnica',
         fr: 'Score Technique',
@@ -2455,7 +2455,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Pontuação Técnica',
         la: 'Punctum Technicum'
     },
-    'analysis.culture': {
+    'analysis.culture_fit': {
         en: 'Culture Fit',
         es: 'Ajuste Cultural',
         fr: 'Fit Culturel',
@@ -2463,18 +2463,18 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Ajuste Cultural',
         la: 'Congruentia Culturalis'
     },
-    'analysis.strengths': {
+    'analysis.match_reasons': {
         en: 'Match Reasons',
-        es: 'Puntos Fuertes',
+        es: 'Razones de Coincidencia',
         fr: 'Points Forts',
-        de: 'Stärken',
-        pt: 'Pontos Fortes',
-        la: 'Puncta Fortia'
+        de: 'Gründe für Übereinstimmung',
+        pt: 'Razões de Compatibilidade',
+        la: 'Causae Congruentiae'
     },
-    'analysis.weaknesses': {
-        en: 'Missing / To Improve',
-        es: 'A Mejorar / Faltante',
-        fr: 'À Améliorer / Manquant',
+    'analysis.missing_skills': {
+        en: 'To Improve',
+        es: 'A Mejorar',
+        fr: 'À Améliorer',
         de: 'Zu Verbessern',
         pt: 'A Melhorar',
         la: 'Emendandum'
@@ -2483,10 +2483,10 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         en: 'Unable to retrieve analysis.',
         es: 'No se pudo recuperar el análisis.',
         fr: 'Impossible de récupérer l\'analyse.',
-        de: 'Analyse fehlgeschlagen.',
+        de: 'Analyse konnte nicht abgerufen werden.',
         pt: 'Não foi possível recuperar a análise.',
         la: 'Analysis recuperari non potuit.'
-    }
+    },
 };
 
 // LanguageContext is now defined and exported from LanguageCore.ts

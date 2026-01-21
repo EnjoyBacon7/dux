@@ -666,7 +666,6 @@ class JobDataForAnalysis(BaseModel):
     competences: Optional[Any] = None
     lang: str = "fr"
 
-
 @router.post("/analyze")
 async def analyze_job_direct(
     job_data: JobDataForAnalysis,
