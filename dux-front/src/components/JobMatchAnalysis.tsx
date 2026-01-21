@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLanguage } from '../contexts/useLanguage'; // Import du hook
 import type { JobOffer } from './JobDetail';
 
 interface AnalysisResult {
@@ -10,11 +11,14 @@ interface AnalysisResult {
 }
 
 interface JobMatchAnalysisProps {
-    job: JobOffer; // On reçoit l'objet complet
+    job: JobOffer;
     onClose: () => void;
 }
 
 const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => {
+    
+    // 1. Récupération langue + traduction
+    const { t, language } = useLanguage(); 
     
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [loading, setLoading] = useState(true);
@@ -23,21 +27,18 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
     useEffect(() => {
         const fetchAnalysis = async () => {
             try {
-                // On prépare les données minimales nécessaires pour l'IA
-                // (On évite d'envoyer tout l'objet s'il est énorme)
                 const payload = {
                     id: job.id,
                     intitule: job.intitule,
                     description: job.description,
                     entreprise_nom: job["entreprise_nom"],
-                    competences: job.competences
+                    competences: job.competences,
+                    lang: language // Envoi de la langue au backend
                 };
 
                 const response = await fetch(`/api/jobs/analyze`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
@@ -46,19 +47,20 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                 const data = await response.json();
                 setAnalysis(data.analysis);
             } catch (err) {
-                setError("Unable to retrieve AI analysis at this time.");
+                // Utilisation de la nouvelle clé d'erreur
+                setError(t('analysis.error')); 
             } finally {
                 setLoading(false);
             }
         };
 
         fetchAnalysis();
-    }, [job]); // Dépendance sur l'objet job
+    }, [job, language]);
 
     const getScoreColor = (score: number) => {
-        if (score >= 75) return '#10B981'; // Green
-        if (score >= 50) return '#F59E0B'; // Orange
-        return '#EF4444'; // Red
+        if (score >= 75) return '#10B981';
+        if (score >= 50) return '#F59E0B';
+        return '#EF4444';
     };
 
     return (
@@ -83,15 +85,10 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
                     <h2 style={{ margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span>.</span> Match Analysis
+                        {/* ICI : On utilise la clé propre définie à l'étape 1 */}
+                        <span>⚡</span> {t('analysis.title')}
                     </h2>
-                    <button 
-                        onClick={onClose} 
-                        className="nb-btn-secondary" 
-                        style={{ padding: '0.5rem', lineHeight: 1, minWidth: 'auto' }}
-                    >
-                        ✕
-                    </button>
+                    <button onClick={onClose} className="nb-btn-secondary" style={{ padding: '0.5rem', lineHeight: 1, minWidth: 'auto' }}>✕</button>
                 </div>
 
                 <div style={{ marginBottom: '1rem', opacity: 0.8, fontSize: '0.9rem' }}>
@@ -105,7 +102,7 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                             borderTop: '4px solid var(--nb-accent)', borderRadius: '50%', 
                             margin: '0 auto 1rem', animation: 'spin 1s linear infinite' 
                         }}></div>
-                        <p>AI is analyzing your profile against this job...</p>
+                        <p>{t('analysis.loading')}</p>
                         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                     </div>
                 ) : error ? (
@@ -115,10 +112,10 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                 ) : analysis ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         
-                        {/* Scores */}
+                        {/* Scores : Utilisation des clés analysis.technical et analysis.culture */}
                         <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1rem' }}>
-                            <ScoreCircle label="Technical Score" score={analysis.score_technique} color={getScoreColor(analysis.score_technique)} />
-                            <ScoreCircle label="Culture Fit" score={analysis.score_culturel} color={getScoreColor(analysis.score_culturel)} />
+                            <ScoreCircle label={t('analysis.technical')} score={analysis.score_technique} color={getScoreColor(analysis.score_technique)} />
+                            <ScoreCircle label={t('analysis.culture')} score={analysis.score_culturel} color={getScoreColor(analysis.score_culturel)} />
                         </div>
 
                         {/* Verdict */}
@@ -131,12 +128,11 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                             "{analysis.verdict}"
                         </div>
 
-                        {/* Detail Columns */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
-                            {/* Strengths */}
+                            {/* Points Forts */}
                             <div>
                                 <h3 style={{ color: '#10B981', borderBottom: '1px solid #10B981', paddingBottom: '0.5rem', marginTop: 0 }}>
-                                     Match Reasons
+                                     {t('analysis.strengths')}
                                 </h3>
                                 <ul style={{ listStyle: 'none', padding: 0 }}>
                                     {analysis.match_reasons.map((reason, idx) => (
@@ -147,10 +143,10 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                                 </ul>
                             </div>
 
-                            {/* Missing Skills */}
+                            {/* Points à améliorer */}
                             <div>
                                 <h3 style={{ color: '#EF4444', borderBottom: '1px solid #EF4444', paddingBottom: '0.5rem', marginTop: 0 }}>
-                                     Missing / To Improve
+                                     {t('analysis.weaknesses')}
                                 </h3>
                                 <ul style={{ listStyle: 'none', padding: 0 }}>
                                     {analysis.missing_skills.map((skill, idx) => (
@@ -161,7 +157,6 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                                 </ul>
                             </div>
                         </div>
-
                     </div>
                 ) : null}
             </div>
@@ -169,7 +164,7 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
     );
 };
 
-// Helper component for Score Circles
+// Helper
 const ScoreCircle = ({ label, score, color }: { label: string, score: number, color: string }) => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
         <div style={{
@@ -187,7 +182,7 @@ const ScoreCircle = ({ label, score, color }: { label: string, score: number, co
                 <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: color }}>{score}%</span>
             </div>
         </div>
-        <span style={{ fontWeight: 600 }}>{label}</span>
+        <span style={{ fontWeight: 600, textAlign: 'center' }}>{label}</span>
     </div>
 );
 
