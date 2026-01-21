@@ -48,53 +48,8 @@ def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: s
 
 
 def get_offers(code_rome: str) -> dict:
-    FT_CLIENT_ID = settings.ft_client_id
-    FT_CLIENT_SECRET = settings.ft_client_secret
-    FT_AUTH_URL = settings.ft_auth_url
-    FT_API_OFFRES_URL = settings.ft_api_url_offres
-
-    # Récupère un token OAuth2 en mode client_credentials.
-
-    token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/json"
-    }
-
-    resultat = []
-    # Getting the list of offers for the given ROME code
-    page = 0
-    while len(resultat) % 150 == 0 and page < 20:
-        try:
-            resp = requests.get(
-                FT_API_OFFRES_URL + f"?codeROME={code_rome} &range={page * 150} -{page * 150 + 149} ", headers=headers,
-                timeout=30)
-            resp.raise_for_status()
-        except:
-            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
-
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json"
-            }
-            resp = requests.get(
-                FT_API_OFFRES_URL + f"?codeROME={code_rome} &range={page * 150} -{page * 150 + 149} ", headers=headers,
-                timeout=30)
-            resp.raise_for_status()
-
-        try:
-            data = resp.json()
-        except:
-            data = {"resultats": []}
-
-        if len(data.get("resultats", [])) == 0:
-            break
-
-        resultat += data.get("resultats", [])
-        page += 1
-
-    return resultat
+    # Reuse centralized France Travail client with built-in retries/pagination
+    return search_france_travail({"codeROME": code_rome}, nb_offres=300)
 
 
 def _to_float(s: str) -> float:

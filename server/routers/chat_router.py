@@ -219,53 +219,12 @@ async def match_profile_endpoint(
     _check_user_cv(current_user)
 
     try:
-        # Check if we have fresh cached offers first (to avoid unnecessary LLM call)
-        try:
-            cached_offers = db.query(OptimalOffer).filter(
-                OptimalOffer.user_id == current_user.id
-            ).order_by(OptimalOffer.position).all()
-
-            if cached_offers:
-                most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
-                last_updated = most_recent.updated_at or most_recent.created_at
-                cache_age = datetime.now(last_updated.tzinfo) - last_updated
-
-                if cache_age < timedelta(hours=24):
-                    # Cache is fresh, return cached results without LLM call
-                    offers_data = [
-                        {
-                            "position": o.position,
-                            "title": o.title,
-                            "company": o.company,
-                            "location": o.location,
-                            "score": o.score,
-                            "match_reasons": o.match_reasons,
-                            "concerns": o.concerns
-                        }
-                        for o in cached_offers
-                    ]
-
-                    return {
-                        "success": True,
-                        "ft_parameters": {},  # Not needed for cached response
-                        "offers": offers_data,
-                        "cached": True,
-                        "cache_age_hours": round(cache_age.total_seconds() / 3600, 1),
-                        "total_offers_analyzed": len(offers_data),
-                        "top_offers_returned": len(offers_data),
-                        "usage": None  # No LLM usage for cached response
-                    }
-        except Exception as e:
-            logger.warning(f"Error checking cache: {str(e)}, proceeding with fresh search")
-
-        # Cache is stale or missing, so identify FT parameters from CV
         ft_result = await identify_ft_parameters(
             current_user.cv_text,
             preferences=data.query
         )
         ft_parameters = ft_result.get("parameters", {})
 
-        # Get optimal offers using helper (with fresh search since cache was invalid)
         offers_result = await _get_optimal_offers_with_cache(
             current_user=current_user,
             db=db,
