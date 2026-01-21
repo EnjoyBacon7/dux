@@ -370,7 +370,7 @@ async def identify_ft_parameters(
             prompt=prompt,
             system_content="You are an expert job search optimizer specializing in France Travail API parameters. You output only valid JSON objects with no additional text or explanation.",
             temperature=0.5,
-            max_tokens=4000,
+            max_tokens=8000,
             parse_json=True,
             json_array=False
         )
