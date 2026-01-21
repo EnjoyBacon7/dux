@@ -39,7 +39,6 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
     const [isLoading, setIsLoading] = useState(hasCv);
     const [isEvaluating, setIsEvaluating] = useState(false);
     const [isReEvaluating, setIsReEvaluating] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
     // Track if we've checked for evaluation (to show "no evaluation" state vs loading)
     const [hasChecked, setHasChecked] = useState(false);
     const pollStartTime = useRef<number | null>(null);
@@ -174,18 +173,9 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                 <div className="cv-score-header">
                     <h2 className="home-card-title">{t("cv_score.title")}</h2>
                 </div>
-                <div 
-                    className="cv-score-body"
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                >
-                    <div className={`cv-score-body-content ${isHovered ? "blurred" : ""}`}>
+                <div className="cv-score-body">
+                    <div className="cv-score-body-content">
                         <p className="cv-score-empty">{t("cv_score.no_cv")}</p>
-                    </div>
-                    <div className={`cv-score-hover-overlay ${isHovered ? "visible" : ""}`}>
-                        <button className="nb-btn nb-btn--accent cv-score-hub-btn" onClick={handleViewProfileHub}>
-                            {t("cv_score.view_profile_hub")}
-                        </button>
                     </div>
                 </div>
             </div>
@@ -216,21 +206,12 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                         </svg>
                     </button>
                 </div>
-                <div 
-                    className="cv-score-body"
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                >
-                    <div className={`cv-score-body-content ${isHovered ? "blurred" : ""}`}>
+                <div className="cv-score-body">
+                    <div className="cv-score-body-content">
                         <div className="cv-score-evaluating">
                             <div className="cv-score-spinner"></div>
                             <p>{t("cv_score.evaluating")}</p>
                         </div>
-                    </div>
-                    <div className={`cv-score-hover-overlay ${isHovered ? "visible" : ""}`}>
-                        <button className="nb-btn nb-btn--accent cv-score-hub-btn" onClick={handleViewProfileHub}>
-                            {t("cv_score.view_profile_hub")}
-                        </button>
                     </div>
                 </div>
             </div>
@@ -287,12 +268,8 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                 </button>
             </div>
 
-            <div 
-                className="cv-score-body"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-            >
-                <div className={`cv-score-body-content ${isHovered ? "blurred" : ""}`}>
+            <div className="cv-score-body">
+                <div className="cv-score-body-content">
                     <div className="cv-score-content">
                         {/* Score Circle */}
                         <div className="cv-score-circle-container">
@@ -366,12 +343,13 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                             </ul>
                         </div>
                     )}
-                </div>
 
-                <div className={`cv-score-hover-overlay ${isHovered ? "visible" : ""}`}>
-                    <button className="nb-btn nb-btn--accent cv-score-hub-btn" onClick={handleViewProfileHub}>
-                        {t("cv_score.view_profile_hub")}
-                    </button>
+                    {/* Profile Hub Button - shown below score */}
+                    <div className="cv-score-actions">
+                        <button className="nb-btn nb-btn--accent" onClick={handleViewProfileHub}>
+                            {t("cv_score.view_profile_hub")}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -478,6 +478,19 @@
     margin-bottom: 0;
 }
 
+/* Profile Hub Action Button */
+.cv-score-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: var(--nb-border) solid var(--nb-fg);
+    display: flex;
+    justify-content: center;
+}
+
+.cv-score-actions .nb-btn {
+    width: 100%;
+}
+
 /* Mobile Adjustments for CV Score Card */
 @media (max-width: 767px) {
     .home-card.cv-score-card {
