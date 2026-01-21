@@ -202,10 +202,10 @@ def search_france_travail(
         ValueError: If search fails or API is unreachable
     """
     try:
-        CLIENT_ID = settings.client_id
-        CLIENT_SECRET = settings.client_secret
-        AUTH_URL = settings.auth_url
-        API_URL = settings.api_url_offres
+        CLIENT_ID = settings.ft_client_id
+        CLIENT_SECRET = settings.ft_client_secret
+        AUTH_URL = settings.ft_auth_url
+        API_URL = settings.ft_api_url_offres
 
         if not all([CLIENT_ID, CLIENT_SECRET, AUTH_URL, API_URL]):
             raise ValueError("France Travail API credentials not configured in environment")
