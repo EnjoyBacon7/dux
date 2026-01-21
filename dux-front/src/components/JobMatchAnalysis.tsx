@@ -16,6 +16,19 @@ interface JobMatchAnalysisProps {
 }
 
 const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => {
+    const { t, language } = useLanguage(); 
+    
+    // 1. Récupération langue + traduction
+    const { t, language } = useLanguage(); 
+    
+    // 1. Récupération langue + traduction
+    const { t, language } = useLanguage(); 
+    
+    // 1. Récupération langue + traduction
+    const { t, language } = useLanguage(); 
+    
+    // 1. Récupération langue + traduction
+    const { t, language } = useLanguage(); 
     
     // 1. Récupération langue + traduction
     const { t, language } = useLanguage(); 
