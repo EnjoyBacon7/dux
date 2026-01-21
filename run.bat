@@ -4,7 +4,7 @@
 if "%UPLOAD_DIR%"=="" set "UPLOAD_DIR=./uploads"
 if "%HOST%"=="" set "HOST=0.0.0.0"
 if "%PORT%"=="" set "PORT=8000"
-if "%DATABASE_URL%"=="" set "DATABASE_URL=postgresql://dux_user:dux_password@localhost:5432/dux"
+if "%DATABASE_URL%"=="" set "DATABASE_URL=postgresql://dux_user:dux_password@localhost:5433/dux"
 
 :: Display the values of the environment variables
 echo UPLOAD_DIR=%UPLOAD_DIR%
@@ -20,12 +20,12 @@ if errorlevel 1 (
 )
 
 :: Check if PostgreSQL service is running
-pg_isready -h localhost -p 5432 >nul 2>&1
+pg_isready -h localhost -p 5433 >nul 2>&1
 if errorlevel 1 (
     echo Starting PostgreSQL service...
     net start postgresql-x64-13 >nul 2>&1
     timeout /t 30 >nul
-    pg_isready -h localhost -p 5432 >nul 2>&1
+    pg_isready -h localhost -p 5433 >nul 2>&1
     if errorlevel 1 (
         echo Warning: PostgreSQL failed to start. Database operations may fail.
     ) else (

@@ -1,0 +1,253 @@
+/* Job detail modal styling aligned with neo-brutalism theme */
+
+.jd-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    z-index: 1000;
+}
+
+.jd-panel {
+    background: var(--nb-bg);
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    max-width: 1400px;
+    width: min(1400px, 96vw);
+    max-height: 92vh;
+    overflow: hidden;
+    box-shadow: var(--nb-shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+.jd-header {
+    padding: 0.75rem 1rem;
+    border-bottom: var(--nb-border) solid var(--nb-fg);
+    background: linear-gradient(135deg, var(--nb-bg) 0%, var(--nb-bg-alt) 100%);
+    flex-shrink: 0;
+}
+
+.jd-title-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.jd-title {
+    margin: 0 0 0.1rem 0;
+    font-size: 1.4rem;
+    line-height: 1.2;
+}
+
+.jd-subtitle {
+    margin: 0;
+    font-size: 0.88rem;
+    opacity: 0.8;
+}
+
+.jd-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.jd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.2rem 0.45rem;
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: 999px;
+    background: var(--nb-bg-alt);
+    box-shadow: var(--nb-shadow-xs);
+    font-weight: 700;
+    font-size: 0.72rem;
+}
+
+.jd-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: flex-start;
+}
+
+/* Masonry layout using CSS columns */
+.jd-body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1rem;
+    padding-bottom: 1.5rem;
+    column-count: 2;
+    column-gap: 1rem;
+    column-fill: balance;
+}
+
+.jd-section {
+    background: var(--nb-card-bg);
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: calc(var(--nb-radius) - 2px);
+    padding: 1rem;
+    box-shadow: var(--nb-shadow-sm);
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+    display: inline-block;
+    width: 100%;
+}
+
+.jd-section h3 {
+    margin: 0 0 0.6rem 0;
+    font-size: 1rem;
+    font-weight: 700;
+    border-bottom: 1px solid var(--nb-fg);
+    padding-bottom: 0.4rem;
+}
+
+.jd-field {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.jd-field:last-child {
+    margin-bottom: 0;
+}
+
+.jd-field-label {
+    font-weight: 700;
+}
+
+.jd-field-value {
+    display: inline;
+}
+
+.jd-meta-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.jd-chip {
+    padding: 0.4rem 0.55rem;
+    border: var(--nb-border) dashed var(--nb-fg);
+    border-radius: calc(var(--nb-radius) - 4px);
+    background: var(--nb-bg-alt);
+    font-size: 0.85rem;
+}
+
+.jd-markdown {
+    color: var(--nb-fg);
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+.jd-markdown h1,
+.jd-markdown h2,
+.jd-markdown h3,
+.jd-markdown h4,
+.jd-markdown h5,
+.jd-markdown h6 {
+    margin: 0.6rem 0 0.4rem;
+}
+
+.jd-markdown p {
+    margin: 0 0 0.6rem 0;
+}
+
+.jd-markdown ul,
+.jd-markdown ol {
+    padding-left: 1.1rem;
+    margin: 0.4rem 0;
+}
+
+.jd-markdown code {
+    background: var(--nb-bg-alt);
+    border: 1px solid var(--nb-fg);
+    border-radius: 4px;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.85rem;
+}
+
+.jd-markdown pre {
+    background: var(--nb-bg-alt);
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: 6px;
+    padding: 0.6rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+}
+
+/* Map card special styling */
+.jd-section--map {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+.jd-section--map h3 {
+    padding: 1rem 1rem 0.4rem 1rem;
+    margin: 0;
+    border-bottom: none;
+}
+
+.jd-section--map iframe {
+    flex: 1;
+    min-height: 160px;
+    border-radius: 0 0 calc(var(--nb-radius) - 2px) calc(var(--nb-radius) - 2px);
+}
+
+.jd-link {
+    color: var(--nb-accent);
+    text-decoration: underline;
+}
+
+.jd-link:hover {
+    opacity: 0.8;
+}
+
+@media (max-width: 800px) {
+    .jd-body {
+        column-count: 1;
+    }
+
+    .jd-title {
+        font-size: 1.25rem;
+    }
+
+    .jd-title-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .jd-actions {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .jd-overlay {
+        padding: 0.75rem;
+    }
+
+    .jd-panel {
+        max-height: 95vh;
+    }
+
+    .jd-header {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .jd-body {
+        padding: 0.75rem;
+    }
+}
