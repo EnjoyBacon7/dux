@@ -242,36 +242,26 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                                 )}
                                 {job.alternance && <span className="jd-badge">Alternance</span>}
                             </div>
-                        )}
-                        
-                        {/* --- NEW BUTTON: AI MATCH ANALYSIS (LOCALIZED) --- */}
-                        <div style={{ marginTop: '1rem' }}>
-                            <button
-                                onClick={() => setShowAnalysis(true)}
-                                className="nb-btn"
-                                style={{ 
-                                    backgroundColor: 'var(--nb-accent)', 
-                                    color: 'white',
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '0.5rem',
-                                    padding: '0.5rem 1rem'
-                                }}
-                            >
-                                <span>⚡</span> {t('analyze_match_ai')}
-                            </button>
-                        </div>
-                        {/* ------------------------------------- */}
 
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="nb-btn-secondary"
-                        style={{ minWidth: '100px' }}
-                    >
-                        Fermer
-                    </button>
-                </div>
+                            {/* --- NEW BUTTON: AI MATCH ANALYSIS (LOCALIZED) --- */}
+                            <div style={{ marginTop: '1rem' }}>
+                                <button
+                                    onClick={() => setShowAnalysis(true)}
+                                    className="nb-btn"
+                                    style={{ 
+                                        backgroundColor: 'var(--nb-accent)', 
+                                        color: 'white',
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 1rem'
+                                    }}
+                                >
+                                    <span>⚡</span> {t('analyze_match_ai')}
+                                </button>
+                            </div>
+                            {/* ------------------------------------- */}
+                        </div>
 
                         <div className="jd-actions">
                             {applicationUrl && (
