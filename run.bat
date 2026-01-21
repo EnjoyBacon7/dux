@@ -56,18 +56,18 @@ mkdir static
 xcopy /e /i /y dux-front\dist\* static\ >nul
 echo Frontend build complete!
 
-:: Build Docusaurus documentation
-echo Building documentation...
-cd dux-docs
-call npm install
-call npm run build
-cd ..
-:: Copy Docusaurus build to static/docs
-if not exist static\docs mkdir static\docs
-rd /s /q static\docs >nul 2>&1
-mkdir static\docs
-xcopy /e /i /y dux-docs\build\* static\docs\ >nul
-echo Documentation copied to static/docs
+@REM :: Build Docusaurus documentation
+@REM echo Building documentation...
+@REM cd dux-docs
+@REM call npm install
+@REM call npm run build
+@REM cd ..
+@REM :: Copy Docusaurus build to static/docs
+@REM if not exist static\docs mkdir static\docs
+@REM rd /s /q static\docs >nul 2>&1
+@REM mkdir static\docs
+@REM xcopy /e /i /y dux-docs\build\* static\docs\ >nul
+@REM echo Documentation copied to static/docs
 
 :: Run the application using uvicorn with environment variables
 uv run uvicorn server.app:app --reload --host %HOST% --port %PORT% --env-file .env

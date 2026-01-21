@@ -2332,6 +2332,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Vagas',
         la: 'Opera'
     },
+    'header.metiers': {
+        en: 'Metiers',
+        es: 'Metiers',
+        fr: 'Metiers',
+        de: 'Berufe',
+        pt: 'Metiers',
+        la: 'Metiers'
+    },
     'header.profile_hub': {
         en: 'Profile Hub',
         es: 'Centro de Perfil',

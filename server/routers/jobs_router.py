@@ -461,10 +461,83 @@ async def load_offers(
     except Exception as e:
         logger.error(f"Error loading offers: {e}")
         return {"error": str(e)}
-
-
+    
 @router.post("/load_fiche_metier", summary="Load fiche metier from France Travail API (ROME)")
-def load_fiche_metier():
+def load_fiche_metier(
+    codeROME: str = Query("A1413", description="Nombre d'offres à récupérer")):
+
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
+    try:
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL_METIER = settings.ft_api_url_fiche_metier
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+        
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+
+        try:
+            while True:
+                resp = requests.get(FT_API_URL_METIER + f"/{codeROME}" + champs, headers=headers, timeout=30)
+                if resp.status_code != 429:
+                    break
+            
+            resp.raise_for_status()
+            data = resp.json()
+            # Getting offers info from france travail API
+            liste_offres = get_offers(codeROME)
+            salaire = []
+            for offre in liste_offres:
+                salaire.append(calcul_salaire(str(offre.get('salaire').get('libelle')), str(offre.get('dureeTravailLibelle'))))
+            
+        except:
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            while True:
+                resp = requests.get(FT_API_URL_METIER + f"/{codeROME}" + champs, headers=headers, timeout=30)
+                if resp.status_code != 429:
+                    break
+            
+            resp.raise_for_status()
+            data = resp.json()
+
+            # Getting offers info from france travail API
+            liste_offres = get_offers(codeROME)
+            salaire = []
+            for offre in liste_offres:
+                salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
+
+        if len(liste_offres) == 0:
+            data['nb_offre'] = 0
+            data['liste_salaire_offre'] = []
+        else:
+            data['nb_offre'] = len(liste_offres)
+            data['liste_salaire_offre'] = salaire
+
+        return data
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/load_code_metier", summary="Load code metier from France Travail API (ROME)")
+def load_code_metier():
     """
     Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
     """
@@ -474,8 +547,9 @@ def load_fiche_metier():
         FT_CLIENT_SECRET = settings.ft_client_secret
         FT_AUTH_URL = settings.ft_auth_url
         FT_API_URL_CODE_METIER = settings.ft_api_url_code_metier
-        FT_API_URL_METIER = settings.ft_api_url_fiche_metier
         DATABASE_URL = settings.database_url
+
+        print(FT_API_URL_CODE_METIER)
 
         """
         Récupère un token OAuth2 en mode client_credentials.
@@ -508,9 +582,7 @@ def load_fiche_metier():
 
         code_metier += data
 
-        print(f"Nombre de codes ROME récupérés : {len(code_metier)}")
-
-        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+        '''token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -521,7 +593,7 @@ def load_fiche_metier():
         
         champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
 
-        for code in tqdm(code_metier):
+        for code in tqdm(code_metier[:20]):
             try:
                 while True:
                     resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
@@ -564,14 +636,14 @@ def load_fiche_metier():
                 data['liste_salaire_offre'] = salaire
 
             fiche_metier.append(data.copy())
-
+        '''
 
         logger = logging.getLogger("uvicorn.info")
-        logger.info(f"Récupération des fiches métiers : {len(fiche_metier)} obtenues.")
+        logger.info(f"Récupération des fiches métiers : {len(code_metier)} obtenues.")
         engine = create_engine(DATABASE_URL)
         Session = sessionmaker(bind=engine)
 
-        if not fiche_metier:
+        if not code_metier:
             print("Aucune fiche métier reçue, rien à sauvegarder.")
             return
 
@@ -580,27 +652,10 @@ def load_fiche_metier():
         session.commit()
 
         try:
-            for fiche in fiche_metier:
+            for fiche in code_metier:
                 fiche_insert = Metier_ROME(
                     code = fiche.get("code"),
-                    libelle = fiche.get("libelle"),
-                    accesEmploi = fiche.get("accesEmploi"),
-                    appellations = fiche.get("appellations"),  # Array of appellations
-                    centresInteretsLies = fiche.get("centresInteretsLies"),  # Array of related interest centers
-                    competencesMobilisees = fiche.get("competencesMobilisees"),  # Array of skills
-                    contextesTravail = fiche.get("contextesTravail"),  # Array of work contexts
-                    definition = fiche.get("definition"),
-                    domaineProfessionnel = fiche.get("domaineProfessionnel"),
-                    metiersEnProximite = fiche.get("metiersEnProximite"),
-                    secteursActivitesLies = fiche.get("secteursActivitesLies"),
-                    themes = fiche.get("themes"),  # Array of themes
-                    transitionEcologique = fiche.get("transitionEcologique"),  # Ecological transition info
-                    transitionNumerique = fiche.get("transitionNumerique"),  # Digital transition info
-                    transitionDemographique = fiche.get("transitionDemographique"),  # Demographic transition info
-                    emploiCadre = fiche.get("emploiCadre"),
-                    emploiReglemente = fiche.get("emploiReglemente"),
-                    nb_offre = fiche.get("nb_offre"),
-                    liste_salaire_offre = fiche.get("liste_salaire_offre")
+                    libelle = fiche.get("libelle")
                                 )
                 try:
                     session.add(fiche_insert)
@@ -615,7 +670,7 @@ def load_fiche_metier():
         finally:
             session.close()
 
-        return {"message": f"{len(fiche_metier)} métiers ROME chargées et sauvegardées avec succès"}
+        return {"message": f"{len(code_metier)} métiers ROME chargées et sauvegardées avec succès"}
 
     except Exception as e:
         return {"error": str(e)}

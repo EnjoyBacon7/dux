@@ -222,7 +222,7 @@ class Metier_ROME(Base):
     
     code = Column(String, primary_key=True, index=True)
     libelle = Column(String, nullable=True)
-    accesEmploi = Column(Text, nullable=True)
+    '''accesEmploi = Column(Text, nullable=True)
     appellations = Column(JSON, nullable=True)  # Array of appellations
     centresInteretsLies = Column(JSON, nullable=True)  # Array of related interests
     competencesMobilisees = Column(JSON, nullable=True)  # Array of competencies
@@ -238,7 +238,7 @@ class Metier_ROME(Base):
     emploiCadre = Column(Boolean, nullable=True)
     emploiReglemente = Column(Boolean, nullable=True)
     nb_offre = Column(Integer, nullable=True)
-    liste_salaire_offre = Column(ARRAY(Float), nullable=True)
+    liste_salaire_offre = Column(ARRAY(Float), nullable=True)'''
 
     def __repr__(self):
         return f"<Metier_ROME(code={self.code})>"

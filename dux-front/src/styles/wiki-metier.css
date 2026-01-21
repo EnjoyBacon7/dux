@@ -1,0 +1,124 @@
+.wiki-metier-shell {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    min-height: calc(100vh - var(--header-height, 60px));
+    background: var(--nb-bg);
+}
+
+.wiki-metier-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) 1fr;
+    gap: 0;
+    min-height: calc(100vh - var(--header-height, 60px));
+    width: 100%;
+    background: var(--nb-bg);
+}
+
+.wiki-metier-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-right: var(--nb-border) solid var(--nb-fg);
+    background: var(--nb-bg);
+    position: sticky;
+    top: var(--header-height, 60px);
+    height: calc(100vh - var(--header-height, 60px));
+    overflow-y: auto;
+}
+
+.wiki-metier-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.wiki-metier-sidebar-title {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.wiki-metier-search {
+    margin-bottom: 0.25rem;
+}
+
+.wiki-metier-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wiki-metier-link {
+    appearance: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    display: block;
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: calc(var(--nb-radius) - 4px);
+    padding: 0.75rem 0.85rem;
+    background: var(--nb-card-bg);
+    color: inherit;
+    box-shadow: var(--nb-shadow-xs);
+    transition: var(--nb-transition);
+}
+
+.wiki-metier-link:hover {
+    transform: translate(calc(var(--shadow-offset) * -0.2), calc(var(--shadow-offset) * -0.2));
+    box-shadow: var(--nb-shadow-sm);
+}
+
+.wiki-metier-link--active {
+    background: var(--nb-bg-muted);
+    box-shadow: var(--nb-shadow-sm);
+}
+
+.wiki-metier-code {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.wiki-metier-label {
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.wiki-metier-empty {
+    padding: 0.5rem 0;
+}
+
+.wiki-metier-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    height: calc(100vh - var(--header-height, 60px));
+}
+
+.wiki-metier-detail-header {
+    margin-bottom: 1.25rem;
+}
+
+.wiki-metier-title {
+    margin: 0 0 0.35rem 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+@media (max-width: 1024px) {
+    .wiki-metier-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .wiki-metier-sidebar {
+        position: static;
+        height: auto;
+        overflow: visible;
+        border-right: none;
+        border-bottom: var(--nb-border) solid var(--nb-fg);
+    }
+
+    .wiki-metier-content {
+        height: auto;
+    }
+}
