@@ -13,7 +13,7 @@ from fastapi import APIRouter, Query, Depends
 from server.config import settings
 from server.models import Metier_ROME, User, Offres_FT
 from server.database import get_db_session
-from server.methods.job_search import search_job_offers
+from server.methods.DB_job_search import search_job_offers
 import json
 from typing import Optional, Dict, Any, List, Union, Tuple
 
