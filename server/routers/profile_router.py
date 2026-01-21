@@ -1,14 +1,27 @@
 import logging
 from unittest import result
+"""Profile management router.
 
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request
+Provides endpoints for user profile setup, CV upload, and experience/education management.
+"""
+
+import logging
+from typing import List, Optional, Dict, Any
+
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, BackgroundTasks
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List, Optional
+import mimetypes
 
-from server.methods.upload import upload_file
+from server.methods.upload import UPLOAD_DIR, upload_file
 from server.database import get_db_session
 from server.models import User, Experience, Education
+from server.dependencies import get_current_user
+
+# ============================================================================
+# Router Setup
+# ============================================================================
 
 from openai import OpenAI
 
@@ -16,7 +29,13 @@ router = APIRouter(prefix="/profile", tags=["Profile"])
 logger = logging.getLogger(__name__)
 
 
+# ============================================================================
+# Request Models
+# ============================================================================
+
+
 class ExperienceData(BaseModel):
+    """Experience entry data for profile setup."""
     company: str
     title: str
     startDate: str
@@ -26,6 +45,7 @@ class ExperienceData(BaseModel):
 
 
 class EducationData(BaseModel):
+    """Education entry data for profile setup."""
     school: str
     degree: str
     fieldOfStudy: Optional[str] = None
@@ -35,6 +55,7 @@ class EducationData(BaseModel):
 
 
 class ProfileSetupRequest(BaseModel):
+    """Request body for profile setup endpoint."""
     headline: Optional[str] = None
     summary: Optional[str] = None
     location: Optional[str] = None
@@ -42,39 +63,37 @@ class ProfileSetupRequest(BaseModel):
     experiences: List[ExperienceData] = []
     educations: List[EducationData] = []
 
-
-def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
-    """
-    Dependency to get the current authenticated user.
-    """
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(User).filter(User.username == request.session["username"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return user
+# ============================================================================
+# File Upload Endpoints
+# ============================================================================
 
 
 @router.post("/upload", summary="Upload CV file")
 async def upload_endpoint(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
-) -> dict:
+) -> Dict[str, Any]:
     """
-    Upload endpoint to handle file uploads (CV).
+    Upload and process a CV file (PDF, DOCX, or TXT).
+
+    Handles file validation, text extraction, and storage of CV data
+    in the user's profile. Automatically triggers CV evaluation in the background.
 
     Args:
         request: FastAPI request object
-        file: The file to upload (multipart/form-data)
+        background_tasks: FastAPI background tasks
+        file: The CV file to upload (multipart/form-data)
         db: Database session
         current_user: Current authenticated user
 
     Returns:
-        dict: Upload result containing filename, content_type, size, extracted_text, and message
+        dict: Upload result with filename, content_type, size, extracted_text, and status message
+
+    Raises:
+        HTTPException: If file validation or processing fails
     """
     result = await upload_file(file)
 
@@ -98,7 +117,60 @@ async def upload_endpoint(
 
     db.commit()
 
+    # Trigger CV evaluation in the background
+    if result.get("extracted_text"):
+        from server.routers.cv_router import run_cv_evaluation
+        from server.database import SessionLocal
+        
+        background_tasks.add_task(
+            run_cv_evaluation,
+            user_id=current_user.id,
+            cv_text=result["extracted_text"],
+            cv_filename=result["filename"],
+            db_session_factory=SessionLocal,
+        )
+        result["evaluation_status"] = "started"
+        logger.info(f"CV evaluation triggered for user {current_user.id}")
+
     return result
+
+
+@router.get("/cv", summary="Get current user's CV file")
+async def get_cv_file(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Return the authenticated user's CV file for inline display/download.
+
+    Ensures the user has a CV on record and that the file exists on disk
+    before streaming it back to the client.
+    """
+    if not current_user.cv_filename:
+        raise HTTPException(status_code=404, detail="No CV found for this user")
+
+    upload_root = UPLOAD_DIR.resolve()
+    file_path = (UPLOAD_DIR / current_user.cv_filename).resolve()
+
+    # Prevent path traversal outside the upload directory
+    if upload_root not in file_path.parents:
+        raise HTTPException(status_code=400, detail="Invalid CV path")
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="CV file not found")
+
+    media_type, _ = mimetypes.guess_type(current_user.cv_filename)
+    headers = {"Content-Disposition": f'inline; filename="{current_user.cv_filename}"'}
+
+    return FileResponse(
+        path=file_path,
+        media_type=media_type or "application/octet-stream",
+        headers=headers
+    )
+
+
+# ============================================================================
+# Profile Setup Endpoints
+# ============================================================================
 
 
 @router.post("/setup", summary="Complete profile setup")
@@ -107,17 +179,24 @@ async def complete_profile_setup(
     data: ProfileSetupRequest,
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user)
-) -> dict:
+) -> Dict[str, str]:
     """
-    Complete user profile setup after registration.
+    Complete user profile setup with detailed career information.
+
+    Saves profile data including headline, summary, location, skills,
+    work experience, and education history to the database.
 
     Args:
-        data: Profile setup data including headline, summary, skills, experience, education
+        request: FastAPI request object
+        data: Profile setup data with headline, summary, location, skills, experience, education
         db: Database session
         current_user: Current authenticated user
 
     Returns:
-        dict: Success message
+        dict: Success message confirming profile setup completion
+
+    Raises:
+        HTTPException: If database operations fail
     """
     try:
         # Update user profile fields

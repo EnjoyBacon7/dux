@@ -6,6 +6,7 @@ from slowapi.util import get_remote_address
 from server.database import get_db_session
 from server.config import settings
 from server.models import User
+from server.dependencies import get_current_user
 from server.methods.passkey_auth import (
     get_passkey_register_options,
     verify_passkey_registration,
@@ -118,23 +119,19 @@ async def passkey_login_verify(
 # Session Management Endpoints
 
 @router.get("/me", summary="Get current user")
-async def get_current_user(request: Request, db: Session = Depends(get_db_session)):
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user)
+):
     """Get the currently logged-in user's information."""
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(User).filter(User.username == request.session["username"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
     return {
-        "user_id": user.id,
-        "username": user.username,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "title": user.title,
-        "profile_picture": user.profile_picture,
-        "profile_setup_completed": user.profile_setup_completed or False
+        "user_id": current_user.id,
+        "username": current_user.username,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "title": current_user.title,
+        "profile_picture": current_user.profile_picture,
+        "profile_setup_completed": current_user.profile_setup_completed or False,
+        "cv_filename": current_user.cv_filename
     }
 
 
@@ -244,6 +241,46 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db_sessi
         linkedin_id = profile_data.get('linkedin_id')
         if not linkedin_id:
             raise HTTPException(status_code=400, detail="LinkedIn profile ID not found")
+
+        # If a user is already authenticated, link LinkedIn instead of creating a new account
+        session_username = request.session.get("username")
+        if session_username:
+            session_user = db.query(User).filter(User.username == session_username).first()
+
+            # Session could be stale (user deleted); in that case continue with normal flow
+            if session_user:
+                if session_user.linkedin_id:
+                    raise HTTPException(status_code=400, detail="LinkedIn already linked to this account")
+
+                existing_user = db.query(User).filter(User.linkedin_id == linkedin_id).first()
+                if existing_user and existing_user.id != session_user.id:
+                    raise HTTPException(
+                        status_code=400, detail="This LinkedIn account is already linked to another user")
+
+                session_user.linkedin_id = linkedin_id
+                if not session_user.first_name and profile_data.get('first_name'):
+                    session_user.first_name = profile_data['first_name']
+                if not session_user.last_name and profile_data.get('last_name'):
+                    session_user.last_name = profile_data['last_name']
+                if not session_user.profile_picture and profile_data.get('profile_picture'):
+                    session_user.profile_picture = profile_data['profile_picture']
+
+                db.commit()
+                db.refresh(session_user)
+
+                request.session["username"] = session_user.username
+                request.session["user_id"] = session_user.id
+
+                return {
+                    "success": True,
+                    "message": "LinkedIn linked successfully",
+                    "user": {
+                        "username": session_user.username,
+                        "first_name": session_user.first_name,
+                        "last_name": session_user.last_name,
+                        "profile_picture": session_user.profile_picture
+                    }
+                }
 
         # Check if user exists with this LinkedIn ID
         user = db.query(User).filter(User.linkedin_id == linkedin_id).first()

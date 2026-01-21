@@ -38,20 +38,6 @@ const Header: React.FC = () => {
         return user.username.substring(0, 2).toUpperCase();
     };
 
-    // Get breadcrumb text based on current path
-    const getBreadcrumb = () => {
-        const path = location.pathname;
-        if (path === '/settings') {
-            return t('header.settings');
-        }
-        if (path === '/jobs') {
-            return t('jobs.title');
-        }
-        return null;
-    };
-
-    const breadcrumb = getBreadcrumb();
-
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -92,144 +78,196 @@ const Header: React.FC = () => {
                     >
                         <h2 style={{ margin: 0 }}>{t('app.name')}</h2>
                     </button>
-                    {breadcrumb && (
-                        <>
-                            <span style={{
-                                fontSize: '1.25rem',
-                                color: 'var(--nb-fg)',
-                                opacity: 0.5,
-                                userSelect: 'none'
-                            }}>
-                                /
-                            </span>
-                            <span style={{
-                                fontSize: '1.25rem',
-                                fontWeight: 600,
-                                color: 'var(--nb-fg)'
-                            }}>
-                                {breadcrumb}
-                            </span>
-                        </>
-                    )}
                 </div>
-                <div className="nb-row nb-gap-sm">
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
                     {user && (
-                        <div style={{ position: 'relative' }} ref={dropdownRef}>
-                            <button
-                                onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="nb-logout-btn"
-                                style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    padding: 0,
-                                    borderRadius: '6px',
-                                    overflow: 'hidden',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    backgroundColor: 'var(--nb-accent)',
-                                    border: 'var(--nb-border) solid var(--nb-fg)'
-                                }}
-                                title={t('header.menu')}
-                            >
-                                {user.profile_picture ? (
-                                    <img
-                                        src={user.profile_picture}
-                                        alt={user.username}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover'
-                                        }}
-                                    />
-                                ) : (
-                                    <div style={{
-                                        width: '100%',
-                                        height: '100%',
+                        <>
+                            <nav className="nb-nav" style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    onClick={() => navigate('/')}
+                                    className={`nb-nav-btn ${location.pathname === '/' ? 'nb-nav-btn--active' : ''}`}
+                                    style={{
+                                        appearance: 'none',
+                                        background: location.pathname === '/' ? 'var(--nb-accent)' : 'transparent',
+                                        color: location.pathname === '/' ? '#fff' : 'var(--nb-fg)',
+                                        border: 'var(--nb-border) solid var(--nb-fg)',
+                                        padding: '0.65rem 1rem',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        backgroundColor: 'var(--accent-color)',
-                                        color: 'white',
-                                        fontWeight: 'bold',
-                                        fontSize: '0.875rem'
-                                    }}>
-                                        {getInitials()}
-                                    </div>
-                                )}
+                                        fontSize: '0.875rem',
+                                        fontWeight: location.pathname === '/' ? '600' : '500',
+                                        transition: 'var(--nb-transition)',
+                                        boxShadow: location.pathname === '/' ? 'var(--nb-shadow-xs)' : 'none'
+                                    }}
+                                >
+                                    {t('header.home')}
+                                </button>
+                                <button
+                                    onClick={() => navigate('/jobs')}
+                                    className={`nb-nav-btn ${location.pathname === '/jobs' ? 'nb-nav-btn--active' : ''}`}
+                                    style={{
+                                        appearance: 'none',
+                                        background: location.pathname === '/jobs' ? 'var(--nb-accent)' : 'transparent',
+                                        color: location.pathname === '/jobs' ? '#fff' : 'var(--nb-fg)',
+                                        border: 'var(--nb-border) solid var(--nb-fg)',
+                                        padding: '0.65rem 1rem',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.875rem',
+                                        fontWeight: location.pathname === '/jobs' ? '600' : '500',
+                                        transition: 'var(--nb-transition)',
+                                        boxShadow: location.pathname === '/jobs' ? 'var(--nb-shadow-xs)' : 'none'
+                                    }}
+                                >
+                                    {t('header.jobs')}
+                                </button>
+                                <button
+                                    onClick={() => navigate('/profile-hub')}
+                                    className={`nb-nav-btn ${location.pathname === '/profile-hub' ? 'nb-nav-btn--active' : ''}`}
+                                    style={{
+                                        appearance: 'none',
+                                        background: location.pathname === '/profile-hub' ? 'var(--nb-accent)' : 'transparent',
+                                        color: location.pathname === '/profile-hub' ? '#fff' : 'var(--nb-fg)',
+                                        border: 'var(--nb-border) solid var(--nb-fg)',
+                                        padding: '0.65rem 1rem',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.875rem',
+                                        fontWeight: location.pathname === '/profile-hub' ? '600' : '500',
+                                        transition: 'var(--nb-transition)',
+                                        boxShadow: location.pathname === '/profile-hub' ? 'var(--nb-shadow-xs)' : 'none'
+                                    }}
+                                >
+                                    {t('header.profile_hub')}
+                                </button>
+                            </nav>
+                        </>
+                    )}
+                </div>
+                <div className="nb-row nb-gap-sm">                    {user && (<div style={{ position: 'relative' }} ref={dropdownRef}>
+                    <button
+                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                        className="nb-logout-btn"
+                        style={{
+                            width: '40px',
+                            height: '40px',
+                            padding: 0,
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'var(--nb-accent)',
+                            border: 'var(--nb-border) solid var(--nb-fg)'
+                        }}
+                        title={t('header.menu')}
+                    >
+                        {user.profile_picture ? (
+                            <img
+                                src={user.profile_picture}
+                                alt={user.username}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
+                            />
+                        ) : (
+                            <div style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: 'var(--accent-color)',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '0.875rem'
+                            }}>
+                                {getInitials()}
+                            </div>
+                        )}
+                    </button>
+                    {dropdownOpen && (
+                        <div className="nb-card" style={{
+                            position: 'absolute',
+                            top: 'calc(100% + 0.5rem)',
+                            right: 0,
+                            minWidth: '150px',
+                            zIndex: 1000,
+                            padding: 0,
+                            margin: 0
+                        }}>
+                            <button
+                                onClick={() => {
+                                    setDropdownOpen(false);
+                                    navigate('/settings');
+                                }}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem 1rem',
+                                    border: 'none',
+                                    background: 'none',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    color: 'var(--nb-fg)',
+                                    fontSize: '0.875rem',
+                                    borderRadius: '4px',
+                                    transition: 'background-color 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(0, 0, 0, 0.05))';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                }}
+                            >
+                                <SettingsIcon />
+                                {t('header.settings')}
                             </button>
-                            {dropdownOpen && (
-                                <div className="nb-card" style={{
-                                    position: 'absolute',
-                                    top: 'calc(100% + 0.5rem)',
-                                    right: 0,
-                                    minWidth: '150px',
-                                    zIndex: 1000,
-                                    padding: 0,
-                                    margin: 0
-                                }}>
-                                    <button
-                                        onClick={() => {
-                                            setDropdownOpen(false);
-                                            navigate('/settings');
-                                        }}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem 1rem',
-                                            border: 'none',
-                                            background: 'none',
-                                            textAlign: 'left',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            color: 'var(--nb-fg)',
-                                            fontSize: '0.875rem',
-                                            borderRadius: '4px',
-                                            transition: 'background-color 0.15s ease'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(0, 0, 0, 0.05))';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                        }}
-                                    >
-                                        <SettingsIcon />
-                                        {t('header.settings')}
-                                    </button>
-                                    <button
-                                        onClick={handleLogout}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem 1rem',
-                                            border: 'none',
-                                            background: 'none',
-                                            textAlign: 'left',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            color: 'var(--nb-fg)',
-                                            fontSize: '0.875rem',
-                                            borderRadius: '4px',
-                                            transition: 'background-color 0.15s ease'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(0, 0, 0, 0.05))';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                        }}
-                                    >
-                                        <LogoutIcon />
-                                        {t('header.logout')}
-                                    </button>
-                                </div>
-                            )}
+                            <button
+                                onClick={handleLogout}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem 1rem',
+                                    border: 'none',
+                                    background: 'none',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    color: 'var(--nb-fg)',
+                                    fontSize: '0.875rem',
+                                    borderRadius: '4px',
+                                    transition: 'background-color 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(0, 0, 0, 0.05))';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                }}
+                            >
+                                <LogoutIcon />
+                                {t('header.logout')}
+                            </button>
                         </div>
                     )}
                 </div>
+                )} </div>
             </div>
         </div>
     );

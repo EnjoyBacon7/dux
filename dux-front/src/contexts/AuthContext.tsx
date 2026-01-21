@@ -10,6 +10,7 @@ interface User {
     title?: string;
     profile_picture?: string;
     profile_setup_completed?: boolean;
+    cv_filename?: string | null;
 }
 
 interface AuthContextType {

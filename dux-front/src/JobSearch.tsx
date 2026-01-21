@@ -4,39 +4,63 @@ import JobDetail from "./components/JobDetail";
 import type { JobOffer } from "./components/JobDetail";
 import { useLanguage } from "./contexts/useLanguage";
 
+interface FTSearchFilters {
+    motsCles?: string;
+    codeROME?: string;
+    commune?: string;
+    departement?: string;
+    region?: string;
+    distance?: number;
+    typeContrat?: string;
+    natureContrat?: string;
+    experienceExigence?: string;
+    qualification?: string;
+    tempsPlein?: boolean;
+    salaireMin?: string;
+    publieeDepuis?: number;
+    secteurActivite?: string;
+}
+
 const JobSearch: React.FC = () => {
     const { t } = useLanguage();
-    const [searchQuery, setSearchQuery] = useState('');
+    const [filters, setFilters] = useState<FTSearchFilters>({});
     const [jobs, setJobs] = useState<JobOffer[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedJob, setSelectedJob] = useState<JobOffer | null>(null);
-    const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const pageSize = 20;
 
-    // Fetch jobs from API
+    // Fetch jobs from France Travail API
     useEffect(() => {
         const fetchJobs = async () => {
             setLoading(true);
             setError(null);
             try {
-                const params = new URLSearchParams({
-                    page: page.toString(),
-                    page_size: pageSize.toString(),
-                });
-                if (searchQuery) {
-                    params.append('q', searchQuery);
-                }
+                const params = new URLSearchParams();
 
-                const response = await fetch(`/api/jobs/search?${params}`);
+                // Add all non-empty filter parameters
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && value !== '') {
+                        params.append(key, String(value));
+                    }
+                });
+
+                // Always sort by relevance (0 = relevance, 1 = date, 2 = distance)
+                // Override any user-selected sort value to ensure relevance sorting
+                params.set('sort', '0');
+
+                const response = await fetch(`/api/jobs/load_offers?${params}`, {
+                    method: 'POST'
+                });
                 if (!response.ok) {
                     throw new Error('Failed to fetch jobs');
                 }
 
                 const data = await response.json();
-                setJobs(data.results || []);
-                setTotal(data.total || 0);
+                // load_offers returns the array directly
+                const jobsArray = Array.isArray(data) ? data : [];
+                setJobs(jobsArray);
+                setTotal(jobsArray.length);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
                 setJobs([]);
@@ -46,7 +70,7 @@ const JobSearch: React.FC = () => {
         };
 
         fetchJobs();
-    }, [searchQuery, page]);
+    }, [filters]);
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'N/A';
@@ -68,22 +92,18 @@ const JobSearch: React.FC = () => {
         }
     };
 
-    const handleSearch = (value: string) => {
-        setSearchQuery(value);
-        setPage(1); // Reset to first page on new search
+    const updateFilter = (key: keyof FTSearchFilters, value: any) => {
+        setFilters(prev => ({
+            ...prev,
+            [key]: value === '' ? undefined : value
+        }));
     };
 
-    const handleNextPage = () => {
-        if (page * pageSize < total) {
-            setPage(page + 1);
-        }
+    const clearFilters = () => {
+        setFilters({});
     };
 
-    const handlePreviousPage = () => {
-        if (page > 1) {
-            setPage(page - 1);
-        }
-    };
+    const hasActiveFilters = Object.values(filters).some(v => v !== undefined && v !== null && v !== '');
 
     return (
         <div style={{
@@ -96,7 +116,7 @@ const JobSearch: React.FC = () => {
             <Header />
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: '320px 1fr',
+                gridTemplateColumns: '400px 1fr',
                 gap: 0,
                 minHeight: 'calc(100vh - 60px)',
                 width: '100%',
@@ -119,7 +139,7 @@ const JobSearch: React.FC = () => {
 
                     {/* Search and Filters */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {/* Search Input */}
+                        {/* Keywords */}
                         <div>
                             <label style={{
                                 display: 'block',
@@ -128,27 +148,313 @@ const JobSearch: React.FC = () => {
                                 fontWeight: 600,
                                 opacity: 0.8
                             }}>
-                                Recherche
+                                {t('jobs.keywords')}
                             </label>
                             <input
                                 type="text"
                                 className="nb-input"
-                                placeholder={t('jobs.search_placeholder')}
-                                value={searchQuery}
-                                onChange={(e) => handleSearch(e.target.value)}
+                                placeholder={t('jobs.keywords_placeholder')}
+                                value={filters.motsCles || ''}
+                                onChange={(e) => updateFilter('motsCles', e.target.value)}
                                 style={{ width: '100%' }}
                             />
                         </div>
 
-                        {/* Clear Search Button */}
-                        {searchQuery && (
+                        {/* Location Section */}
+                        <div style={{
+                            padding: '1rem',
+                            border: 'var(--nb-border) solid var(--nb-fg)',
+                            borderRadius: '6px'
+                        }}>
+                            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600 }}>
+                                {t('jobs.location')}
+                            </h3>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {/* Commune (INSEE Code) */}
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        opacity: 0.8
+                                    }}>
+                                        {t('jobs.commune')}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="nb-input"
+                                        placeholder={t('jobs.commune_placeholder')}
+                                        value={filters.commune || ''}
+                                        onChange={(e) => updateFilter('commune', e.target.value)}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                {/* Département */}
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        opacity: 0.8
+                                    }}>
+                                        {t('jobs.department')}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="nb-input"
+                                        placeholder={t('jobs.department_placeholder')}
+                                        value={filters.departement || ''}
+                                        onChange={(e) => updateFilter('departement', e.target.value)}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                {/* Région */}
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        opacity: 0.8
+                                    }}>
+                                        {t('jobs.region')}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="nb-input"
+                                        placeholder={t('jobs.region_placeholder')}
+                                        value={filters.region || ''}
+                                        onChange={(e) => updateFilter('region', e.target.value)}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                {/* Distance */}
+                                <div>
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        opacity: 0.8
+                                    }}>
+                                        {t('jobs.distance')}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        className="nb-input"
+                                        placeholder={t('jobs.distance_placeholder')}
+                                        value={filters.distance || ''}
+                                        onChange={(e) => updateFilter('distance', e.target.value ? Number(e.target.value) : undefined)}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Contract Type */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                {t('jobs.contract_type')}
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.typeContrat || ''}
+                                onChange={(e) => updateFilter('typeContrat', e.target.value)}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">{t('jobs.all_types')}</option>
+                                <option value="CDI">{t('jobs.contract_cdi')}</option>
+                                <option value="CDD">{t('jobs.contract_cdd')}</option>
+                                <option value="MIS">{t('jobs.contract_mis')}</option>
+                                <option value="SAI">{t('jobs.contract_sai')}</option>
+                                <option value="LIB">{t('jobs.contract_lib')}</option>
+                                <option value="REP">{t('jobs.contract_rep')}</option>
+                                <option value="FRA">{t('jobs.contract_fra')}</option>
+                                <option value="CCE">{t('jobs.contract_cce')}</option>
+                                <option value="CPE">{t('jobs.contract_cpe')}</option>
+                            </select>
+                        </div>
+
+                        {/* Experience Level */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                {t('jobs.experience_level')}
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.experienceExigence || ''}
+                                onChange={(e) => updateFilter('experienceExigence', e.target.value)}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">{t('jobs.all_levels')}</option>
+                                <option value="D">{t('jobs.experience_beginner')}</option>
+                                <option value="S">{t('jobs.experience_1_3')}</option>
+                                <option value="E">{t('jobs.experience_3_plus')}</option>
+                            </select>
+                        </div>
+
+                        {/* Qualification */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                {t('jobs.qualification')}
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.qualification || ''}
+                                onChange={(e) => updateFilter('qualification', e.target.value)}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">{t('jobs.all')}</option>
+                                <option value="0">{t('jobs.non_executive')}</option>
+                                <option value="9">{t('jobs.executive')}</option>
+                            </select>
+                        </div>
+
+                        {/* Full/Part Time */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                {t('jobs.time_type')}
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.tempsPlein === undefined ? '' : filters.tempsPlein.toString()}
+                                onChange={(e) => updateFilter('tempsPlein', e.target.value === '' ? undefined : e.target.value === 'true')}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">{t('jobs.all')}</option>
+                                <option value="true">{t('jobs.type_fulltime')}</option>
+                                <option value="false">{t('jobs.type_parttime')}</option>
+                            </select>
+                        </div>
+
+                        {/* Minimum Salary */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                {t('jobs.min_salary')}
+                            </label>
+                            <input
+                                type="number"
+                                className="nb-input"
+                                placeholder={t('jobs.min_salary_placeholder')}
+                                value={filters.salaireMin || ''}
+                                onChange={(e) => updateFilter('salaireMin', e.target.value)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {/* Published Since */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                {t('jobs.published_since')}
+                            </label>
+                            <select
+                                className="nb-input"
+                                value={filters.publieeDepuis || ''}
+                                onChange={(e) => updateFilter('publieeDepuis', e.target.value ? Number(e.target.value) : undefined)}
+                                style={{ width: '100%' }}
+                            >
+                                <option value="">{t('jobs.all_dates')}</option>
+                                <option value="1">{t('jobs.today')}</option>
+                                <option value="3">{t('jobs.last_3_days')}</option>
+                                <option value="7">{t('jobs.last_7_days')}</option>
+                                <option value="14">{t('jobs.last_14_days')}</option>
+                                <option value="30">{t('jobs.last_30_days')}</option>
+                            </select>
+                        </div>
+
+                        {/* ROME Code */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                {t('jobs.rome_code')}
+                            </label>
+                            <input
+                                type="text"
+                                className="nb-input"
+                                placeholder={t('jobs.rome_code_placeholder')}
+                                value={filters.codeROME || ''}
+                                onChange={(e) => updateFilter('codeROME', e.target.value)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {/* Sector */}
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                opacity: 0.8
+                            }}>
+                                {t('jobs.sector')}
+                            </label>
+                            <input
+                                type="text"
+                                className="nb-input"
+                                placeholder={t('jobs.sector_placeholder')}
+                                value={filters.secteurActivite || ''}
+                                onChange={(e) => updateFilter('secteurActivite', e.target.value)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {/* Clear Filters Button */}
+                        {hasActiveFilters && (
                             <div>
                                 <button
-                                    onClick={() => handleSearch('')}
+                                    onClick={clearFilters}
                                     className="nb-btn-secondary"
                                     style={{ fontSize: '0.875rem', width: '100%' }}
                                 >
-                                    Effacer la recherche
+                                    {t('jobs.reset_filters')}
                                 </button>
                             </div>
                         )}
@@ -164,20 +470,8 @@ const JobSearch: React.FC = () => {
                             fontSize: '0.875rem',
                             fontWeight: 600
                         }}>
-                            {loading ? 'Chargement...' : `${total} offre${total > 1 ? 's' : ''} trouvée${total > 1 ? 's' : ''}`}
+                            {loading ? t('jobs.loading') : `${total} ${total > 1 ? t('jobs.offers_found_plural') : t('jobs.offers_found_singular')}`}
                         </div>
-
-                        {/* Pagination Info */}
-                        {!loading && total > 0 && (
-                            <div style={{
-                                padding: '0.5rem',
-                                textAlign: 'center',
-                                fontSize: '0.75rem',
-                                opacity: 0.7
-                            }}>
-                                Page {page} sur {Math.ceil(total / pageSize)}
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -195,19 +489,19 @@ const JobSearch: React.FC = () => {
                         {loading ? (
                             <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                                 <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7 }}>
-                                    Chargement des offres...
+                                    {t('jobs.loading_offers')}
                                 </p>
                             </div>
                         ) : error ? (
                             <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                                 <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7, color: 'red' }}>
-                                    Erreur: {error}
+                                    {t('jobs.error')}: {error}
                                 </p>
                             </div>
                         ) : jobs.length === 0 ? (
                             <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                                 <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7 }}>
-                                    Aucune offre trouvée
+                                    {t('jobs.no_offers_found')}
                                 </p>
                             </div>
                         ) : (
@@ -224,10 +518,10 @@ const JobSearch: React.FC = () => {
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                                                 <div style={{ flex: 1 }}>
                                                     <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem' }}>
-                                                        {job.intitule || 'Sans titre'}
+                                                        {job.intitule || t('jobs.untitled')}
                                                     </h3>
                                                     <p style={{ margin: 0, fontSize: '1rem', opacity: 0.8 }}>
-                                                        {job["entreprise_nom"] || 'Entreprise non spécifiée'}
+                                                        {job["entreprise_nom"] || t('jobs.company_not_specified')}
                                                     </p>
                                                 </div>
                                                 {job["salaire_libelle"] && (
@@ -283,54 +577,12 @@ const JobSearch: React.FC = () => {
                                                     }}
                                                     className="nb-btn"
                                                 >
-                                                    Voir les détails
+                                                    {t('jobs.view_details')}
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
-
-                                {/* Pagination Controls */}
-                                {total > pageSize && (
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        gap: '1rem',
-                                        marginTop: '2rem',
-                                        paddingBottom: '2rem'
-                                    }}>
-                                        <button
-                                            onClick={handlePreviousPage}
-                                            disabled={page === 1}
-                                            className="nb-btn-secondary"
-                                            style={{
-                                                opacity: page === 1 ? 0.5 : 1,
-                                                cursor: page === 1 ? 'not-allowed' : 'pointer'
-                                            }}
-                                        >
-                                            ← Précédent
-                                        </button>
-                                        <span style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            padding: '0 1rem',
-                                            fontWeight: 600
-                                        }}>
-                                            Page {page} / {Math.ceil(total / pageSize)}
-                                        </span>
-                                        <button
-                                            onClick={handleNextPage}
-                                            disabled={page * pageSize >= total}
-                                            className="nb-btn-secondary"
-                                            style={{
-                                                opacity: page * pageSize >= total ? 0.5 : 1,
-                                                cursor: page * pageSize >= total ? 'not-allowed' : 'pointer'
-                                            }}
-                                        >
-                                            Suivant →
-                                        </button>
-                                    </div>
-                                )}
                             </>
                         )}
                     </div>

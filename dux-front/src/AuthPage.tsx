@@ -10,6 +10,7 @@ const AuthPage: React.FC = () => {
     const [mode, setMode] = useState<"password" | "passkey">("password");
     const [isRegistering, setIsRegistering] = useState(false);
     const [isLinkedInLoading, setIsLinkedInLoading] = useState(false);
+    const [notification, setNotification] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     const { signIn, signUp, signInWithPasskey, registerPasskey, loading, error, clearError, user, checkAuth } = useAuth();
     const { t } = useLanguage();
@@ -22,6 +23,14 @@ const AuthPage: React.FC = () => {
         }
     }, [user, navigate]);
 
+    // Auto-dismiss notifications after 5 seconds
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => setNotification(null), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
+
     const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         clearError();
@@ -29,7 +38,7 @@ const AuthPage: React.FC = () => {
         try {
             if (isRegistering) {
                 await signUp(username, password);
-                alert("Registration successful! You can now log in.");
+                setNotification({ type: 'success', text: t('auth.registration_successful') });
                 setIsRegistering(false);
                 setPassword("");
             } else {
@@ -53,7 +62,7 @@ const AuthPage: React.FC = () => {
         clearError();
         try {
             await registerPasskey(username);
-            alert("Passkey registered successfully! You can now log in.");
+            setNotification({ type: 'success', text: t('auth.passkey_registered_success') });
         } catch {
             // Error is handled by context
         }
@@ -104,7 +113,7 @@ const AuthPage: React.FC = () => {
                     setIsLinkedInLoading(false);
                     popup?.close();
                     window.removeEventListener('message', handleMessage);
-                    alert(event.data.error || 'Failed to sign in with LinkedIn');
+                    setNotification({ type: 'error', text: event.data.error || t('errors.linkedin_signin_failed') });
                 }
             };
 
@@ -114,11 +123,11 @@ const AuthPage: React.FC = () => {
             if (!popup || popup.closed) {
                 setIsLinkedInLoading(false);
                 window.removeEventListener('message', handleMessage);
-                alert('Popup blocked. Please allow popups for this site.');
+                setNotification({ type: 'error', text: t('common.popup_blocked_site') });
             }
         } catch {
             setIsLinkedInLoading(false);
-            alert('Failed to initiate LinkedIn sign-in');
+            setNotification({ type: 'error', text: t('errors.linkedin_signin_initiate_failed') });
         }
     };
 
@@ -314,6 +323,20 @@ const AuthPage: React.FC = () => {
                     </p>
 
                     {error && <div className="nb-alert nb-alert--danger nb-mt">{error}</div>}
+
+                    {notification && (
+                        <div style={{
+                            marginTop: '1rem',
+                            padding: '0.75rem',
+                            backgroundColor: notification.type === 'success' ? 'var(--success-bg, #d4edda)' : 'var(--error-bg, #f8d7da)',
+                            color: notification.type === 'success' ? 'var(--success-text, #155724)' : 'var(--error-text, #721c24)',
+                            borderRadius: '4px',
+                            fontSize: '0.875rem',
+                            animation: 'fadeOut 0.5s ease-out 4.5s forwards'
+                        }}>
+                            {notification.text}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -332,6 +355,10 @@ const AuthPage: React.FC = () => {
                         transform: scale(1.1);
                         opacity: 0.8;
                     }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
                 }
             `}</style>
         </div>

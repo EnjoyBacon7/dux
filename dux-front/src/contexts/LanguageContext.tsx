@@ -165,6 +165,22 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Entrar com LinkedIn',
         la: 'Intrare cum LinkedIn'
     },
+    'auth.registration_successful': {
+        en: 'Registration successful! You can now log in.',
+        es: '¡Registro exitoso! Ahora puedes iniciar sesión.',
+        fr: 'Inscription réussie! Vous pouvez maintenant vous connecter.',
+        de: 'Registrierung erfolgreich! Sie können sich jetzt anmelden.',
+        pt: 'Registro bem-sucedido! Você pode fazer login agora.',
+        la: 'Inscriptio feliciter peracta! Modo intrare potes.'
+    },
+    'auth.passkey_registered_success': {
+        en: 'Passkey registered successfully! You can now log in.',
+        es: '¡Clave registrada exitosamente! Ahora puedes iniciar sesión.',
+        fr: 'Clé enregistrée avec succès! Vous pouvez maintenant vous connecter.',
+        de: 'Passkey erfolgreich registriert! Sie können sich jetzt anmelden.',
+        pt: 'Chave registrada com sucesso! Você pode fazer login agora.',
+        la: 'Clavis feliciter inscripta! Modo intrare potes.'
+    },
     // Home Page
     'home.welcome': {
         en: 'Welcome to Dux',
@@ -190,6 +206,38 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Conta',
         la: 'Ratio'
     },
+    'home.cv_title': {
+        en: 'Your CV on file',
+        es: 'Tu CV guardado',
+        fr: 'Votre CV enregistré',
+        de: 'Dein gespeichertes CV',
+        pt: 'Seu CV armazenado',
+        la: 'Curriculum tuum retentum'
+    },
+    'home.cv_missing': {
+        en: 'No CV uploaded yet. Upload a PDF to preview it here.',
+        es: 'Aún no subiste un CV. Sube un PDF para verlo aquí.',
+        fr: 'Aucun CV téléversé pour le moment. Ajoutez un PDF pour l\'afficher ici.',
+        de: 'Noch kein CV hochgeladen. Lade ein PDF hoch, um es hier zu sehen.',
+        pt: 'Nenhum CV enviado ainda. Envie um PDF para pré-visualizar aqui.',
+        la: 'Nondum curriculum sublatum. PDF mitte ut hic praevideas.'
+    },
+    'home.cv_open_link': {
+        en: 'Open CV in a new tab',
+        es: 'Abrir CV en una nueva pestaña',
+        fr: 'Ouvrir le CV dans un nouvel onglet',
+        de: 'CV in neuem Tab öffnen',
+        pt: 'Abrir o CV em nova aba',
+        la: 'Curriculum in nova scheda aperire'
+    },
+    'home.cv_preview_unavailable': {
+        en: 'We couldn\'t load the preview.',
+        es: 'No pudimos cargar la vista previa.',
+        fr: 'Impossible de charger l\'aperçu.',
+        de: 'Vorschau konnte nicht geladen werden.',
+        pt: 'Não foi possível carregar a pré-visualização.',
+        la: 'Praevisio onerari non potuit.'
+    },
     // Upload Page
     'upload.title': {
         en: 'Dux File Upload',
@@ -214,6 +262,30 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Hochladen...',
         pt: 'Enviando...',
         la: 'Mittendo...'
+    },
+    'upload.no_file_selected': {
+        en: 'Please select a file to upload.',
+        es: 'Por favor, selecciona un archivo para subir.',
+        fr: 'Veuillez sélectionner un fichier à télécharger.',
+        de: 'Bitte wählen Sie eine Datei zum Hochladen aus.',
+        pt: 'Por favor, selecione um arquivo para enviar.',
+        la: 'Elige fasciculum mittendum.'
+    },
+    'upload.failed': {
+        en: 'Upload failed',
+        es: 'La subida falló',
+        fr: 'Le téléchargement a échoué',
+        de: 'Upload fehlgeschlagen',
+        pt: 'Upload falhou',
+        la: 'Sumptio defecit'
+    },
+    'upload.success': {
+        en: 'File uploaded successfully!',
+        es: '¡Archivo subido exitosamente!',
+        fr: 'Fichier téléchargé avec succès!',
+        de: 'Datei erfolgreich hochgeladen!',
+        pt: 'Arquivo enviado com sucesso!',
+        la: 'Fasciculus feliciter sublatus!'
     },
     // Theme
     'theme.light': {
@@ -418,6 +490,446 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Vor {weeks} Wochen veröffentlicht',
         pt: 'Publicado há {weeks} semanas',
         la: 'Ante {weeks} hebdomadas publicatum'
+    },
+    'jobs.keywords': {
+        en: 'Keywords',
+        es: 'Palabras clave',
+        fr: 'Mots-clés',
+        de: 'Schlüsselwörter',
+        pt: 'Palavras-chave',
+        la: 'Verba Clavis'
+    },
+    'jobs.keywords_placeholder': {
+        en: 'e.g., Developer, Project Manager...',
+        es: 'Ej: Desarrollador, Director de Proyecto...',
+        fr: 'Ex: Développeur, Chef de projet...',
+        de: 'z.B. Entwickler, Projektmanager...',
+        pt: 'Ex: Desenvolvedor, Gerente de Projeto...',
+        la: 'Exempli gratia: Programmator, Magister Operis...'
+    },
+    'jobs.location': {
+        en: 'Location',
+        es: 'Ubicación',
+        fr: 'Localisation',
+        de: 'Standort',
+        pt: 'Localização',
+        la: 'Locus'
+    },
+    'jobs.commune': {
+        en: 'Municipality (INSEE Code)',
+        es: 'Municipio (Código INSEE)',
+        fr: 'Commune (Code INSEE)',
+        de: 'Gemeinde (INSEE-Code)',
+        pt: 'Município (Código INSEE)',
+        la: 'Municipium (Codex INSEE)'
+    },
+    'jobs.commune_placeholder': {
+        en: 'e.g., 75056',
+        es: 'Ej: 75056',
+        fr: 'Ex: 75056',
+        de: 'z.B. 75056',
+        pt: 'Ex: 75056',
+        la: 'Exempli gratia: 75056'
+    },
+    'jobs.department': {
+        en: 'Department',
+        es: 'Departamento',
+        fr: 'Département',
+        de: 'Departement',
+        pt: 'Departamento',
+        la: 'Departamentum'
+    },
+    'jobs.department_placeholder': {
+        en: 'e.g., 75',
+        es: 'Ej: 75',
+        fr: 'Ex: 75',
+        de: 'z.B. 75',
+        pt: 'Ex: 75',
+        la: 'Exempli gratia: 75'
+    },
+    'jobs.region': {
+        en: 'Region',
+        es: 'Región',
+        fr: 'Région',
+        de: 'Region',
+        pt: 'Região',
+        la: 'Regio'
+    },
+    'jobs.region_placeholder': {
+        en: 'e.g., Île-de-France',
+        es: 'Ej: Île-de-France',
+        fr: 'Ex: Île-de-France',
+        de: 'z.B. Île-de-France',
+        pt: 'Ex: Île-de-France',
+        la: 'Exempli gratia: Île-de-France'
+    },
+    'jobs.distance': {
+        en: 'Distance (km)',
+        es: 'Distancia (km)',
+        fr: 'Distance (km)',
+        de: 'Entfernung (km)',
+        pt: 'Distância (km)',
+        la: 'Distantia (km)'
+    },
+    'jobs.distance_placeholder': {
+        en: 'e.g., 10',
+        es: 'Ej: 10',
+        fr: 'Ex: 10',
+        de: 'z.B. 10',
+        pt: 'Ex: 10',
+        la: 'Exempli gratia: 10'
+    },
+    'jobs.contract_type': {
+        en: 'Contract Type',
+        es: 'Tipo de Contrato',
+        fr: 'Type de contrat',
+        de: 'Vertragsart',
+        pt: 'Tipo de Contrato',
+        la: 'Species Contractus'
+    },
+    'jobs.all_types': {
+        en: 'All types',
+        es: 'Todos los tipos',
+        fr: 'Tous les types',
+        de: 'Alle Arten',
+        pt: 'Todos os tipos',
+        la: 'Omnes species'
+    },
+    'jobs.contract_cdi': {
+        en: 'Permanent (CDI)',
+        es: 'Indefinido (CDI)',
+        fr: 'CDI',
+        de: 'Unbefristet (CDI)',
+        pt: 'Efetivo (CDI)',
+        la: 'Permanens (CDI)'
+    },
+    'jobs.contract_cdd': {
+        en: 'Fixed-term (CDD)',
+        es: 'Temporal (CDD)',
+        fr: 'CDD',
+        de: 'Befristet (CDD)',
+        pt: 'Temporário (CDD)',
+        la: 'Temporarius (CDD)'
+    },
+    'jobs.contract_mis': {
+        en: 'Temporary (MIS)',
+        es: 'Interino (MIS)',
+        fr: 'MIS (Mission intérimaire)',
+        de: 'Zeitarbeit (MIS)',
+        pt: 'Temporário (MIS)',
+        la: 'Interimarius (MIS)'
+    },
+    'jobs.contract_sai': {
+        en: 'Seasonal (SAI)',
+        es: 'Estacional (SAI)',
+        fr: 'SAI (Saisonnier)',
+        de: 'Saisonal (SAI)',
+        pt: 'Sazonal (SAI)',
+        la: 'Sesonalis (SAI)'
+    },
+    'jobs.contract_lib': {
+        en: 'Freelance (LIB)',
+        es: 'Autónomo (LIB)',
+        fr: 'LIB (Libéral)',
+        de: 'Freiberuflich (LIB)',
+        pt: 'Autônomo (LIB)',
+        la: 'Liberalis (LIB)'
+    },
+    'jobs.contract_rep': {
+        en: 'Takeover/Succession (REP)',
+        es: 'Sucesión (REP)',
+        fr: 'REP (Reprise/Succession)',
+        de: 'Übernahme/Nachfolge (REP)',
+        pt: 'Sucessão (REP)',
+        la: 'Successio (REP)'
+    },
+    'jobs.contract_fra': {
+        en: 'Franchise (FRA)',
+        es: 'Franquicia (FRA)',
+        fr: 'FRA (Franchise)',
+        de: 'Franchise (FRA)',
+        pt: 'Franquia (FRA)',
+        la: 'Franchisia (FRA)'
+    },
+    'jobs.contract_cce': {
+        en: 'Project Contract (CCE)',
+        es: 'Contrato de Obra (CCE)',
+        fr: 'CCE (Contrat de chantier)',
+        de: 'Baustellenvertrag (CCE)',
+        pt: 'Contrato de Obra (CCE)',
+        la: 'Contractus Operis (CCE)'
+    },
+    'jobs.contract_cpe': {
+        en: 'Professional Contract (CPE)',
+        es: 'Contrato Profesional (CPE)',
+        fr: 'CPE (Contrat de professionnalisation)',
+        de: 'Berufsvertrag (CPE)',
+        pt: 'Contrato Profissional (CPE)',
+        la: 'Contractus Professionalis (CPE)'
+    },
+    'jobs.experience_level': {
+        en: 'Experience Level',
+        es: 'Nivel de Experiencia',
+        fr: 'Niveau d\'expérience',
+        de: 'Erfahrungsniveau',
+        pt: 'Nível de Experiência',
+        la: 'Gradus Experientiae'
+    },
+    'jobs.all_levels': {
+        en: 'All levels',
+        es: 'Todos los niveles',
+        fr: 'Tous niveaux',
+        de: 'Alle Stufen',
+        pt: 'Todos os níveis',
+        la: 'Omnes gradus'
+    },
+    'jobs.experience_beginner': {
+        en: 'Beginner accepted',
+        es: 'Se acepta principiante',
+        fr: 'Débutant accepté',
+        de: 'Anfänger akzeptiert',
+        pt: 'Iniciante aceito',
+        la: 'Incipiens acceptus'
+    },
+    'jobs.experience_1_3': {
+        en: '1 to 3 years',
+        es: '1 a 3 años',
+        fr: '1 à 3 ans',
+        de: '1 bis 3 Jahre',
+        pt: '1 a 3 anos',
+        la: '1 ad 3 annos'
+    },
+    'jobs.experience_3_plus': {
+        en: '3 years and more',
+        es: '3 años y más',
+        fr: '3 ans et plus',
+        de: '3 Jahre und mehr',
+        pt: '3 anos e mais',
+        la: '3 annos et plus'
+    },
+    'jobs.qualification': {
+        en: 'Qualification',
+        es: 'Cualificación',
+        fr: 'Qualification',
+        de: 'Qualifikation',
+        pt: 'Qualificação',
+        la: 'Qualificatio'
+    },
+    'jobs.all': {
+        en: 'All',
+        es: 'Todos',
+        fr: 'Tous',
+        de: 'Alle',
+        pt: 'Todos',
+        la: 'Omnes'
+    },
+    'jobs.non_executive': {
+        en: 'Non-executive',
+        es: 'No ejecutivo',
+        fr: 'Non cadre',
+        de: 'Nicht leitend',
+        pt: 'Não executivo',
+        la: 'Non cadrus'
+    },
+    'jobs.executive': {
+        en: 'Executive',
+        es: 'Ejecutivo',
+        fr: 'Cadre',
+        de: 'Leitend',
+        pt: 'Executivo',
+        la: 'Cadrus'
+    },
+    'jobs.time_type': {
+        en: 'Full/Part Time',
+        es: 'Tiempo completo/parcial',
+        fr: 'Temps plein / partiel',
+        de: 'Vollzeit/Teilzeit',
+        pt: 'Tempo integral/parcial',
+        la: 'Tempus Plenum/Partiale'
+    },
+    'jobs.min_salary': {
+        en: 'Minimum Salary (€)',
+        es: 'Salario Mínimo (€)',
+        fr: 'Salaire minimum (€)',
+        de: 'Mindestgehalt (€)',
+        pt: 'Salário Mínimo (€)',
+        la: 'Salarium Minimum (€)'
+    },
+    'jobs.min_salary_placeholder': {
+        en: 'e.g., 30000',
+        es: 'Ej: 30000',
+        fr: 'Ex: 30000',
+        de: 'z.B. 30000',
+        pt: 'Ex: 30000',
+        la: 'Exempli gratia: 30000'
+    },
+    'jobs.published_since': {
+        en: 'Published Since',
+        es: 'Publicado Desde',
+        fr: 'Publiée depuis',
+        de: 'Veröffentlicht Seit',
+        pt: 'Publicado Desde',
+        la: 'Publicatum Ex'
+    },
+    'jobs.all_dates': {
+        en: 'All dates',
+        es: 'Todas las fechas',
+        fr: 'Toutes les dates',
+        de: 'Alle Daten',
+        pt: 'Todas as datas',
+        la: 'Omnes dies'
+    },
+    'jobs.today': {
+        en: 'Today',
+        es: 'Hoy',
+        fr: 'Aujourd\'hui',
+        de: 'Heute',
+        pt: 'Hoje',
+        la: 'Hodie'
+    },
+    'jobs.last_3_days': {
+        en: 'Last 3 days',
+        es: 'Últimos 3 días',
+        fr: '3 derniers jours',
+        de: 'Letzte 3 Tage',
+        pt: 'Últimos 3 dias',
+        la: 'Ultimi 3 dies'
+    },
+    'jobs.last_7_days': {
+        en: 'Last 7 days',
+        es: 'Últimos 7 días',
+        fr: '7 derniers jours',
+        de: 'Letzte 7 Tage',
+        pt: 'Últimos 7 dias',
+        la: 'Ultimi 7 dies'
+    },
+    'jobs.last_14_days': {
+        en: 'Last 14 days',
+        es: 'Últimos 14 días',
+        fr: '14 derniers jours',
+        de: 'Letzte 14 Tage',
+        pt: 'Últimos 14 dias',
+        la: 'Ultimi 14 dies'
+    },
+    'jobs.last_30_days': {
+        en: 'Last 30 days',
+        es: 'Últimos 30 días',
+        fr: '30 derniers jours',
+        de: 'Letzte 30 Tage',
+        pt: 'Últimos 30 dias',
+        la: 'Ultimi 30 dies'
+    },
+    'jobs.rome_code': {
+        en: 'ROME Code',
+        es: 'Código ROME',
+        fr: 'Code ROME',
+        de: 'ROME-Code',
+        pt: 'Código ROME',
+        la: 'Codex ROME'
+    },
+    'jobs.rome_code_placeholder': {
+        en: 'e.g., M1805',
+        es: 'Ej: M1805',
+        fr: 'Ex: M1805',
+        de: 'z.B. M1805',
+        pt: 'Ex: M1805',
+        la: 'Exempli gratia: M1805'
+    },
+    'jobs.sector': {
+        en: 'Industry Sector',
+        es: 'Sector de Actividad',
+        fr: 'Secteur d\'activité',
+        de: 'Branche',
+        pt: 'Setor de Atividade',
+        la: 'Sector Activitatis'
+    },
+    'jobs.sector_placeholder': {
+        en: 'e.g., IT',
+        es: 'Ej: Informática',
+        fr: 'Ex: Informatique',
+        de: 'z.B. IT',
+        pt: 'Ex: TI',
+        la: 'Exempli gratia: Computatio'
+    },
+    'jobs.reset_filters': {
+        en: 'Reset filters',
+        es: 'Restablecer filtros',
+        fr: 'Réinitialiser les filtres',
+        de: 'Filter zurücksetzen',
+        pt: 'Redefinir filtros',
+        la: 'Renovare colationes'
+    },
+    'jobs.offers_found_singular': {
+        en: 'offer found',
+        es: 'oferta encontrada',
+        fr: 'offre trouvée',
+        de: 'Angebot gefunden',
+        pt: 'oferta encontrada',
+        la: 'oblatio inventa'
+    },
+    'jobs.offers_found_plural': {
+        en: 'offers found',
+        es: 'ofertas encontradas',
+        fr: 'offres trouvées',
+        de: 'Angebote gefunden',
+        pt: 'ofertas encontradas',
+        la: 'oblationes inventae'
+    },
+    'jobs.loading': {
+        en: 'Loading...',
+        es: 'Cargando...',
+        fr: 'Chargement...',
+        de: 'Laden...',
+        pt: 'Carregando...',
+        la: 'Onerans...'
+    },
+    'jobs.loading_offers': {
+        en: 'Loading offers...',
+        es: 'Cargando ofertas...',
+        fr: 'Chargement des offres...',
+        de: 'Angebote laden...',
+        pt: 'Carregando ofertas...',
+        la: 'Onerans oblationes...'
+    },
+    'jobs.error': {
+        en: 'Error',
+        es: 'Error',
+        fr: 'Erreur',
+        de: 'Fehler',
+        pt: 'Erro',
+        la: 'Error'
+    },
+    'jobs.no_offers_found': {
+        en: 'No offers found',
+        es: 'No se encontraron ofertas',
+        fr: 'Aucune offre trouvée',
+        de: 'Keine Angebote gefunden',
+        pt: 'Nenhuma oferta encontrada',
+        la: 'Nullae oblationes inventae'
+    },
+    'jobs.untitled': {
+        en: 'Untitled',
+        es: 'Sin título',
+        fr: 'Sans titre',
+        de: 'Ohne Titel',
+        pt: 'Sem título',
+        la: 'Sine titulo'
+    },
+    'jobs.company_not_specified': {
+        en: 'Company not specified',
+        es: 'Empresa no especificada',
+        fr: 'Entreprise non spécifiée',
+        de: 'Unternehmen nicht angegeben',
+        pt: 'Empresa não especificada',
+        la: 'Societas non specificata'
+    },
+    'jobs.view_details': {
+        en: 'View details',
+        es: 'Ver detalles',
+        fr: 'Voir les détails',
+        de: 'Details anzeigen',
+        pt: 'Ver detalhes',
+        la: 'Videre particulas'
     },
     // Privacy Policy
     'privacy.title': {
@@ -1341,6 +1853,581 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Verwalten Sie Ihr Konto, Authentifizierungsmethoden und Einstellungen.',
         pt: 'Gerencie sua conta, métodos de autenticação e preferências.',
         la: 'Rationem tuam, methodos authentificationis, et praeferentias administra.'
+    },
+    // Common/Error Messages
+    'common.popup_blocked': {
+        en: 'Popup blocked. Please allow popups.',
+        es: 'Ventana emergente bloqueada. Por favor, permite las ventanas emergentes.',
+        fr: 'Fenêtre contextuelle bloquée. Veuillez autoriser les fenêtres contextuelles.',
+        de: 'Popup blockiert. Bitte erlauben Sie Popups.',
+        pt: 'Pop-up bloqueado. Por favor, permita pop-ups.',
+        la: 'Fenestra erumpens impedita. Fenestras erumpentes permitte.'
+    },
+    'common.popup_blocked_site': {
+        en: 'Popup blocked. Please allow popups for this site.',
+        es: 'Ventana emergente bloqueada. Por favor, permite las ventanas emergentes para este sitio.',
+        fr: 'Fenêtre contextuelle bloquée. Veuillez autoriser les fenêtres contextuelles pour ce site.',
+        de: 'Popup blockiert. Bitte erlauben Sie Popups für diese Seite.',
+        pt: 'Pop-up bloqueado. Por favor, permita pop-ups para este site.',
+        la: 'Fenestra erumpens impedita. Fenestras erumpentes pro hoc sito permitte.'
+    },
+    'common.error': {
+        en: 'Error',
+        es: 'Error',
+        fr: 'Erreur',
+        de: 'Fehler',
+        pt: 'Erro',
+        la: 'Error'
+    },
+    // Job Offers Card
+    'jobs.optimal_offers': {
+        en: 'Optimal Offers',
+        es: 'Ofertas Óptimas',
+        fr: 'Offres Optimales',
+        de: 'Optimale Angebote',
+        pt: 'Ofertas Ideais',
+        la: 'Offerta Optima'
+    },
+    'jobs.find_offers': {
+        en: 'Find Offers',
+        es: 'Encontrar Ofertas',
+        fr: 'Trouver des Offres',
+        de: 'Angebote Finden',
+        pt: 'Encontrar Ofertas',
+        la: 'Offerta Invenire'
+    },
+    'jobs.refresh_offers': {
+        en: 'Refresh Offers',
+        es: 'Actualizar Ofertas',
+        fr: 'Actualiser les Offres',
+        de: 'Angebote Aktualisieren',
+        pt: 'Atualizar Ofertas',
+        la: 'Offerta Renovare'
+    },
+    'jobs.upload_cv_to_match': {
+        en: 'Upload a CV and run profile matching to see offers.',
+        es: 'Sube un CV y ejecuta el emparejamiento de perfil para ver ofertas.',
+        fr: 'Téléchargez un CV et lancez la correspondance de profil pour voir les offres.',
+        de: 'Laden Sie einen Lebenslauf hoch und führen Sie das Profil-Matching durch, um Angebote zu sehen.',
+        pt: 'Envie um currículo e execute a correspondência de perfil para ver ofertas.',
+        la: 'Curriculum mitte et comparationem profili exerce ut offerta videas.'
+    },
+    'jobs.why_match': {
+        en: 'Why Match',
+        es: 'Por qué Coincide',
+        fr: 'Pourquoi Correspond',
+        de: 'Warum Passt',
+        pt: 'Por que Corresponde',
+        la: 'Cur Congruit'
+    },
+    'jobs.concerns': {
+        en: 'Concerns',
+        es: 'Preocupaciones',
+        fr: 'Préoccupations',
+        de: 'Bedenken',
+        pt: 'Preocupações',
+        la: 'Sollicitudines'
+    },
+    // Debug Card
+    'debug.title': {
+        en: 'Debug Information',
+        es: 'Información de Depuración',
+        fr: 'Informations de Débogage',
+        de: 'Debug-Informationen',
+        pt: 'Informações de Depuração',
+        la: 'Informationes Emendationis'
+    },
+    'debug.description': {
+        en: 'Detailed user data for debugging',
+        es: 'Datos detallados del usuario para depuración',
+        fr: 'Données utilisateur détaillées pour le débogage',
+        de: 'Detaillierte Benutzerdaten zum Debuggen',
+        pt: 'Dados detalhados do usuário para depuração',
+        la: 'Data usoris detaliata pro emendatione'
+    },
+    'debug.refresh': {
+        en: 'Refresh',
+        es: 'Actualizar',
+        fr: 'Actualiser',
+        de: 'Aktualisieren',
+        pt: 'Atualizar',
+        la: 'Renovare'
+    },
+    'debug.loading': {
+        en: 'Loading...',
+        es: 'Cargando...',
+        fr: 'Chargement...',
+        de: 'Laden...',
+        pt: 'Carregando...',
+        la: 'Onerando...'
+    },
+    'debug.show_details': {
+        en: 'Show Details',
+        es: 'Mostrar Detalles',
+        fr: 'Afficher les Détails',
+        de: 'Details Anzeigen',
+        pt: 'Mostrar Detalhes',
+        la: 'Detalia Monstrare'
+    },
+    'debug.hide_details': {
+        en: 'Hide Details',
+        es: 'Ocultar Detalles',
+        fr: 'Masquer les Détails',
+        de: 'Details Ausblenden',
+        pt: 'Ocultar Detalhes',
+        la: 'Detalia Celare'
+    },
+    'debug.loading_info': {
+        en: 'Loading debug information...',
+        es: 'Cargando información de depuración...',
+        fr: 'Chargement des informations de débogage...',
+        de: 'Debug-Informationen werden geladen...',
+        pt: 'Carregando informações de depuração...',
+        la: 'Informationes emendationis onerando...'
+    },
+    'debug.test_matching': {
+        en: 'Test Profile Matching',
+        es: 'Probar Emparejamiento de Perfil',
+        fr: 'Tester la Correspondance de Profil',
+        de: 'Profil-Matching Testen',
+        pt: 'Testar Correspondência de Perfil',
+        la: 'Comparationem Profili Probare'
+    },
+    'debug.query_label': {
+        en: 'Query / Preferences',
+        es: 'Consulta / Preferencias',
+        fr: 'Requête / Préférences',
+        de: 'Abfrage / Einstellungen',
+        pt: 'Consulta / Preferências',
+        la: 'Quaestio / Praeferentiae'
+    },
+    'debug.query_placeholder': {
+        en: 'e.g., I\'m interested in machine learning positions',
+        es: 'p. ej., Me interesan las posiciones de aprendizaje automático',
+        fr: 'p. ex., Je suis intéressé par les postes en apprentissage automatique',
+        de: 'z.B., Ich interessiere mich für Positionen im maschinellen Lernen',
+        pt: 'ex., Estou interessado em posições de aprendizado de máquina',
+        la: 'e.g., Positiones machinae disciplinae me intersunt'
+    },
+    'debug.model_label': {
+        en: 'Model (optional)',
+        es: 'Modelo (opcional)',
+        fr: 'Modèle (facultatif)',
+        de: 'Modell (optional)',
+        pt: 'Modelo (opcional)',
+        la: 'Exemplar (optionale)'
+    },
+    'debug.model_placeholder': {
+        en: 'e.g., gpt-4 (leave empty for default)',
+        es: 'p. ej., gpt-4 (dejar vacío para predeterminado)',
+        fr: 'p. ex., gpt-4 (laisser vide pour défaut)',
+        de: 'z.B., gpt-4 (leer lassen für Standard)',
+        pt: 'ex., gpt-4 (deixe em branco para padrão)',
+        la: 'e.g., gpt-4 (vacuum relinque pro praedeterminato)'
+    },
+    'debug.send_request': {
+        en: 'Send Request',
+        es: 'Enviar Solicitud',
+        fr: 'Envoyer la Requête',
+        de: 'Anfrage Senden',
+        pt: 'Enviar Solicitação',
+        la: 'Petitionem Mittere'
+    },
+    'debug.sending': {
+        en: 'Sending...',
+        es: 'Enviando...',
+        fr: 'Envoi...',
+        de: 'Senden...',
+        pt: 'Enviando...',
+        la: 'Mittendo...'
+    },
+    'debug.response': {
+        en: 'Response',
+        es: 'Respuesta',
+        fr: 'Réponse',
+        de: 'Antwort',
+        pt: 'Resposta',
+        la: 'Responsum'
+    },
+    'debug.failed_fetch': {
+        en: 'Failed to fetch debug information',
+        es: 'Error al obtener información de depuración',
+        fr: 'Échec de la récupération des informations de débogage',
+        de: 'Fehler beim Abrufen der Debug-Informationen',
+        pt: 'Falha ao obter informações de depuração',
+        la: 'Informationes emendationis petere defecit'
+    },
+    'debug.error_fetching': {
+        en: 'Error fetching debug information',
+        es: 'Error al obtener información de depuración',
+        fr: 'Erreur lors de la récupération des informations de débogage',
+        de: 'Fehler beim Abrufen der Debug-Informationen',
+        pt: 'Erro ao obter informações de depuração',
+        la: 'Error petendo informationes emendationis'
+    },
+    'debug.user_info': {
+        en: 'User Information',
+        es: 'Información del Usuario',
+        fr: 'Informations Utilisateur',
+        de: 'Benutzerinformationen',
+        pt: 'Informações do Usuário',
+        la: 'Informationes Usoris'
+    },
+    'debug.session_info': {
+        en: 'Session Information',
+        es: 'Información de Sesión',
+        fr: 'Informations de Session',
+        de: 'Sitzungsinformationen',
+        pt: 'Informações da Sessão',
+        la: 'Informationes Sessionis'
+    },
+    'debug.passkey_credentials': {
+        en: 'Passkey Credentials',
+        es: 'Credenciales de Passkey',
+        fr: 'Identifiants Passkey',
+        de: 'Passkey-Anmeldedaten',
+        pt: 'Credenciais de Passkey',
+        la: 'Credentiales Clavis'
+    },
+    'debug.login_attempts': {
+        en: 'Recent Login Attempts',
+        es: 'Intentos Recientes de Inicio de Sesión',
+        fr: 'Tentatives de Connexion Récentes',
+        de: 'Letzte Anmeldeversuche',
+        pt: 'Tentativas Recentes de Login',
+        la: 'Conatus Intrandi Recentes'
+    },
+    // Additional Error Messages
+    'errors.failed_delete_account': {
+        en: 'Failed to delete account',
+        es: 'Error al eliminar la cuenta',
+        fr: 'Échec de la suppression du compte',
+        de: 'Konto konnte nicht gelöscht werden',
+        pt: 'Falha ao excluir a conta',
+        la: 'Rationem delere defecit'
+    },
+    'errors.select_file': {
+        en: 'Please select a file to upload.',
+        es: 'Por favor, selecciona un archivo para subir.',
+        fr: 'Veuillez sélectionner un fichier à télécharger.',
+        de: 'Bitte wählen Sie eine Datei zum Hochladen aus.',
+        pt: 'Por favor, selecione um arquivo para enviar.',
+        la: 'Fasciculum mittendum elige.'
+    },
+    'errors.select_cv_file': {
+        en: 'Please select a CV file to upload.',
+        es: 'Por favor, selecciona un archivo de CV para subir.',
+        fr: 'Veuillez sélectionner un fichier CV à télécharger.',
+        de: 'Bitte wählen Sie eine CV-Datei zum Hochladen aus.',
+        pt: 'Por favor, selecione um arquivo de CV para enviar.',
+        la: 'Fasciculum CV mittendum elige.'
+    },
+    'errors.failed_save_profile': {
+        en: 'Failed to save profile',
+        es: 'Error al guardar el perfil',
+        fr: 'Échec de l\'enregistrement du profil',
+        de: 'Profil konnte nicht gespeichert werden',
+        pt: 'Falha ao salvar o perfil',
+        la: 'Professionem servare defecit'
+    },
+    'errors.failed_linkedin_auth': {
+        en: 'Failed to complete LinkedIn authentication',
+        es: 'Error al completar la autenticación de LinkedIn',
+        fr: 'Échec de l\'authentification LinkedIn',
+        de: 'LinkedIn-Authentifizierung fehlgeschlagen',
+        pt: 'Falha ao completar autenticação do LinkedIn',
+        la: 'Authentificationem LinkedIn perficere defecit'
+    },
+    'errors.failed_fetch_jobs': {
+        en: 'Failed to fetch jobs',
+        es: 'Error al obtener empleos',
+        fr: 'Échec de la récupération des emplois',
+        de: 'Fehler beim Abrufen von Stellen',
+        pt: 'Falha ao buscar vagas',
+        la: 'Opera petere defecit'
+    },
+    'errors.failed_generate_offers': {
+        en: 'Failed to generate offers',
+        es: 'Error al generar ofertas',
+        fr: 'Échec de la génération des offres',
+        de: 'Fehler beim Erstellen von Angeboten',
+        pt: 'Falha ao gerar ofertas',
+        la: 'Offerta generare defecit'
+    },
+    'errors.error_generating_offers': {
+        en: 'Error generating offers',
+        es: 'Error al generar ofertas',
+        fr: 'Erreur lors de la génération des offres',
+        de: 'Fehler beim Erstellen von Angeboten',
+        pt: 'Erro ao gerar ofertas',
+        la: 'Error generando offerta'
+    },
+    'errors.failed_linkedin_link': {
+        en: 'Failed to initiate LinkedIn linking',
+        es: 'Error al iniciar la vinculación de LinkedIn',
+        fr: 'Échec du lancement de la liaison LinkedIn',
+        de: 'Fehler beim Starten der LinkedIn-Verknüpfung',
+        pt: 'Falha ao iniciar vinculação do LinkedIn',
+        la: 'Conexionem LinkedIn initiare defecit'
+    },
+    'errors.linkedin_signin_failed': {
+        en: 'Failed to sign in with LinkedIn',
+        es: 'Error al iniciar sesión con LinkedIn',
+        fr: 'Échec de la connexion avec LinkedIn',
+        de: 'Fehler beim Anmelden mit LinkedIn',
+        pt: 'Falha ao entrar com LinkedIn',
+        la: 'Intrare cum LinkedIn defecit'
+    },
+    'errors.linkedin_signin_initiate_failed': {
+        en: 'Failed to initiate LinkedIn sign in',
+        es: 'Error al iniciar sesión con LinkedIn',
+        fr: 'Échec du lancement de la connexion LinkedIn',
+        de: 'Fehler beim Starten der LinkedIn-Anmeldung',
+        pt: 'Falha ao iniciar entrada do LinkedIn',
+        la: 'Initiare intrare cum LinkedIn defecit'
+    },
+    'errors.failed_model_response': {
+        en: 'Failed to get response from model',
+        es: 'Error al obtener respuesta del modelo',
+        fr: 'Échec de l\'obtention de la réponse du modèle',
+        de: 'Fehler beim Abrufen der Modellantwort',
+        pt: 'Falha ao obter resposta do modelo',
+        la: 'Responsum ab exemplari petere defecit'
+    },
+    'errors.error_sending_request': {
+        en: 'Error sending request to model',
+        es: 'Error al enviar solicitud al modelo',
+        fr: 'Erreur lors de l\'envoi de la requête au modèle',
+        de: 'Fehler beim Senden der Anfrage an das Modell',
+        pt: 'Erro ao enviar solicitação ao modelo',
+        la: 'Error mittendo petitionem ad exemplar'
+    },
+    // CV Score Card
+    'cv_score.title': {
+        en: 'CV Score',
+        es: 'Puntuación del CV',
+        fr: 'Score du CV',
+        de: 'Lebenslauf-Bewertung',
+        pt: 'Pontuação do CV',
+        la: 'Punctum Curriculum'
+    },
+    'cv_score.no_cv': {
+        en: 'Upload a CV to get your score',
+        es: 'Sube un CV para obtener tu puntuación',
+        fr: 'Téléchargez un CV pour obtenir votre score',
+        de: 'Laden Sie einen Lebenslauf hoch, um Ihre Bewertung zu erhalten',
+        pt: 'Envie um CV para obter sua pontuação',
+        la: 'Curriculum mitte ut punctum tuum accipias'
+    },
+    'cv_score.evaluating': {
+        en: 'Analyzing your CV...',
+        es: 'Analizando tu CV...',
+        fr: 'Analyse de votre CV...',
+        de: 'Analysiere Ihren Lebenslauf...',
+        pt: 'Analisando seu CV...',
+        la: 'Curriculum tuum examinando...'
+    },
+    'cv_score.no_evaluation': {
+        en: 'No CV evaluation yet',
+        es: 'Aún sin evaluación de CV',
+        fr: 'CV pas encore évalué',
+        de: 'Noch keine Lebenslauf-Bewertung',
+        pt: 'CV ainda não avaliado',
+        la: 'Curriculum nondum aestimatum'
+    },
+    'cv_score.evaluate_now': {
+        en: 'Evaluate Now',
+        es: 'Evaluar Ahora',
+        fr: 'Évaluer Maintenant',
+        de: 'Jetzt Bewerten',
+        pt: 'Avaliar Agora',
+        la: 'Aestima Nunc'
+    },
+    'cv_score.completeness': {
+        en: 'Completeness',
+        es: 'Completitud',
+        fr: 'Complétude',
+        de: 'Vollständigkeit',
+        pt: 'Completude',
+        la: 'Integritas'
+    },
+    'cv_score.experience': {
+        en: 'Experience Quality',
+        es: 'Calidad de Experiencia',
+        fr: 'Qualité de l\'Expérience',
+        de: 'Erfahrungsqualität',
+        pt: 'Qualidade da Experiência',
+        la: 'Qualitas Experientiae'
+    },
+    'cv_score.skills': {
+        en: 'Skills Relevance',
+        es: 'Relevancia de Habilidades',
+        fr: 'Pertinence des Compétences',
+        de: 'Relevanz der Fähigkeiten',
+        pt: 'Relevância das Habilidades',
+        la: 'Pertinentia Artium'
+    },
+    'cv_score.impact': {
+        en: 'Impact Evidence',
+        es: 'Evidencia de Impacto',
+        fr: 'Preuve d\'Impact',
+        de: 'Wirkungsnachweis',
+        pt: 'Evidência de Impacto',
+        la: 'Testimonium Impactus'
+    },
+    'cv_score.clarity': {
+        en: 'Clarity',
+        es: 'Claridad',
+        fr: 'Clarté',
+        de: 'Klarheit',
+        pt: 'Clareza',
+        la: 'Claritas'
+    },
+    'cv_score.consistency': {
+        en: 'Consistency',
+        es: 'Consistencia',
+        fr: 'Cohérence',
+        de: 'Konsistenz',
+        pt: 'Consistência',
+        la: 'Constantia'
+    },
+    'cv_score.recommendations': {
+        en: 'Recommendations',
+        es: 'Recomendaciones',
+        fr: 'Recommandations',
+        de: 'Empfehlungen',
+        pt: 'Recomendações',
+        la: 'Commendationes'
+    },
+    'cv_score.re_evaluate': {
+        en: 'Re-evaluate CV',
+        es: 'Reevaluar CV',
+        fr: 'Réévaluer le CV',
+        de: 'Lebenslauf neu bewerten',
+        pt: 'Reavaliar CV',
+        la: 'Curriculum Rursus Examinare'
+    },
+    'cv_score.view_profile_hub': {
+        en: 'View Profile Hub',
+        es: 'Ver Centro de Perfil',
+        fr: 'Voir le Hub Profil',
+        de: 'Profil-Hub anzeigen',
+        pt: 'Ver Hub do Perfil',
+        la: 'Videre Centrum Profili'
+    },
+    // Header Navigation
+    'header.home': {
+        en: 'Home',
+        es: 'Inicio',
+        fr: 'Accueil',
+        de: 'Startseite',
+        pt: 'Início',
+        la: 'Domus'
+    },
+    'header.jobs': {
+        en: 'Jobs',
+        es: 'Empleos',
+        fr: 'Emplois',
+        de: 'Stellen',
+        pt: 'Vagas',
+        la: 'Opera'
+    },
+    'header.profile_hub': {
+        en: 'Profile Hub',
+        es: 'Centro de Perfil',
+        fr: 'Hub Profil',
+        de: 'Profil-Hub',
+        pt: 'Hub do Perfil',
+        la: 'Centrum Profili'
+    },
+    // Profile Hub Page
+    'profile_hub.title': {
+        en: 'Profile Hub',
+        es: 'Centro de Perfil',
+        fr: 'Hub Profil',
+        de: 'Profil-Hub',
+        pt: 'Hub do Perfil',
+        la: 'Centrum Profili'
+    },
+    'profile_hub.subtitle': {
+        en: 'Your career insights and tools in one place',
+        es: 'Tus perspectivas profesionales y herramientas en un solo lugar',
+        fr: 'Vos insights de carrière et outils en un seul endroit',
+        de: 'Ihre Karriere-Einblicke und Tools an einem Ort',
+        pt: 'Seus insights de carreira e ferramentas em um só lugar',
+        la: 'Perspectiones et instrumenta curriculum tuum uno loco'
+    },
+    'profile_hub.detailed_analysis': {
+        en: 'Detailed Analysis',
+        es: 'Análisis Detallado',
+        fr: 'Analyse Détaillée',
+        de: 'Detaillierte Analyse',
+        pt: 'Análise Detalhada',
+        la: 'Analysis Accurata'
+    },
+    'profile_hub.detailed_analysis_desc': {
+        en: 'Deep dive into your CV scores with explanations and improvement suggestions',
+        es: 'Análisis profundo de tus puntuaciones de CV con explicaciones y sugerencias de mejora',
+        fr: 'Analyse approfondie de vos scores CV avec explications et suggestions d\'amélioration',
+        de: 'Tiefgehende Analyse Ihrer Lebenslauf-Bewertungen mit Erklärungen und Verbesserungsvorschlägen',
+        pt: 'Análise profunda de suas pontuações de CV com explicações e sugestões de melhoria',
+        la: 'Analysis profunda punctorum curriculum cum explicationibus et suggestionibus emendationis'
+    },
+    'profile_hub.career_path': {
+        en: 'Career Path',
+        es: 'Trayectoria Profesional',
+        fr: 'Parcours de Carrière',
+        de: 'Karriereweg',
+        pt: 'Trajetória de Carreira',
+        la: 'Via Curriculum'
+    },
+    'profile_hub.career_path_desc': {
+        en: 'Visualize potential career progressions based on your experience and skills',
+        es: 'Visualiza progresiones profesionales potenciales basadas en tu experiencia y habilidades',
+        fr: 'Visualisez les progressions de carrière potentielles basées sur votre expérience et compétences',
+        de: 'Visualisieren Sie potenzielle Karriereverläufe basierend auf Ihrer Erfahrung und Fähigkeiten',
+        pt: 'Visualize progressões de carreira potenciais com base em sua experiência e habilidades',
+        la: 'Videre progressiones curriculum potentiales ex experientia et artibus tuis'
+    },
+    'profile_hub.skill_gaps': {
+        en: 'Skill Gaps',
+        es: 'Brechas de Habilidades',
+        fr: 'Lacunes de Compétences',
+        de: 'Kompetenzlücken',
+        pt: 'Lacunas de Habilidades',
+        la: 'Lacunae Artium'
+    },
+    'profile_hub.skill_gaps_desc': {
+        en: 'Identify missing skills for your target roles and get learning recommendations',
+        es: 'Identifica habilidades faltantes para tus roles objetivo y obtén recomendaciones de aprendizaje',
+        fr: 'Identifiez les compétences manquantes pour vos rôles cibles et obtenez des recommandations d\'apprentissage',
+        de: 'Identifizieren Sie fehlende Fähigkeiten für Ihre Zielrollen und erhalten Sie Lernempfehlungen',
+        pt: 'Identifique habilidades ausentes para seus cargos-alvo e obtenha recomendações de aprendizado',
+        la: 'Identifica artes deesse pro muneribus scoporum tuorum et accipe commendationes discendi'
+    },
+    'profile_hub.cv_templates': {
+        en: 'CV Templates',
+        es: 'Plantillas de CV',
+        fr: 'Modèles de CV',
+        de: 'Lebenslauf-Vorlagen',
+        pt: 'Modelos de CV',
+        la: 'Exemplaria Curriculum'
+    },
+    'profile_hub.cv_templates_desc': {
+        en: 'Access professional CV templates optimized for your industry',
+        es: 'Accede a plantillas de CV profesionales optimizadas para tu industria',
+        fr: 'Accédez à des modèles de CV professionnels optimisés pour votre industrie',
+        de: 'Greifen Sie auf professionelle Lebenslauf-Vorlagen zu, die für Ihre Branche optimiert sind',
+        pt: 'Acesse modelos de CV profissionais otimizados para sua indústria',
+        la: 'Accede ad exemplaria curriculum professionalia optimata pro industria tua'
+    },
+    'profile_hub.coming_soon': {
+        en: 'Coming Soon',
+        es: 'Próximamente',
+        fr: 'Bientôt Disponible',
+        de: 'Demnächst',
+        pt: 'Em Breve',
+        la: 'Mox Venturum'
     }
 };
 

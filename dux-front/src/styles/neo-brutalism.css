@@ -1,18 +1,18 @@
 :root {
 
     /* ===== THEME COLORS ===== */
-    --nb-bg: #fffef8;
-    --nb-bg-alt: #ffeec2;
-    --nb-bg-muted: #f4f4f4;
-    --nb-fg: #111;
-    --nb-shadow-color: #111;
+    --nb-bg: #ffffff;
+    --nb-bg-alt: #f7f6f5;
+    --nb-bg-muted: #efefef;
+    --nb-fg: #1a1a1a;
+    --nb-shadow-color: #0a0a0a;
 
     /* ===== ACCENT COLORS ===== */
-    --nb-accent: #9120fb;
-    --nb-accent-alt: #ca85e7;
-    --nb-success: #00c853;
-    --nb-danger: #ff2b2b;
-    --nb-warning: #ffdd00;
+    --nb-accent: #6366f1;
+    --nb-accent-alt: #818cf8;
+    --nb-success: #10b981;
+    --nb-danger: #ef4444;
+    --nb-warning: #f59e0b;
 
     /* ===== LAYOUT & STYLING ===== */
     --nb-radius: 14px;
@@ -25,13 +25,13 @@
     --nb-transition: .18s cubic-bezier(.25, .8, .25, 1);
 
     /* ===== LIGHT MODE SPECIFIC ===== */
-    --nb-input-bg: #fff;
-    --nb-input-focus-bg: #fffbe6;
-    --nb-btn-ghost-bg: #fff;
-    --nb-alert-danger-bg: #ffe4e4;
-    --nb-alert-success-bg: #e2ffe9;
-    --nb-card-bg: var(--nb-bg-alt);
-    --nb-card-muted-bg: var(--nb-bg-muted);
+    --nb-input-bg: #ffffff;
+    --nb-input-focus-bg: #f0f4ff;
+    --nb-btn-ghost-bg: #ffffff;
+    --nb-alert-danger-bg: #fee2e2;
+    --nb-alert-success-bg: #dcfce7;
+    --nb-card-bg: #f7f6f5;
+    --nb-card-muted-bg: #efefef;
 }
 
 
@@ -39,36 +39,36 @@
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
         --theme: dark;
-        --nb-bg: #121212;
-        --nb-bg-alt: #1e1e1e;
-        --nb-bg-muted: #222;
+        --nb-bg: #0f0f0f;
+        --nb-bg-alt: #1a1a1a;
+        --nb-bg-muted: #262626;
         --nb-fg: #fafafa;
-        --nb-shadow-color: #fafafa;
-        --nb-input-bg: #181818;
-        --nb-input-focus-bg: #222;
-        --nb-btn-ghost-bg: #181818;
-        --nb-alert-danger-bg: #ffe4e4;
-        --nb-alert-success-bg: #e2ffe9;
-        --nb-card-bg: #1f1f1f;
-        --nb-card-muted-bg: #262626;
+        --nb-shadow-color: #ffffff;
+        --nb-input-bg: #151515;
+        --nb-input-focus-bg: #1f1f2e;
+        --nb-btn-ghost-bg: #151515;
+        --nb-alert-danger-bg: #7f1d1d;
+        --nb-alert-success-bg: #065f46;
+        --nb-card-bg: #161616;
+        --nb-card-muted-bg: #222222;
     }
 }
 
 /* ===== MANUAL THEME OVERRIDES ===== */
 :root[data-theme="dark"] {
     --theme: dark;
-    --nb-bg: #121212;
-    --nb-bg-alt: #1e1e1e;
-    --nb-bg-muted: #222;
+    --nb-bg: #0f0f0f;
+    --nb-bg-alt: #1a1a1a;
+    --nb-bg-muted: #262626;
     --nb-fg: #fafafa;
-    --nb-shadow-color: #fafafa;
-    --nb-input-bg: #181818;
-    --nb-input-focus-bg: #222;
-    --nb-btn-ghost-bg: #181818;
-    --nb-alert-danger-bg: #ffe4e4;
-    --nb-alert-success-bg: #e2ffe9;
-    --nb-card-bg: #1f1f1f;
-    --nb-card-muted-bg: #262626;
+    --nb-shadow-color: #ffffff;
+    --nb-input-bg: #151515;
+    --nb-input-focus-bg: #1f1f2e;
+    --nb-btn-ghost-bg: #151515;
+    --nb-alert-danger-bg: #7f1d1d;
+    --nb-alert-success-bg: #065f46;
+    --nb-card-bg: #161616;
+    --nb-card-muted-bg: #222222;
 }
 
 
@@ -251,6 +251,79 @@ a:hover {
     background: var(--nb-input-focus-bg);
 }
 
+/* Select (Dropdown) Styling */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+}
+
+select.nb-input {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: .85rem 2.5rem .85rem 1rem;
+    background-color: var(--nb-input-bg);
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+    background-attachment: scroll;
+    color: var(--nb-fg);
+}
+
+@media (prefers-color-scheme: dark) {
+    select.nb-input {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    }
+}
+
+:root[data-theme="light"] select.nb-input {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+}
+
+:root[data-theme="dark"] select.nb-input {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+}
+
+select option {
+    background: var(--nb-input-bg);
+    color: var(--nb-fg);
+    padding: .5rem;
+}
+
+select:hover {
+    box-shadow: var(--nb-shadow-xs);
+}
+
+select.nb-input:focus {
+    outline: none;
+    background-color: var(--nb-input-focus-bg);
+    box-shadow: var(--nb-shadow);
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+}
+
+select:focus {
+    outline: none;
+    background-color: var(--nb-input-focus-bg);
+    box-shadow: var(--nb-shadow);
+}
+
+@media (prefers-color-scheme: dark) {
+    select option {
+        background: var(--nb-bg-alt);
+        color: var(--nb-fg);
+    }
+}
+
+:root[data-theme="dark"] select option {
+    background: var(--nb-bg-alt);
+    color: var(--nb-fg);
+}
+
 /* Alerts */
 .nb-alert {
     padding: .9rem 1rem;
@@ -394,6 +467,7 @@ a:hover {
     align-items: center;
     justify-content: center;
     color: var(--nb-fg);
+    min-height: 44px;
 }
 
 .nb-theme-btn:last-child {

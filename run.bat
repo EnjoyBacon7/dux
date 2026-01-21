@@ -4,7 +4,7 @@
 if "%UPLOAD_DIR%"=="" set "UPLOAD_DIR=./uploads"
 if "%HOST%"=="" set "HOST=0.0.0.0"
 if "%PORT%"=="" set "PORT=8000"
-if "%DATABASE_URL%"=="" set "DATABASE_URL=postgresql://dux_user:dux_password@localhost:5432/dux"
+if "%DATABASE_URL%"=="" set "DATABASE_URL=postgresql://dux_user:dux_password@localhost:5433/dux"
 
 :: Display the values of the environment variables
 echo UPLOAD_DIR=%UPLOAD_DIR%
@@ -20,12 +20,12 @@ if errorlevel 1 (
 )
 
 :: Check if PostgreSQL service is running
-pg_isready -h localhost -p 5432 >nul 2>&1
+pg_isready -h localhost -p 5433 >nul 2>&1
 if errorlevel 1 (
     echo Starting PostgreSQL service...
     net start postgresql-x64-13 >nul 2>&1
     timeout /t 30 >nul
-    pg_isready -h localhost -p 5432 >nul 2>&1
+    pg_isready -h localhost -p 5433 >nul 2>&1
     if errorlevel 1 (
         echo Warning: PostgreSQL failed to start. Database operations may fail.
     ) else (
@@ -42,16 +42,32 @@ if errorlevel 1 psql -U postgres -c "CREATE DATABASE dux OWNER dux_user;" 2>nul
 
 echo Database setup complete!
 
+:: Ensure static directory exists
+if not exist static mkdir static
+
 :: Build the frontend and copy to static
 echo Building frontend...
 cd dux-front
 call npm install
 call npm run build
 cd ..
-if not exist static mkdir static
 rd /s /q static >nul 2>&1
+mkdir static
 xcopy /e /i /y dux-front\dist\* static\ >nul
 echo Frontend build complete!
+
+:: Build Docusaurus documentation
+echo Building documentation...
+cd dux-docs
+call npm install
+call npm run build
+cd ..
+:: Copy Docusaurus build to static/docs
+if not exist static\docs mkdir static\docs
+rd /s /q static\docs >nul 2>&1
+mkdir static\docs
+xcopy /e /i /y dux-docs\build\* static\docs\ >nul
+echo Documentation copied to static/docs
 
 :: Run the application using uvicorn with environment variables
 uv run uvicorn server.app:app --reload --host %HOST% --port %PORT% --env-file .env

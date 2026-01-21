@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     port: int = 8000
     upload_dir: str = "./uploads"
     debug: bool = False  # Set to True to show detailed error messages
+    log_level: str = "INFO"  # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
     # Session Configuration
     session_secret: str = "change-this-secret-in-production"  # IMPORTANT: Set in .env for production
