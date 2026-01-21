@@ -1,3 +1,5 @@
+import logging
+from unittest import result
 """Profile management router.
 
 Provides endpoints for user profile setup, CV upload, and experience/education management.
@@ -23,7 +25,6 @@ from server.dependencies import get_current_user
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 logger = logging.getLogger(__name__)
-
 
 # ============================================================================
 # Request Models
@@ -96,6 +97,7 @@ async def upload_endpoint(
     # Update user's CV filename and extracted text in database
     current_user.cv_filename = result["filename"]
     current_user.cv_text = result["extracted_text"]
+
     db.commit()
 
     # Trigger CV evaluation in the background
