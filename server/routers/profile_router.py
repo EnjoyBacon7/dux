@@ -100,20 +100,6 @@ async def upload_endpoint(
     # Update user's CV filename and extracted text in database
     current_user.cv_filename = result["filename"]
     current_user.cv_text = result["extracted_text"]
-    
-    client = OpenAI(
-        api_key="sk-RK6MMrXx1ys9CfcnFEceww",
-        base_url="https://chat.lucie.ovh.linagora.com/v1/"
-    )
-
-    resp = client.responses.create(
-        model="gpt-oss-120b",
-        input=[
-            {"role": "user", "content": f"Complete the following JSON using the information in the following text: {result['extracted_text']}. Just respond with this completed JSON : {{'name': '', 'email': '', 'phone': ''}}"},
-        ],
-    )
-
-    print(resp.output_text)
 
     db.commit()
 

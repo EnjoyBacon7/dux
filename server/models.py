@@ -242,6 +242,8 @@ class Metier_ROME(Base):
 
     def __repr__(self):
         return f"<Metier_ROME(code={self.code})>"
+    
+    
 class OptimalOffer(Base):
     __tablename__ = "optimal_offers"
 
