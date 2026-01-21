@@ -30,6 +30,9 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
     // 1. Récupération langue + traduction
     const { t, language } = useLanguage(); 
     
+    // 1. Récupération langue + traduction
+    const { t, language } = useLanguage(); 
+    
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
