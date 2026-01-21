@@ -2235,6 +2235,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'CV ainda não avaliado',
         la: 'Curriculum nondum aestimatum'
     },
+    'cv_score.evaluation_failed': {
+        en: 'CV evaluation failed. Please try again.',
+        es: 'La evaluación del CV falló. Por favor, inténtelo de nuevo.',
+        fr: 'L\'évaluation du CV a échoué. Veuillez réessayer.',
+        de: 'Die Lebenslauf-Bewertung ist fehlgeschlagen. Bitte versuchen Sie es erneut.',
+        pt: 'A avaliação do CV falhou. Por favor, tente novamente.',
+        la: 'Aestimatio curriculi defecit. Quaeso iterum temptes.'
+    },
     'cv_score.evaluate_now': {
         en: 'Evaluate Now',
         es: 'Evaluar Ahora',
