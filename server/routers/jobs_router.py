@@ -7,27 +7,227 @@ and managing job-related data.
 
 import logging
 import requests
-import json
-from typing import Optional, Dict, Any, List, Union
+import re
 
 from fastapi import APIRouter, Query, Depends
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, Session
-
 from server.config import settings
-from server.models import Fiche_Metier_ROME, User, Offres_FT
+from server.models import Metier_ROME, User, Offres_FT
 from server.database import get_db_session
 from server.methods.job_search import search_job_offers
+import json
+from typing import Optional, Dict, Any, List, Union, Tuple
+
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, Session
+from tqdm.auto import tqdm
+
 from server.methods.FT_job_search import search_france_travail
 from server.thread_pool import run_blocking_in_executor
 from server.dependencies import get_current_user
 from server.methods.matching_engine import MatchingEngine
 import asyncio
 
-
-
 from pydantic import BaseModel
 from fastapi import HTTPException
+
+
+def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: str) -> str:
+    data = {
+        "grant_type": "client_credentials",
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "scope": scope
+    }
+    params = {"realm": "/partenaire"}
+
+    resp = requests.post(AUTH_URL, data=data, params=params, timeout = 30)
+    resp.raise_for_status()
+    token = resp.json()["access_token"]
+
+    return token
+
+def get_offers(code_rome: str) -> dict:
+    FT_CLIENT_ID = settings.ft_client_id
+    FT_CLIENT_SECRET = settings.ft_client_secret
+    FT_AUTH_URL = settings.ft_auth_url
+    FT_API_OFFRES_URL = settings.ft_api_url_offres
+
+    # Récupère un token OAuth2 en mode client_credentials.
+
+    token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+
+    resultat = []
+    # Getting the list of offers for the given ROME code
+    page = 0
+    while len(resultat) % 150 == 0 and page < 20:
+        try:
+            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers, timeout=30)
+            resp.raise_for_status()
+        except:
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
+
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers, timeout=30)
+            resp.raise_for_status()
+
+        try:
+            data = resp.json()
+        except:
+            data = {"resultats": []}
+        
+        if len(data.get("resultats", [])) == 0:
+            break
+
+        resultat += data.get("resultats", [])
+        page += 1
+
+    return resultat
+
+
+def _to_float(s: str) -> float:
+    return float(s.replace(",", "."))
+
+
+def _match_first(text: str, patterns: list[str]) -> re.Match:
+    for pat in patterns:
+        m = re.search(pat, text, flags=re.IGNORECASE)
+        if m:
+            return m
+    raise ValueError("Format non reconnu")
+
+
+def _parse_amounts_and_months(text: str, prefix: str) -> Tuple[float, float]:
+    """
+    Returns (amount, nb_mois) where amount is:
+      - the single amount, or
+      - the average of (inf, sup) if a range is provided.
+
+    nb_mois defaults to 12.0 when not provided.
+    """
+    patterns = [
+        # range + months
+        rf"{prefix}\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois",
+        # range
+        rf"{prefix}\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros",
+        # single + months
+        rf"{prefix}\s+de\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois",
+        # single
+        rf"{prefix}\s+de\s+([\d.,]+)\s*Euros",
+    ]
+
+    m = _match_first(text, patterns)
+
+    # Determine which case matched by number of captured groups
+    if m.lastindex == 3:
+        inf_ = _to_float(m.group(1))
+        sup_ = _to_float(m.group(2))
+        nb_mois = _to_float(m.group(3))
+        amount = (inf_ + sup_) / 2.0
+    elif m.lastindex == 2:
+        # Could be range (inf, sup) OR single+months (amount, months)
+        # Disambiguate via presence of "à" in the matched text.
+        if "à" in m.group(0).lower():
+            inf_ = _to_float(m.group(1))
+            sup_ = _to_float(m.group(2))
+            amount = (inf_ + sup_) / 2.0
+            nb_mois = 12.0
+        else:
+            amount = _to_float(m.group(1))
+            nb_mois = _to_float(m.group(2))
+    elif m.lastindex == 1:
+        amount = _to_float(m.group(1))
+        nb_mois = 12.0
+    else:
+        raise ValueError("Format non reconnu")
+
+    return amount, nb_mois
+
+
+def _parse_nb_heures_semaine(texte_heure: Optional[str]) -> float:
+    """
+    Extract weekly hours; default to 35.0 if not found/parsable.
+    (No exceptions used for control flow.)
+    """
+    if not texte_heure:
+        return 35.0
+
+    # Keep your behavior: cut anything after "semaine"
+    texte_heure = re.sub(r"(semaine)\b.*$", r"\1", texte_heure, flags=re.S | re.IGNORECASE)
+
+    # Temps partiel - XXH/semaine
+    m = re.search(r"Temps\s+partiel\s+-\s+([\d.,]+)H/semaine\b", texte_heure, flags=re.IGNORECASE)
+    if m:
+        return _to_float(m.group(1))
+
+    # XXHYY/semaine (e.g., 35H30/semaine)
+    m = re.search(r"([\d.,]+)H([\d.,]+)/semaine\b", texte_heure, flags=re.IGNORECASE)
+    if m:
+        heures = _to_float(m.group(1))
+        minutes = _to_float(m.group(2))
+        return heures + minutes / 60.0
+
+    # XXH/semaine
+    m = re.search(r"([\d.,]+)H/semaine\b", texte_heure, flags=re.IGNORECASE)
+    if m:
+        return _to_float(m.group(1))
+
+    return 35.0
+
+
+def _parse_mensuel(texte_salaire: str) -> float:
+    salaire_mensuel, nb_mois = _parse_amounts_and_months(texte_salaire, "Mensuel")
+    annuel = salaire_mensuel * nb_mois
+    return annuel / 12.0
+
+
+def _parse_annuel(texte_salaire: str) -> float:
+    salaire_annuel, nb_mois = _parse_amounts_and_months(texte_salaire, "Annuel")
+    annuel_effectif = salaire_annuel * (nb_mois / 12.0)
+    return annuel_effectif / 12.0
+
+
+def _parse_horaire(texte_salaire: str, texte_heure: Optional[str]) -> float:
+    salaire_horaire, nb_mois = _parse_amounts_and_months(texte_salaire, "Horaire")
+    nb_heures_semaine = _parse_nb_heures_semaine(texte_heure)
+    annuel = salaire_horaire * nb_heures_semaine * 52.0 * (nb_mois / 12.0)
+    return annuel / 12.0
+
+
+def calcul_salaire(texte_salaire: Optional[str], texte_heure: Optional[str]) -> Optional[float]:
+    """
+    Returns monthly salary as float, or None if salary text cannot be parsed.
+
+    Top-level catches only (ValueError, AttributeError) as requested.
+    """
+    if not texte_salaire:
+        return None
+
+    ts = texte_salaire.strip()
+
+    dispatch = {
+        "mensuel": lambda: _parse_mensuel(ts),
+        "horaire": lambda: _parse_horaire(ts, texte_heure),
+        "annuel":  lambda: _parse_annuel(ts),
+    }
+
+    try:
+        key = ts[:7].strip().lower()  # "Mensuel", "Horaire", "Annuel"
+        handler = dispatch.get(key)
+        return handler() if handler else None
+
+    except (ValueError, AttributeError) as e:
+        # Keep logs helpful; let unexpected exceptions bubble up.
+        logger.info("calcul_salaire: parsing failed for texte_salaire=%r: %s", texte_salaire, e)
+        return None
+
 
 def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize France Travail offers to the flat shape expected by the UI."""
@@ -270,60 +470,101 @@ def load_fiche_metier():
     """
 
     try:
-        CLIENT_ID = settings.client_id
-        CLIENT_SECRET = settings.client_secret
-        AUTH_URL = settings.auth_url
-        API_URL_FICHE_METIER = settings.api_url_fiche_metier
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL_CODE_METIER = settings.ft_api_url_code_metier
+        FT_API_URL_METIER = settings.ft_api_url_fiche_metier
         DATABASE_URL = settings.database_url
 
         """
         Récupère un token OAuth2 en mode client_credentials.
         """
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "scope": f"api_rome-fiches-metiersv1 nomenclatureRome",
-        }
-        params = {"realm": "/partenaire"}
 
-        resp = requests.post(AUTH_URL, data=data, params=params)
-        resp.raise_for_status()
-        token = resp.json()["access_token"]
-
-        # Récupérer les offres depuis l'API
-        fiche_metier = []
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
 
         headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/json"
         }
 
+        # Récupérer les codes métiers ROME
+        code_metier = []
+
+        # Getting the list of ROME codes
         try:
-            resp = requests.get(API_URL_FICHE_METIER, headers=headers, timeout=30)
+            resp = requests.get(FT_API_URL_CODE_METIER, headers=headers, timeout=30)
             resp.raise_for_status()
             data = resp.json()
         except:
-            data = {
-                "grant_type": "client_credentials",
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-                "scope": f"api_rome-fiches-metiersv1 nomenclatureRome",
-            }
-            params = {"realm": "/partenaire"}
-
-            resp = requests.post(AUTH_URL, data=data, params=params)
-            resp.raise_for_status()
-            token = resp.json()["access_token"]
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
             headers = {
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json"
             }
-            resp = requests.get(API_URL_FICHE_METIER, headers=headers)
+            resp = requests.get(FT_API_URL_CODE_METIER, headers=headers, timeout=30)
             resp.raise_for_status()
             data = resp.json()
 
-        fiche_metier += data
+        code_metier += data
+
+        print(f"Nombre de codes ROME récupérés : {len(code_metier)}")
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        fiche_metier = []
+        
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+
+        for code in tqdm(code_metier):
+            try:
+                while True:
+                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
+                    if resp.status_code != 429:
+                        break
+                
+                resp.raise_for_status()
+                data = resp.json()
+                # Getting offers info from france travail API
+                liste_offres = get_offers(code.get("code"))
+                salaire = []
+                for offre in liste_offres:
+                    salaire.append(calcul_salaire(str(offre.get('salaire').get('libelle')), str(offre.get('dureeTravailLibelle'))))
+                
+            except:
+                token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json"
+                }
+                while True:
+                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
+                    if resp.status_code != 429:
+                        break
+                
+                resp.raise_for_status()
+                data = resp.json()
+
+                # Getting offers info from france travail API
+                liste_offres = get_offers(code.get("code"))
+                salaire = []
+                for offre in liste_offres:
+                    salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
+
+            if len(liste_offres) == 0:
+                data['nb_offre'] = 0
+                data['liste_salaire_offre'] = []
+            else:
+                data['nb_offre'] = len(liste_offres)
+                data['liste_salaire_offre'] = salaire
+
+            fiche_metier.append(data.copy())
+
 
         logger = logging.getLogger("uvicorn.info")
         logger.info(f"Récupération des fiches métiers : {len(fiche_metier)} obtenues.")
@@ -331,38 +572,50 @@ def load_fiche_metier():
         Session = sessionmaker(bind=engine)
 
         if not fiche_metier:
-            print("Aucune offre reçue, rien à sauvegarder.")
+            print("Aucune fiche métier reçue, rien à sauvegarder.")
             return
 
         session = Session()
-        session.execute(text("TRUNCATE TABLE Fiche_Metier_ROME RESTART IDENTITY CASCADE;"))
+        session.execute(text("TRUNCATE TABLE Metier_ROME RESTART IDENTITY CASCADE;"))
         session.commit()
 
         try:
             for fiche in fiche_metier:
-                fiche_insert = Fiche_Metier_ROME(
-                    code=fiche.get("code"),
-                    metier=fiche.get("metier"),  # {code, libelle}
-                    groupesCompetencesMobilisees=fiche.get(
-                        "groupesCompetencesMobilisees"),  # Array of competency groups
-                    groupesSavoirs=fiche.get("groupesSavoirs")  # Array of knowledge groups
-                )
+                fiche_insert = Metier_ROME(
+                    code = fiche.get("code"),
+                    libelle = fiche.get("libelle"),
+                    accesEmploi = fiche.get("accesEmploi"),
+                    appellations = fiche.get("appellations"),  # Array of appellations
+                    centresInteretsLies = fiche.get("centresInteretsLies"),  # Array of related interest centers
+                    competencesMobilisees = fiche.get("competencesMobilisees"),  # Array of skills
+                    contextesTravail = fiche.get("contextesTravail"),  # Array of work contexts
+                    definition = fiche.get("definition"),
+                    domaineProfessionnel = fiche.get("domaineProfessionnel"),
+                    metiersEnProximite = fiche.get("metiersEnProximite"),
+                    secteursActivitesLies = fiche.get("secteursActivitesLies"),
+                    themes = fiche.get("themes"),  # Array of themes
+                    transitionEcologique = fiche.get("transitionEcologique"),  # Ecological transition info
+                    transitionNumerique = fiche.get("transitionNumerique"),  # Digital transition info
+                    transitionDemographique = fiche.get("transitionDemographique"),  # Demographic transition info
+                    emploiCadre = fiche.get("emploiCadre"),
+                    emploiReglemente = fiche.get("emploiReglemente"),
+                    nb_offre = fiche.get("nb_offre"),
+                    liste_salaire_offre = fiche.get("liste_salaire_offre")
+                                )
                 try:
                     session.add(fiche_insert)
                 except Exception as e:
-                    # On loggue l'erreur avec la stack trace complète et l'ID de la fiche
                     logger.exception(f"Erreur lors de l'ajout de la fiche {fiche.get('code')}: {e}")
-                    # On continue la boucle pour traiter les fiches suivantes
                     continue
 
             session.commit()
         except Exception as e:
             session.rollback()
-            logger.error(f"Erreur lors de la sauvegarde des fiches métiers ROME : {str(e)}", exc_info=True)
+            logger.error(f"Erreur lors de la sauvegarde des métiers ROME : {str(e)}", exc_info=True)
         finally:
             session.close()
 
-        return {"message": f"{len(fiche_metier)} fiches métiers ROME chargées et sauvegardées avec succès"}
+        return {"message": f"{len(fiche_metier)} métiers ROME chargées et sauvegardées avec succès"}
 
     except Exception as e:
         return {"error": str(e)}
