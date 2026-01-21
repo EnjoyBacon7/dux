@@ -5,7 +5,7 @@ export type MetierDetailData = {
   romeLibelle?: string | null;
   definition?: string | null;
   accesEmploi?: string | null;
-  competences?: Array<{ libelle: string }>;
+  competences?: Array<{ libelle: string; code?: string | null }>;
   formations?: Array<{ libelle: string }>;
   nbOffre?: number | null;
   listeSalaireOffre?: number[];
@@ -25,19 +25,89 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     let cancelled = false;
 
     function mapToDetail(payload: any): MetierDetailData {
-      const competences = Array.isArray(payload?.competencesmobilisees)
-        ? payload.competencesmobilisees
+      const normalizeCompetences = (
+        input: any
+      ): Array<{ libelle: string; code?: string | null }> => {
+        if (!input) return [];
+        if (Array.isArray(input)) {
+          return input
             .map((item: any) => {
               if (!item) return null;
               if (typeof item === "string") return { libelle: item };
               if (typeof item === "object") {
-                const label = item.libelle ?? item.label;
-                return label ? { libelle: String(label) } : null;
+                const label =
+                  item.libelle ??
+                  item.label ??
+                  item.name ??
+                  item.titre ??
+                  item?.competence?.libelle ??
+                  item?.competenceDetaillee?.libelle ??
+                  item?.competencedetaillee?.libelle ??
+                  item?.macroSavoirEtreProfessionnel?.libelle ??
+                  item?.macrosavoiretreprofessionnel?.libelle ??
+                  item?.macroSavoirFaire?.libelle ??
+                  item?.macrosavoirfaire?.libelle;
+                const code =
+                  item.code ??
+                  item.codeogr ??
+                  item?.competence?.code ??
+                  item?.competenceDetaillee?.code ??
+                  item?.competencedetaillee?.code ??
+                  item?.macroSavoirEtreProfessionnel?.code ??
+                  item?.macrosavoiretreprofessionnel?.code ??
+                  item?.macroSavoirFaire?.code ??
+                  item?.macrosavoirfaire?.code;
+                return label ? { libelle: String(label), code: code ? String(code) : null } : null;
               }
               return null;
             })
-            .filter(Boolean)
-        : [];
+            .filter(Boolean) as Array<{ libelle: string; code?: string | null }>;
+        }
+        if (typeof input === "string") return [{ libelle: input }];
+        if (typeof input === "object") {
+          if (Array.isArray(input.competences)) return normalizeCompetences(input.competences);
+          if (Array.isArray(input.competence)) return normalizeCompetences(input.competence);
+          if (Array.isArray(input.items)) return normalizeCompetences(input.items);
+          const label =
+            input.libelle ??
+            input.label ??
+            input.name ??
+            input.titre ??
+            input?.competence?.libelle ??
+            input?.competenceDetaillee?.libelle ??
+            input?.competencedetaillee?.libelle ??
+            input?.macroSavoirEtreProfessionnel?.libelle ??
+            input?.macrosavoiretreprofessionnel?.libelle ??
+            input?.macroSavoirFaire?.libelle ??
+            input?.macrosavoirfaire?.libelle;
+          const code =
+            input.code ??
+            input.codeogr ??
+            input?.competence?.code ??
+            input?.competenceDetaillee?.code ??
+            input?.competencedetaillee?.code ??
+            input?.macroSavoirEtreProfessionnel?.code ??
+            input?.macrosavoiretreprofessionnel?.code ??
+            input?.macroSavoirFaire?.code ??
+            input?.macrosavoirfaire?.code;
+          return label
+            ? [{ libelle: String(label), code: code ? String(code) : null }]
+            : [];
+        }
+        return [];
+      };
+
+      const rawCompetences =
+        payload?.competencesmobiliseesprincipales ??
+        payload?.competencesMobiliseesPrincipales ??
+        payload?.competences_mobilisees_principales ??
+        payload?.competencesmobilisees ??
+        payload?.competencesMobilisees ??
+        payload?.competences_mobilisees ??
+        payload?.competences ??
+        payload?.competence;
+
+      const competences = normalizeCompetences(rawCompetences);
 
       return {
         romeCode: payload?.code ?? romeCode,
@@ -138,93 +208,126 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         <span style={{ opacity: 0.6 }}>({data.romeCode})</span>
       </h1>
 
-      <section style={{ marginTop: "1rem", display: "grid", gap: "1rem" }}>
-        <div
-          style={{
-            padding: "0.75rem 1rem",
-            border: "1px solid rgba(0,0,0,0.12)",
-            borderRadius: "10px",
-            maxWidth: "360px",
-          }}
-        >
-          <div style={{ fontSize: "0.85rem", opacity: 0.7 }}>Offres d'emploi</div>
-          <div style={{ fontSize: "1.8rem", fontWeight: 700 }}>
-            {formatNbOffres(data.nbOffre)}
-          </div>
+      <div
+        style={{
+          marginTop: "1rem",
+          display: "grid",
+          gap: "1.5rem",
+          gridTemplateColumns: "minmax(0, 1fr) minmax(240px, 340px)",
+          alignItems: "start",
+        }}
+      >
+        <div>
+          <section style={{ display: "grid", gap: "1rem" }}>
+            <div
+              style={{
+                padding: "0.75rem 1rem",
+                border: "1px solid rgba(0,0,0,0.12)",
+                borderRadius: "10px",
+                maxWidth: "360px",
+              }}
+            >
+              <div style={{ fontSize: "0.85rem", opacity: 0.7 }}>Offres d'emploi</div>
+              <div style={{ fontSize: "1.8rem", fontWeight: 700 }}>
+                {formatNbOffres(data.nbOffre)}
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: "0.75rem 1rem",
+                border: "1px solid rgba(0,0,0,0.12)",
+                borderRadius: "10px",
+              }}
+            >
+              <div style={{ fontSize: "0.85rem", opacity: 0.7, marginBottom: "0.5rem" }}>
+                Fourchette de salaire (mensuel)
+              </div>
+              {salaireMin !== null && salaireMax !== null ? (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 600 }}>
+                    <span>{formatEur(salaireMin)}</span>
+                    <span>{formatEur(salaireMax)}</span>
+                  </div>
+                  <div style={{ marginTop: "0.5rem" }}>
+                    <svg width="100%" height="28" viewBox="0 0 100 28" preserveAspectRatio="none">
+                      <line
+                        x1="5"
+                        y1="14"
+                        x2="95"
+                        y2="14"
+                        stroke="rgba(0,0,0,0.2)"
+                        strokeWidth="6"
+                      />
+                      <line x1="5" y1="14" x2="95" y2="14" stroke="#2F6FDE" strokeWidth="6" />
+                      <circle cx="5" cy="14" r="6" fill="#1F4EA8" />
+                      <circle cx="95" cy="14" r="6" fill="#1F4EA8" />
+                      <circle cx={5 + (90 * moyennePct) / 100} cy="14" r="5" fill="#FF8A00" />
+                    </svg>
+                  </div>
+                  {salaireMoyen !== null ? (
+                    <div style={{ marginTop: "0.35rem", fontSize: "0.85rem", opacity: 0.75 }}>
+                      Salaire moyen: {formatEur(salaireMoyen)}
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <div style={{ opacity: 0.7 }}>Aucune donnee de salaire disponible.</div>
+              )}
+            </div>
+          </section>
+
+          {data.definition ? (
+            <section style={{ marginTop: "1rem" }}>
+              <h3>Definition</h3>
+              <p style={{ lineHeight: 1.55 }}>{data.definition}</p>
+            </section>
+          ) : null}
+
+          {data.accesEmploi ? (
+            <section style={{ marginTop: "1rem" }}>
+              <h3>Acces a l'emploi</h3>
+              <p style={{ lineHeight: 1.55 }}>{data.accesEmploi}</p>
+            </section>
+          ) : null}
+
+          {data.formations?.length ? (
+            <section style={{ marginTop: "1rem" }}>
+              <h3>Formations</h3>
+              <ul>
+                {data.formations.map((f, idx) => (
+                  <li key={idx}>{f.libelle}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
 
-        <div
+        <aside
           style={{
             padding: "0.75rem 1rem",
             border: "1px solid rgba(0,0,0,0.12)",
-            borderRadius: "10px",
+            borderRadius: "12px",
+            background: "rgba(0,0,0,0.02)",
           }}
         >
-          <div style={{ fontSize: "0.85rem", opacity: 0.7, marginBottom: "0.5rem" }}>
-            Fourchette de salaire (mensuel)
-          </div>
-          {salaireMin !== null && salaireMax !== null ? (
-            <>
-              <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 600 }}>
-                <span>{formatEur(salaireMin)}</span>
-                <span>{formatEur(salaireMax)}</span>
-              </div>
-              <div style={{ marginTop: "0.5rem" }}>
-                <svg width="100%" height="28" viewBox="0 0 100 28" preserveAspectRatio="none">
-                  <line x1="5" y1="14" x2="95" y2="14" stroke="rgba(0,0,0,0.2)" strokeWidth="6" />
-                  <line x1="5" y1="14" x2="95" y2="14" stroke="#2F6FDE" strokeWidth="6" />
-                  <circle cx="5" cy="14" r="6" fill="#1F4EA8" />
-                  <circle cx="95" cy="14" r="6" fill="#1F4EA8" />
-                  <circle cx={5 + (90 * moyennePct) / 100} cy="14" r="5" fill="#FF8A00" />
-                </svg>
-              </div>
-              {salaireMoyen !== null ? (
-                <div style={{ marginTop: "0.35rem", fontSize: "0.85rem", opacity: 0.75 }}>
-                  Salaire moyen: {formatEur(salaireMoyen)}
-                </div>
-              ) : null}
-            </>
+          <h3 style={{ marginTop: 0 }}>Competences</h3>
+          {data.competences?.length ? (
+            <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
+              {data.competences.map((c, idx) => (
+                <li key={idx} style={{ marginBottom: "0.35rem" }}>
+                  {c.libelle}
+                  {c.code ? (
+                    <span style={{ opacity: 0.65, marginLeft: "0.35rem" }}>({c.code})</span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           ) : (
-            <div style={{ opacity: 0.7 }}>Aucune donnee de salaire disponible.</div>
+            <div style={{ opacity: 0.7 }}>Aucune competence renseignee.</div>
           )}
-        </div>
-      </section>
-
-      {data.definition ? (
-        <section style={{ marginTop: "1rem" }}>
-          <h3>Definition</h3>
-          <p style={{ lineHeight: 1.55 }}>{data.definition}</p>
-        </section>
-      ) : null}
-
-      {data.accesEmploi ? (
-        <section style={{ marginTop: "1rem" }}>
-          <h3>Acces a l'emploi</h3>
-          <p style={{ lineHeight: 1.55 }}>{data.accesEmploi}</p>
-        </section>
-      ) : null}
-
-      {data.competences?.length ? (
-        <section style={{ marginTop: "1rem" }}>
-          <h3>Competences</h3>
-          <ul>
-            {data.competences.map((c, idx) => (
-              <li key={idx}>{c.libelle}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {data.formations?.length ? (
-        <section style={{ marginTop: "1rem" }}>
-          <h3>Formations</h3>
-          <ul>
-            {data.formations.map((f, idx) => (
-              <li key={idx}>{f.libelle}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+        </aside>
+      </div>
     </div>
   );
 };

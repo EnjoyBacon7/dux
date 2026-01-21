@@ -487,7 +487,7 @@ def load_fiche_metier(
             "Accept": "application/json"
         }
         
-        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobiliseesprincipales(libelle,@macrosavoiretreprofessionnel(riasecmineur,riasecmajeur),@competencedetaillee(riasecmineur,riasecmajeur),code,@macrosavoirfaire(riasecmineur,riasecmajeur),codeogr),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
 
         try:
             while True:
@@ -581,62 +581,6 @@ def load_code_metier():
             data = resp.json()
 
         code_metier += data
-
-        '''token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/json"
-        }
-
-        fiche_metier = []
-        
-        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
-
-        for code in tqdm(code_metier[:20]):
-            try:
-                while True:
-                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
-                    if resp.status_code != 429:
-                        break
-                
-                resp.raise_for_status()
-                data = resp.json()
-                # Getting offers info from france travail API
-                liste_offres = get_offers(code.get("code"))
-                salaire = []
-                for offre in liste_offres:
-                    salaire.append(calcul_salaire(str(offre.get('salaire').get('libelle')), str(offre.get('dureeTravailLibelle'))))
-                
-            except:
-                token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Accept": "application/json"
-                }
-                while True:
-                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
-                    if resp.status_code != 429:
-                        break
-                
-                resp.raise_for_status()
-                data = resp.json()
-
-                # Getting offers info from france travail API
-                liste_offres = get_offers(code.get("code"))
-                salaire = []
-                for offre in liste_offres:
-                    salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
-
-            if len(liste_offres) == 0:
-                data['nb_offre'] = 0
-                data['liste_salaire_offre'] = []
-            else:
-                data['nb_offre'] = len(liste_offres)
-                data['liste_salaire_offre'] = salaire
-
-            fiche_metier.append(data.copy())
-        '''
 
         logger = logging.getLogger("uvicorn.info")
         logger.info(f"Récupération des fiches métiers : {len(code_metier)} obtenues.")
