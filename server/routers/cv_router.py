@@ -15,6 +15,7 @@ from server.database import get_db_session
 from server.models import User, CVEvaluation
 from server.cv.cv_pipeline import CVEvaluationPipeline
 from server.cv.cv_schemas import EvaluationResult
+from server.dependencies import get_current_user
 
 # ============================================================================
 # Router Setup
@@ -70,25 +71,6 @@ class EvaluationHistoryItem(BaseModel):
     overall_score: Optional[int] = None
     cv_filename: Optional[str] = None
     created_at: Optional[str] = None
-
-
-# ============================================================================
-# Dependencies
-# ============================================================================
-
-
-def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
-    """
-    Dependency to extract and validate the current authenticated user from session.
-    """
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(User).filter(User.username == request.session["username"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return user
 
 
 # ============================================================================
