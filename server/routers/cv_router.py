@@ -122,23 +122,34 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
         logger.info(f"CV evaluation completed for user {user_id}: score={result.scores.overall_score}")
 
     except Exception as e:
-        error_msg = str(e) if str(e) else "Unknown error"
-        logger.error(f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}: {error_msg}", exc_info=True)
+        # Log full exception details with context (user-facing message will be sanitized)
+        logger.error(
+            f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}. "
+            f"Exception type: {type(e).__name__}, Exception: {str(e)}",
+            exc_info=True
+        )
+        
+        # Use sanitized, user-facing error message (not raw exception text)
+        user_facing_error = "Processing failed. Please retry or contact support if the issue persists."
+        
         db.rollback()
         # If we created a pending record, update it to failed; otherwise create a new failed record
         if pending_evaluation and pending_evaluation.id:
             try:
                 db.query(CVEvaluation).filter(CVEvaluation.id == pending_evaluation.id).update({
                     "evaluation_status": "failed",
-                    "error_message": error_msg[:500]
+                    "error_message": user_facing_error[:500]
                 })
                 db.commit()
             except Exception as persist_error:
-                logger.exception(f"Failed to update evaluation failure status: {persist_error}")
+                logger.exception(
+                    f"Failed to update evaluation failure status for user {user_id}, "
+                    f"evaluation_id={pending_evaluation.id}. Original error: {type(e).__name__}: {str(e)}"
+                )
                 # Fallback: try to create a new failed record
-                save_failed_evaluation_to_db(db, user_id, cv_filename, error_msg)
+                save_failed_evaluation_to_db(db, user_id, cv_filename, user_facing_error)
         else:
-            save_failed_evaluation_to_db(db, user_id, cv_filename, error_msg)
+            save_failed_evaluation_to_db(db, user_id, cv_filename, user_facing_error)
     finally:
         db.close()
 
