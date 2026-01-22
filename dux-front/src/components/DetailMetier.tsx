@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 export type MetierDetailData = {
   romeCode: string;
@@ -20,6 +20,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   const [data, setData] = useState<MetierDetailData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,6 +157,27 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     };
   }, [romeCode, apiBaseUrl]);
 
+  useEffect(() => {
+    setIsExpanded(false);
+  }, [romeCode]);
+
+  const resume = useMemo(() => {
+    if (!data?.definition) return "Description non disponible pour ce metier.";
+    const normalized = data.definition.replace(/\s+/g, " ").trim();
+    const match = normalized.match(/.*?[.!?](\s|$)/);
+    return (match ? match[0] : normalized).trim();
+  }, [data?.definition]);
+
+  const renderDefinition = (text: string) => {
+    const parts = text.split(/\\n|\r\n|\n/);
+    return parts.map((chunk, index) => (
+      <React.Fragment key={index}>
+        {chunk}
+        {index < parts.length - 1 ? <br /> : null}
+      </React.Fragment>
+    ));
+  };
+
   if (loading) {
     return <div style={{ padding: "1rem" }}>Chargement du metier...</div>;
   }
@@ -202,130 +224,154 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   };
 
   return (
-    <div style={{ padding: "1.25rem", maxWidth: "980px" }}>
-      <h1 style={{ marginTop: 0 }}>
-        {data.romeLibelle ?? "Detail metier"}{" "}
-        <span style={{ opacity: 0.6 }}>({data.romeCode})</span>
-      </h1>
+    <div className="wiki-metier-detail" key={romeCode}>
+      <section className="wm-card wm-hero" style={{ ["--delay" as any]: "0.02s" }}>
+        <div className="wm-hero-title-row">
+          <h2 className="wm-hero-title">{data.romeLibelle ?? "Detail metier"}</h2>
+          <span className="wm-rome-badge">{data.romeCode}</span>
+        </div>
+        <p className="wm-hero-summary">{renderDefinition(resume)}</p>
+      </section>
 
-      <div
-        style={{
-          marginTop: "1rem",
-          display: "grid",
-          gap: "1.5rem",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(240px, 340px)",
-          alignItems: "start",
-        }}
-      >
-        <div>
-          <section style={{ display: "grid", gap: "1rem" }}>
-            <div
-              style={{
-                padding: "0.75rem 1rem",
-                border: "1px solid rgba(0,0,0,0.12)",
-                borderRadius: "10px",
-                maxWidth: "360px",
-              }}
+      <div className="wm-detail-grid">
+        <div className="wm-main-column">
+
+          <section className="wm-card" style={{ ["--delay" as any]: "0.14s" }}>
+            <div className="wm-card-header">
+              <h3>Role et missions principales</h3>
+            </div>
+            {data.definition ? (
+            <p
+              className={`wm-body wm-body--definition wm-body--clamp ${
+                isExpanded ? "wm-body--expanded" : ""
+              }`}
             >
-              <div style={{ fontSize: "0.85rem", opacity: 0.7 }}>Offres d'emploi</div>
-              <div style={{ fontSize: "1.8rem", fontWeight: 700 }}>
-                {formatNbOffres(data.nbOffre)}
+              {renderDefinition(data.definition)}
+            </p>
+          ) : (
+              <p className="wm-body wm-muted">Aucune description disponible.</p>
+            )}
+            {data.definition ? (
+              <button
+                type="button"
+                className="wm-link-btn"
+                onClick={() => setIsExpanded((prev) => !prev)}
+                aria-expanded={isExpanded}
+              >
+                {isExpanded ? "Voir moins" : "Voir plus"}
+              </button>
+            ) : null}
+
+            {data.accesEmploi ? (
+              <div className="wm-subsection">
+                <h4>Acces a l'emploi</h4>
+                <p className="wm-body wm-body--tight">{data.accesEmploi}</p>
+              </div>
+            ) : null}
+
+            {data.formations?.length ? (
+              <div className="wm-subsection">
+                <h4>Formations</h4>
+                <ul className="wm-list">
+                  {data.formations.map((f, idx) => (
+                    <li key={idx}>{f.libelle}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="wm-card" style={{ ["--delay" as any]: "0.08s" }}>
+            <div className="wm-card-header">
+              <h3>Indicateurs cles</h3>
+            </div>
+            <div className="wm-stats-grid">
+              <div className="wm-stat">
+                <div className="wm-stat-label">Offres</div>
+                <div className="wm-stat-value">{formatNbOffres(data.nbOffre)}</div>
+                <div className="wm-stat-sub">offres actives</div>
+              </div>
+              <div className="wm-stat">
+                <div className="wm-stat-label">Salaire moyen</div>
+                <div className="wm-stat-value">
+                  {salaireMoyen !== null ? formatEur(salaireMoyen) : "--"}
+                </div>
+                <div className="wm-stat-sub">mensuel</div>
+              </div>
+              <div className="wm-stat">
+                <div className="wm-stat-label">Fourchette</div>
+                <div className="wm-stat-value">
+                  {salaireMin !== null && salaireMax !== null
+                    ? `${formatEur(salaireMin)} - ${formatEur(salaireMax)}`
+                    : "--"}
+                </div>
+                <div className="wm-stat-sub">min / max</div>
               </div>
             </div>
 
-            <div
-              style={{
-                padding: "0.75rem 1rem",
-                border: "1px solid rgba(0,0,0,0.12)",
-                borderRadius: "10px",
-              }}
-            >
-              <div style={{ fontSize: "0.85rem", opacity: 0.7, marginBottom: "0.5rem" }}>
-                Fourchette de salaire (mensuel)
-              </div>
+            <div className="wm-salary-range">
+              <div className="wm-salary-header">Fourchette de salaire (mensuel)</div>
               {salaireMin !== null && salaireMax !== null ? (
                 <>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 600 }}>
+                  <div className="wm-salary-track">
+                    <div className="wm-salary-gradient" />
+                    <div
+                      className="wm-salary-thumb"
+                      style={{ left: `${moyennePct}%` }}
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="wm-salary-labels">
                     <span>{formatEur(salaireMin)}</span>
                     <span>{formatEur(salaireMax)}</span>
                   </div>
-                  <div style={{ marginTop: "0.5rem" }}>
-                    <svg width="100%" height="28" viewBox="0 0 100 28" preserveAspectRatio="none">
-                      <line
-                        x1="5"
-                        y1="14"
-                        x2="95"
-                        y2="14"
-                        stroke="rgba(0,0,0,0.2)"
-                        strokeWidth="6"
-                      />
-                      <line x1="5" y1="14" x2="95" y2="14" stroke="#2F6FDE" strokeWidth="6" />
-                      <circle cx="5" cy="14" r="6" fill="#1F4EA8" />
-                      <circle cx="95" cy="14" r="6" fill="#1F4EA8" />
-                      <circle cx={5 + (90 * moyennePct) / 100} cy="14" r="5" fill="#FF8A00" />
-                    </svg>
-                  </div>
                   {salaireMoyen !== null ? (
-                    <div style={{ marginTop: "0.35rem", fontSize: "0.85rem", opacity: 0.75 }}>
+                    <div className="wm-salary-mean">
                       Salaire moyen: {formatEur(salaireMoyen)}
                     </div>
                   ) : null}
                 </>
               ) : (
-                <div style={{ opacity: 0.7 }}>Aucune donnee de salaire disponible.</div>
+                <div className="wm-muted">Aucune donnee de salaire disponible.</div>
               )}
             </div>
           </section>
 
-          {data.definition ? (
-            <section style={{ marginTop: "1rem" }}>
-              <h3>Definition</h3>
-              <p style={{ lineHeight: 1.55 }}>{data.definition}</p>
-            </section>
-          ) : null}
-
-          {data.accesEmploi ? (
-            <section style={{ marginTop: "1rem" }}>
-              <h3>Acces a l'emploi</h3>
-              <p style={{ lineHeight: 1.55 }}>{data.accesEmploi}</p>
-            </section>
-          ) : null}
-
-          {data.formations?.length ? (
-            <section style={{ marginTop: "1rem" }}>
-              <h3>Formations</h3>
-              <ul>
-                {data.formations.map((f, idx) => (
-                  <li key={idx}>{f.libelle}</li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          <section className="wm-card wm-actions-card" style={{ ["--delay" as any]: "0.26s" }}>
+            <div className="wm-card-header">
+              <h3>Actions</h3>
+            </div>
+            <div className="wm-actions">
+              <button type="button" className="nb-btn wm-action-btn">
+                Voir les offres liees
+              </button>
+              <button type="button" className="nb-btn wm-action-btn">
+                Comparer avec mon CV
+              </button>
+              <button type="button" className="nb-btn wm-action-btn">
+                Ajouter aux favoris
+              </button>
+            </div>
+          </section>
         </div>
 
-        <aside
-          style={{
-            padding: "0.75rem 1rem",
-            border: "1px solid rgba(0,0,0,0.12)",
-            borderRadius: "12px",
-            background: "rgba(0,0,0,0.02)",
-          }}
-        >
-          <h3 style={{ marginTop: 0 }}>Competences</h3>
-          {data.competences?.length ? (
-            <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
-              {data.competences.map((c, idx) => (
-                <li key={idx} style={{ marginBottom: "0.35rem" }}>
-                  {c.libelle}
-                  {c.code ? (
-                    <span style={{ opacity: 0.65, marginLeft: "0.35rem" }}>({c.code})</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div style={{ opacity: 0.7 }}>Aucune competence renseignee.</div>
-          )}
+        <aside className="wm-aside-column">
+          <section className="wm-card" style={{ ["--delay" as any]: "0.2s" }}>
+            <div className="wm-card-header">
+              <h3>Competences</h3>
+            </div>
+            {data.competences?.length ? (
+              <div className="wm-skill-wall">
+                {data.competences.map((c, idx) => (
+                  <span key={idx} className="wm-skill-chip" title={c.code ?? c.libelle}>
+                    {c.libelle}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="wm-muted">Aucune competence renseignee.</div>
+            )}
+          </section>
         </aside>
       </div>
     </div>

@@ -132,10 +132,6 @@ const MetierWikiLayout: React.FC = () => {
 
           {/* Contenu */}
           <section className="wiki-metier-content">
-            <div className="wiki-metier-detail-header">
-              <h1 className="wiki-metier-title">Wiki des metiers</h1>
-              <p className="nb-text-dim">Trouvez un metier par code ROME ou libelle.</p>
-            </div>
             {selectedCode ? (
               <DetailMetier romeCode={selectedCode} />
             ) : (
