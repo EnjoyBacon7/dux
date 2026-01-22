@@ -295,7 +295,6 @@ def _get_with_retry(
             url,
         )
         time.sleep(delay)
-    return resp
 
 # ============================================================================
 # Job Search Endpoints
@@ -586,7 +585,6 @@ def load_code_metier():
 
         session = Session()
         session.execute(text("TRUNCATE TABLE Metier_ROME RESTART IDENTITY CASCADE;"))
-        session.commit()
 
         try:
             for fiche in code_metier:
