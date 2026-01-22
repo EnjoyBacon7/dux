@@ -449,7 +449,8 @@ async def load_offers(
     
 @router.post("/load_fiche_metier", summary="Load fiche metier from France Travail API (ROME)")
 def load_fiche_metier(
-    codeROME: str = Query("A1413", description="Code ROME Offre à récupérer")):
+        codeROME: str = Query("A1413", description="Code ROME Offre à récupérer")
+    ):
 
     """
     Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
