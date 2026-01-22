@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import "../styles/job-detail.css";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/useLanguage";
 import JobMatchAnalysis from "./JobMatchAnalysis";
 import type { JobOffer } from "../types/job";
