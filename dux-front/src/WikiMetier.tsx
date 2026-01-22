@@ -54,7 +54,7 @@ const MetierWikiLayout: React.FC = () => {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [t]);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();

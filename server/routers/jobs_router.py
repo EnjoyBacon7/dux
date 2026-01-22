@@ -41,7 +41,6 @@ def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: s
         "scope": scope
     }
     params = {"realm": "/partenaire"}
-
     resp = requests.post(AUTH_URL, data=data, params=params, timeout=30)
     resp.raise_for_status()
     token = resp.json()["access_token"]
@@ -488,9 +487,13 @@ def load_fiche_metier(
             liste_offres = get_offers(codeROME)
             salaire = []
             for offre in liste_offres:
-                salaire.append(calcul_salaire(str(offre.get('salaire').get('libelle')), str(offre.get('dureeTravailLibelle'))))
-            
-        except:
+                salaire_obj = offre.get('salaire') or {}
+                salaire.append(calcul_salaire(
+                    salaire_obj.get('libelle'),
+                    offre.get('dureeTravailLibelle')
+                ))
+        except (requests.RequestException, KeyError) as e:
+            logger.warning("Initial fiche metier request failed, retrying with new token: %s", e)
             token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
             headers = {
                 "Authorization": f"Bearer {token}",
@@ -508,7 +511,11 @@ def load_fiche_metier(
             liste_offres = get_offers(codeROME)
             salaire = []
             for offre in liste_offres:
-                salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
+                salaire_obj = offre.get('salaire') or {}
+                salaire.append(calcul_salaire(
+                    salaire_obj.get('libelle'),
+                    offre.get('dureeTravailLibelle')
+                ))
 
         if len(liste_offres) == 0:
             data['nb_offre'] = 0
@@ -555,7 +562,8 @@ def load_code_metier():
             resp = requests.get(FT_API_URL_CODE_METIER, headers=headers, timeout=30)
             resp.raise_for_status()
             data = resp.json()
-        except:
+        except (requests.RequestException, KeyError) as e:
+            logger.warning("Initial code metier request failed, retrying with new token: %s", e)
             token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
             headers = {
                 "Authorization": f"Bearer {token}",

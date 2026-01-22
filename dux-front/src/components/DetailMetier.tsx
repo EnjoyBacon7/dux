@@ -179,7 +179,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     return () => {
       cancelled = true;
     };
-  }, [romeCode, apiBaseUrl]);
+  }, [romeCode, apiBaseUrl,t]);
 
   useEffect(() => {
     setIsExpanded(false);

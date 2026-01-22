@@ -34,7 +34,6 @@ def _map_competences(competences: Any) -> List[Dict[str, str]]:
 @router.get("", summary="List metiers from database")
 def list_metiers(
     q: Optional[str] = Query(None, description="Filter by code or libelle"),
-    limit: int = Query(500, ge=1, le=2000, description="Max results"),
     db: Session = Depends(get_db_session),
 ) -> List[Dict[str, str]]:
     query = db.query(Metier_ROME)
@@ -43,7 +42,7 @@ def list_metiers(
         query = query.filter(
             (Metier_ROME.code.ilike(like)) | (Metier_ROME.libelle.ilike(like))
         )
-    rows = query.order_by(Metier_ROME.libelle.asc(), Metier_ROME.code.asc()).limit(limit).all()
+    rows = query.order_by(Metier_ROME.libelle.asc(), Metier_ROME.code.asc()).all()
     return [{"romeCode": row.code, "romeLibelle": row.libelle or ""} for row in rows]
 
 
@@ -58,8 +57,5 @@ def get_fiche_metier(
 
     return {
         "romeCode": metier.code,
-        "romeLibelle": metier.libelle,
-        "definition": metier.definition,
-        "accesEmploi": metier.accesEmploi,
-        "competences": _map_competences(metier.competencesMobilisees)
+        "romeLibelle": metier.libelle
     }

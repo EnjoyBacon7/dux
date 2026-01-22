@@ -360,11 +360,11 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         es: 'Profesiones',
         fr: 'Métiers',
         de: 'Berufe',
-        pt: 'Profissoes',
+        pt: 'Profissões',
         la: 'Artes'
     },
     'metiers.search_placeholder': {
-        en: 'Search a metier (ROME or label)',
+        en: 'Search a job (ROME or label)',
         es: 'Buscar un oficio (ROME o etiqueta)',
         fr: 'Rechercher un metier (ROME ou libelle)',
         de: 'Beruf suchen (ROME oder Bezeichnung)',
@@ -382,23 +382,23 @@ const translations: { [key: string]: { [lang: string]: string } } = {
     'metiers.no_results': {
         en: 'No results.',
         es: 'Sin resultados.',
-        fr: 'Aucun resultat.',
+        fr: 'Aucun résultat.',
         de: 'Keine Ergebnisse.',
         pt: 'Nenhum resultado.',
         la: 'Nulla resultata.'
     },
     'metiers.select_prompt': {
-        en: 'Select a metier to display the detail.',
+        en: 'Select a job to display the detail.',
         es: 'Selecciona un oficio para ver la ficha.',
-        fr: 'Selectionnez un metier pour afficher la fiche.',
+        fr: 'Sélectionnez un métier pour afficher la fiche.',
         de: 'Waehle einen Beruf, um die Details anzuzeigen.',
         pt: 'Selecione uma profissao para ver a ficha.',
         la: 'Artem elige ut schedam videas.'
     },
     'metiers.detail.loading': {
-        en: 'Loading metier...',
+        en: 'Loading job...',
         es: 'Cargando oficio...',
-        fr: 'Chargement du metier...',
+        fr: 'Chargement du métier...',
         de: 'Beruf wird geladen...',
         pt: 'Carregando profissao...',
         la: 'Ars oneratur...'
@@ -406,23 +406,23 @@ const translations: { [key: string]: { [lang: string]: string } } = {
     'metiers.detail.no_data': {
         en: 'No data available.',
         es: 'No hay datos disponibles.',
-        fr: 'Aucune donnee disponible.',
+        fr: 'Aucune donnée disponible.',
         de: 'Keine Daten verfuegbar.',
         pt: 'Nenhum dado disponivel.',
         la: 'Nulla data praesto.'
     },
     'metiers.detail.summary_fallback': {
-        en: 'Description not available for this metier.',
+        en: 'Description not available for this job.',
         es: 'Descripcion no disponible para este oficio.',
-        fr: 'Description non disponible pour ce metier.',
+        fr: 'Description non disponible pour ce métier.',
         de: 'Beschreibung fuer diesen Beruf nicht verfuegbar.',
-        pt: 'Descricao nao disponivel para esta profissao.',
+        pt: 'Descricao nao disponível para esta profissao.',
         la: 'Descriptio huius artis non praesto.'
     },
     'metiers.detail.title_fallback': {
-        en: 'Metier detail',
+        en: 'Job detail',
         es: 'Detalle del oficio',
-        fr: 'Detail metier',
+        fr: 'Détail métier',
         de: 'Berufsdetails',
         pt: 'Detalhe da profissao',
         la: 'Detalia artis'
@@ -430,7 +430,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
     'metiers.detail.key_metrics': {
         en: 'Key metrics',
         es: 'Indicadores clave',
-        fr: 'Indicateurs cles',
+        fr: 'Indicateurs clés',
         de: 'Schluesselkennzahlen',
         pt: 'Indicadores chave',
         la: 'Indicia praecipua'
@@ -502,7 +502,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
     'metiers.detail.salary_no_data': {
         en: 'No salary data available.',
         es: 'No hay datos salariales disponibles.',
-        fr: 'Aucune donnee de salaire disponible.',
+        fr: 'Aucune donnée de salaire disponible.',
         de: 'Keine Gehaltsdaten verfuegbar.',
         pt: 'Nenhum dado salarial disponivel.',
         la: 'Data mercedis non praesto.'
@@ -542,7 +542,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
     'metiers.detail.training_access_title': {
         en: 'Training access',
         es: 'Acceso a la formacion',
-        fr: 'Acces a la formation',
+        fr: 'Accès a la formation',
         de: 'Zugang zur Weiterbildung',
         pt: 'Acesso a formacao',
         la: 'Aditus ad formationem'
@@ -550,7 +550,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
     'metiers.detail.skills_title': {
         en: 'Skills',
         es: 'Competencias',
-        fr: 'Competences',
+        fr: 'Compétences',
         de: 'Kompetenzen',
         pt: 'Competencias',
         la: 'Peritiae'
@@ -558,7 +558,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
     'metiers.detail.skills_empty': {
         en: 'No skills provided.',
         es: 'No hay competencias registradas.',
-        fr: 'Aucune competence renseignee.',
+        fr: 'Aucune compétence renseignée.',
         de: 'Keine Kompetenzen vorhanden.',
         pt: 'Nenhuma competencia informada.',
         la: 'Nullae peritiae praestitae.'
