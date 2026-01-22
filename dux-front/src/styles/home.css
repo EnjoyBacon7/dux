@@ -22,6 +22,7 @@
 .home-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-auto-flow: row dense;
     gap: clamp(1rem, 3vw, 2rem);
     padding: clamp(1rem, 5vw, 2rem);
 }
@@ -49,7 +50,7 @@
 /* CV Preview: right column, spans full height of left cards (rows 2-4) */
 .home-card.cv-preview-card {
     grid-column: 2;
-    grid-row: 2 / 5;
+    grid-row: span 3;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -475,6 +476,19 @@
 
 .cv-score-recommendations-list li:last-child {
     margin-bottom: 0;
+}
+
+/* Profile Hub Action Button */
+.cv-score-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: var(--nb-border) solid var(--nb-fg);
+    display: flex;
+    justify-content: center;
+}
+
+.cv-score-actions .nb-btn {
+    width: 100%;
 }
 
 /* Mobile Adjustments for CV Score Card */

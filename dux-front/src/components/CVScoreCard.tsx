@@ -21,6 +21,8 @@ interface Evaluation {
     scores: EvaluationScores;
     feedback: EvaluationFeedback;
     created_at: string | null;
+    evaluation_status: string | null; // "pending", "completed", "failed"
+    error_message: string | null;
 }
 
 interface CVScoreCardProps {
@@ -28,7 +30,7 @@ interface CVScoreCardProps {
     refreshTrigger?: number; // Increment to trigger refresh after upload
 }
 
-const POLL_INTERVAL = 5000; // 5 seconds
+const POLL_INTERVAL = 3000; // 3 seconds - faster polling for better UX
 const MAX_POLL_DURATION = 180000; // 3 minutes
 
 const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) => {
@@ -39,9 +41,10 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
     const [isLoading, setIsLoading] = useState(hasCv);
     const [isEvaluating, setIsEvaluating] = useState(false);
     const [isReEvaluating, setIsReEvaluating] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
     // Track if we've checked for evaluation (to show "no evaluation" state vs loading)
     const [hasChecked, setHasChecked] = useState(false);
+    // Track the previous refresh trigger to detect new uploads
+    const prevRefreshTrigger = useRef(refreshTrigger);
     const pollStartTime = useRef<number | null>(null);
     const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -51,7 +54,9 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
 
     const fetchEvaluation = useCallback(async (): Promise<Evaluation | null> => {
         try {
-            const response = await fetch("/api/cv/evaluation");
+            const response = await fetch("/api/cv/evaluation", {
+                credentials: "include",
+            });
             if (response.ok) {
                 const data = await response.json();
                 return data;
@@ -74,21 +79,38 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
         stopPolling();
         pollStartTime.current = Date.now();
         setIsEvaluating(true);
+        setHasChecked(false); // Reset so we show evaluating state
 
+        // Do an immediate first check
+        const checkAndPoll = async () => {
+            const result = await fetchEvaluation();
+            if (result) {
+                setEvaluation(result);
+                setHasChecked(true);
+                // Stop polling only if evaluation is completed or failed
+                if (result.evaluation_status === "completed" || result.evaluation_status === "failed") {
+                    stopPolling();
+                    setIsEvaluating(false);
+                    return true; // Done
+                }
+            }
+            return false; // Continue polling
+        };
+
+        // Check immediately first
+        checkAndPoll();
+
+        // Then set up interval for subsequent checks
         pollIntervalRef.current = setInterval(async () => {
             // Check if we've exceeded max poll duration
             if (pollStartTime.current && Date.now() - pollStartTime.current > MAX_POLL_DURATION) {
                 stopPolling();
                 setIsEvaluating(false);
+                setHasChecked(true);
                 return;
             }
 
-            const result = await fetchEvaluation();
-            if (result) {
-                setEvaluation(result);
-                stopPolling();
-                setIsEvaluating(false);
-            }
+            await checkAndPoll();
         }, POLL_INTERVAL);
     }, [fetchEvaluation, stopPolling]);
 
@@ -98,10 +120,27 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
             setEvaluation(null);
             setHasChecked(false);
             setIsLoading(false);
+            setIsEvaluating(false);
             stopPolling();
+            prevRefreshTrigger.current = refreshTrigger;
             return;
         }
 
+        // Detect if this is a new CV upload (refreshTrigger changed)
+        const isNewUpload = refreshTrigger > prevRefreshTrigger.current;
+        prevRefreshTrigger.current = refreshTrigger;
+
+        if (isNewUpload) {
+            // New CV upload - clear old evaluation and start polling immediately
+            // The backend will create a pending evaluation record
+            setEvaluation(null);
+            setHasChecked(false);
+            setIsLoading(false);
+            startPolling(); // Start polling immediately, don't wait for initial fetch
+            return;
+        }
+
+        // Initial load (not a new upload) - fetch current evaluation status
         const loadEvaluation = async () => {
             setIsLoading(true);
             setHasChecked(false);
@@ -111,36 +150,56 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
 
             if (result) {
                 setEvaluation(result);
+                // If evaluation is pending, start polling for updates
+                if (result.evaluation_status === "pending") {
+                    startPolling();
+                } else {
+                    setIsEvaluating(false);
+                }
             } else {
-                // No evaluation found - don't auto-poll, show "no evaluation" state
+                // No evaluation found - show "no evaluation" state
                 setEvaluation(null);
+                setIsEvaluating(false);
             }
         };
 
         loadEvaluation();
 
         return () => stopPolling();
-    }, [hasCv, refreshTrigger, fetchEvaluation, stopPolling]);
+    }, [hasCv, refreshTrigger, fetchEvaluation, stopPolling, startPolling]);
 
     const handleReEvaluate = async () => {
-        if (isReEvaluating || !hasCv) return;
+        if (isReEvaluating || isEvaluating || !hasCv) return;
 
         setIsReEvaluating(true);
+        // Clear evaluation immediately so we show evaluating state
+        setEvaluation(null);
+        
         try {
             const response = await fetch("/api/cv/evaluate", {
                 method: "POST",
+                credentials: "include",
             });
 
             if (response.ok) {
                 // Start polling for the new evaluation
-                setEvaluation(null);
                 setIsReEvaluating(false);
                 startPolling();
             } else {
                 setIsReEvaluating(false);
+                // Re-fetch the current evaluation since we cleared it
+                const current = await fetchEvaluation();
+                if (current) {
+                    setEvaluation(current);
+                }
             }
         } catch {
             setIsReEvaluating(false);
+            // Re-fetch the current evaluation since we cleared it
+            const current = await fetchEvaluation();
+            if (current) {
+                setEvaluation(current);
+            }
         }
     };
 
@@ -174,26 +233,26 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                 <div className="cv-score-header">
                     <h2 className="home-card-title">{t("cv_score.title")}</h2>
                 </div>
-                <div 
-                    className="cv-score-body"
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                >
-                    <div className={`cv-score-body-content ${isHovered ? "blurred" : ""}`}>
+                <div className="cv-score-body">
+                    <div className="cv-score-body-content">
                         <p className="cv-score-empty">{t("cv_score.no_cv")}</p>
-                    </div>
-                    <div className={`cv-score-hover-overlay ${isHovered ? "visible" : ""}`}>
-                        <button className="nb-btn nb-btn--accent cv-score-hub-btn" onClick={handleViewProfileHub}>
-                            {t("cv_score.view_profile_hub")}
-                        </button>
                     </div>
                 </div>
             </div>
         );
     }
 
+    // Determine the current state
+    const isPending = evaluation?.evaluation_status === "pending";
+    const isCompleted = evaluation?.evaluation_status === "completed";
+    const isFailed = evaluation?.evaluation_status === "failed";
+    
+    // Show evaluating state when: loading, polling/evaluating, or status is pending
+    // Priority: isEvaluating takes precedence (we know we're actively polling)
+    const showEvaluating = isLoading || isEvaluating || isPending;
+    
     // Render loading/evaluating state
-    if (isLoading || isEvaluating) {
+    if (showEvaluating) {
         return (
             <div className="nb-card home-card cv-score-card">
                 <div className="cv-score-header">
@@ -201,11 +260,11 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                     <button
                         className="cv-score-refresh-btn"
                         onClick={handleReEvaluate}
-                        disabled={isReEvaluating || isEvaluating}
+                        disabled={true}
                         title={t("cv_score.re_evaluate")}
                     >
                         <svg
-                            className={`cv-score-refresh-icon ${isEvaluating ? "spinning" : ""}`}
+                            className="cv-score-refresh-icon spinning"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -216,30 +275,41 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                         </svg>
                     </button>
                 </div>
-                <div 
-                    className="cv-score-body"
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                >
-                    <div className={`cv-score-body-content ${isHovered ? "blurred" : ""}`}>
+                <div className="cv-score-body">
+                    <div className="cv-score-body-content">
                         <div className="cv-score-evaluating">
                             <div className="cv-score-spinner"></div>
                             <p>{t("cv_score.evaluating")}</p>
                         </div>
-                    </div>
-                    <div className={`cv-score-hover-overlay ${isHovered ? "visible" : ""}`}>
-                        <button className="nb-btn nb-btn--accent cv-score-hub-btn" onClick={handleViewProfileHub}>
-                            {t("cv_score.view_profile_hub")}
-                        </button>
                     </div>
                 </div>
             </div>
         );
     }
 
-    // Render "no evaluation yet" state - CV exists but no evaluation has been run
-    // No hover overlay here - the primary action is to evaluate
-    if (hasChecked && !evaluation) {
+    // Safety check: if we haven't checked yet and not evaluating, show loading
+    // This handles edge cases during state transitions
+    if (!hasChecked) {
+        return (
+            <div className="nb-card home-card cv-score-card">
+                <div className="cv-score-header">
+                    <h2 className="home-card-title">{t("cv_score.title")}</h2>
+                </div>
+                <div className="cv-score-body">
+                    <div className="cv-score-body-content">
+                        <div className="cv-score-evaluating">
+                            <div className="cv-score-spinner"></div>
+                            <p>{t("cv_score.evaluating")}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Render "no evaluation yet" or "failed" state
+    // Show this when: we've checked and either no evaluation exists, or it failed, or not completed
+    if (!evaluation || isFailed || !isCompleted) {
         return (
             <div className="nb-card home-card cv-score-card">
                 <div className="cv-score-header">
@@ -248,7 +318,7 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                 <div className="cv-score-body">
                     <div className="cv-score-body-content">
                         <div className="cv-score-no-evaluation">
-                            <p>{t("cv_score.no_evaluation")}</p>
+                            <p>{isFailed ? t("cv_score.evaluation_failed") : t("cv_score.no_evaluation")}</p>
                             <button 
                                 className="nb-btn nb-btn--accent"
                                 onClick={handleReEvaluate}
@@ -263,7 +333,7 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
         );
     }
 
-    // Render complete state with scores
+    // Render complete state with scores (only when evaluation_status === "completed")
     return (
         <div className="nb-card home-card cv-score-card">
             <div className="cv-score-header">
@@ -287,12 +357,8 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                 </button>
             </div>
 
-            <div 
-                className="cv-score-body"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-            >
-                <div className={`cv-score-body-content ${isHovered ? "blurred" : ""}`}>
+            <div className="cv-score-body">
+                <div className="cv-score-body-content">
                     <div className="cv-score-content">
                         {/* Score Circle */}
                         <div className="cv-score-circle-container">
@@ -366,12 +432,13 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                             </ul>
                         </div>
                     )}
-                </div>
 
-                <div className={`cv-score-hover-overlay ${isHovered ? "visible" : ""}`}>
-                    <button className="nb-btn nb-btn--accent cv-score-hub-btn" onClick={handleViewProfileHub}>
-                        {t("cv_score.view_profile_hub")}
-                    </button>
+                    {/* Profile Hub Button - shown below score */}
+                    <div className="cv-score-actions">
+                        <button className="nb-btn nb-btn--accent" onClick={handleViewProfileHub}>
+                            {t("cv_score.view_profile_hub")}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

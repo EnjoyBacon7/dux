@@ -15,6 +15,7 @@ from server.database import get_db_session
 from server.models import User, CVEvaluation
 from server.cv.cv_pipeline import CVEvaluationPipeline
 from server.cv.cv_schemas import EvaluationResult
+from server.dependencies import get_current_user
 
 # ============================================================================
 # Router Setup
@@ -73,25 +74,6 @@ class EvaluationHistoryItem(BaseModel):
 
 
 # ============================================================================
-# Dependencies
-# ============================================================================
-
-
-def get_current_user(request: Request, db: Session = Depends(get_db_session)) -> User:
-    """
-    Dependency to extract and validate the current authenticated user from session.
-    """
-    if "username" not in request.session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(User).filter(User.username == request.session["username"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return user
-
-
-# ============================================================================
 # Helper Functions
 # ============================================================================
 
@@ -99,7 +81,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)) ->
 def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_factory) -> None:
     """
     Run CV evaluation in the background and save results to database.
-    
+
     Args:
         user_id: ID of the user whose CV is being evaluated
         cv_text: Raw CV text content
@@ -107,24 +89,67 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
         db_session_factory: Function to create a new database session
     """
     db = db_session_factory()
+    pending_evaluation = None
     try:
         logger.info(f"Starting background CV evaluation for user {user_id}")
+        
+        # Validate CV text is not empty before starting
+        if not cv_text or not cv_text.strip():
+            error_msg = "CV text is empty or missing. The CV file may have been deleted from the filesystem."
+            logger.error(f"CV evaluation validation failed for user {user_id}: {error_msg}")
+            # Create a failed evaluation record immediately
+            save_failed_evaluation_to_db(db, user_id, cv_filename, error_msg)
+            return
+        
+        # Create a pending evaluation record so frontend knows evaluation is in progress
+        pending_evaluation = CVEvaluation(
+            user_id=user_id,
+            cv_filename=cv_filename,
+            evaluation_status="pending",
+        )
+        db.add(pending_evaluation)
+        db.commit()
+        db.refresh(pending_evaluation)
+        pending_id = pending_evaluation.id
         
         # Run the pipeline (don't save to file, we'll save to DB)
         pipeline = CVEvaluationPipeline(save_results=False)
         result = pipeline.evaluate(cv_text, cv_filename=cv_filename)
         
-        # Save to database
-        save_evaluation_to_db(db, user_id, result, cv_filename)
+        # Update the pending record with results
+        update_evaluation_with_results(db, pending_id, result)
         
         logger.info(f"CV evaluation completed for user {user_id}: score={result.scores.overall_score}")
-        
+
     except Exception as e:
-        logger.error(f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}: {e}", exc_info=True)
-        # Rollback any pending changes before persisting failure state
+        # Log full exception details with context (user-facing message will be sanitized)
+        logger.error(
+            f"CV evaluation failed for user {user_id}, cv_filename={cv_filename}. "
+            f"Exception type: {type(e).__name__}, Exception: {str(e)}",
+            exc_info=True
+        )
+        
+        # Use sanitized, user-facing error message (not raw exception text)
+        user_facing_error = "Processing failed. Please retry or contact support if the issue persists."
+        
         db.rollback()
-        # Persist failure state to database
-        save_failed_evaluation_to_db(db, user_id, cv_filename, str(e))
+        # If we created a pending record, update it to failed; otherwise create a new failed record
+        if pending_evaluation and pending_evaluation.id:
+            try:
+                db.query(CVEvaluation).filter(CVEvaluation.id == pending_evaluation.id).update({
+                    "evaluation_status": "failed",
+                    "error_message": user_facing_error[:500]
+                })
+                db.commit()
+            except Exception as persist_error:
+                logger.exception(
+                    f"Failed to update evaluation failure status for user {user_id}, "
+                    f"evaluation_id={pending_evaluation.id}. Original error: {type(e).__name__}: {str(e)}"
+                )
+                # Fallback: try to create a new failed record
+                save_failed_evaluation_to_db(db, user_id, cv_filename, user_facing_error)
+        else:
+            save_failed_evaluation_to_db(db, user_id, cv_filename, user_facing_error)
     finally:
         db.close()
 
@@ -132,13 +157,13 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
 def save_evaluation_to_db(db: Session, user_id: int, result: EvaluationResult, cv_filename: str) -> CVEvaluation:
     """
     Save an evaluation result to the database.
-    
+
     Args:
         db: Database session
         user_id: User ID
         result: EvaluationResult from the pipeline
         cv_filename: CV filename at time of evaluation
-    
+
     Returns:
         CVEvaluation: The saved database record
     """
@@ -146,7 +171,7 @@ def save_evaluation_to_db(db: Session, user_id: int, result: EvaluationResult, c
         user_id=user_id,
         evaluation_id=result.evaluation_id,
         cv_filename=cv_filename,
-        
+
         # Scores
         overall_score=result.scores.overall_score,
         overall_summary=result.scores.overall_summary,
@@ -156,37 +181,80 @@ def save_evaluation_to_db(db: Session, user_id: int, result: EvaluationResult, c
         impact_evidence_score=result.scores.impact_evidence.score,
         clarity_score=result.scores.clarity.score,
         consistency_score=result.scores.consistency.score,
-        
+
         # Feedback
         strengths=result.scores.strengths,
         weaknesses=result.scores.weaknesses,
         recommendations=result.scores.recommendations,
         red_flags=result.scores.red_flags,
         missing_info=result.scores.missing_info,
-        
+
         # Full data for traceability
         structured_cv=result.structured_cv.model_dump(mode='json'),
         derived_features=result.derived_features.model_dump(mode='json'),
         full_scores=result.scores.model_dump(mode='json'),
-        
+
         # Metadata
         processing_time_seconds=int(result.processing_time_seconds) if result.processing_time_seconds else None,
-        
+
         # Status
         evaluation_status="completed",
     )
-    
+
     db.add(evaluation)
     db.commit()
     db.refresh(evaluation)
-    
+
     return evaluation
+
+
+def update_evaluation_with_results(db: Session, evaluation_id: int, result: EvaluationResult) -> None:
+    """
+    Update an existing pending evaluation record with results.
+    
+    Args:
+        db: Database session
+        evaluation_id: ID of the pending evaluation record to update
+        result: EvaluationResult from the pipeline
+    """
+    db.query(CVEvaluation).filter(CVEvaluation.id == evaluation_id).update({
+        "evaluation_id": result.evaluation_id,
+        
+        # Scores
+        "overall_score": result.scores.overall_score,
+        "overall_summary": result.scores.overall_summary,
+        "completeness_score": result.scores.completeness.score,
+        "experience_quality_score": result.scores.experience_quality.score,
+        "skills_relevance_score": result.scores.skills_relevance.score,
+        "impact_evidence_score": result.scores.impact_evidence.score,
+        "clarity_score": result.scores.clarity.score,
+        "consistency_score": result.scores.consistency.score,
+        
+        # Feedback
+        "strengths": result.scores.strengths,
+        "weaknesses": result.scores.weaknesses,
+        "recommendations": result.scores.recommendations,
+        "red_flags": result.scores.red_flags,
+        "missing_info": result.scores.missing_info,
+        
+        # Full data for traceability
+        "structured_cv": result.structured_cv.model_dump(mode='json'),
+        "derived_features": result.derived_features.model_dump(mode='json'),
+        "full_scores": result.scores.model_dump(mode='json'),
+        
+        # Metadata
+        "processing_time_seconds": int(result.processing_time_seconds) if result.processing_time_seconds else None,
+        
+        # Status
+        "evaluation_status": "completed",
+    })
+    db.commit()
 
 
 def save_failed_evaluation_to_db(db: Session, user_id: int, cv_filename: str, error_message: str) -> None:
     """
     Save a failed evaluation record to the database.
-    
+
     Args:
         db: Database session
         user_id: User ID
@@ -246,25 +314,26 @@ async def evaluate_cv(
 ) -> Dict[str, Any]:
     """
     Trigger a CV evaluation for the current user.
-    
+
     The evaluation runs in the background and results are saved to the database.
     Use GET /api/cv/evaluation to retrieve results.
-    
+
     Returns:
         dict: Status message indicating evaluation has started
-    
+
     Raises:
         HTTPException: If user has no CV uploaded
     """
-    if not current_user.cv_text:
+    # Validate that CV text exists and is not empty
+    if not current_user.cv_text or not current_user.cv_text.strip():
         raise HTTPException(
             status_code=400,
-            detail="No CV found. Please upload a CV first."
+            detail="No CV text found. The CV file may be missing or corrupted. Please upload a CV again."
         )
-    
+
     # Import here to avoid circular imports
     from server.database import SessionLocal
-    
+
     # Add evaluation task to background
     background_tasks.add_task(
         run_cv_evaluation,
@@ -273,7 +342,7 @@ async def evaluate_cv(
         cv_filename=current_user.cv_filename or "unknown",
         db_session_factory=SessionLocal,
     )
-    
+
     return {
         "status": "started",
         "message": "CV evaluation started. Results will be available shortly."
@@ -286,21 +355,33 @@ async def get_evaluation(
     db: Session = Depends(get_db_session)
 ) -> Optional[EvaluationResponse]:
     """
-    Get the most recent CV evaluation for the current user.
+    Get the most recent CV evaluation for the current user's CURRENT CV.
+    
+    Only returns an evaluation if it matches the user's current cv_filename.
+    If the user has uploaded a new CV since the last evaluation, returns null.
+    Returns pending evaluations so frontend can show "evaluating" state.
     
     Returns:
         EvaluationResponse: The latest evaluation results, or null if none exists
+                           or if the evaluation is for an outdated CV
     """
+    # Normalize missing filenames to "unknown" (same sentinel used by /evaluate endpoint)
+    filename = current_user.cv_filename or "unknown"
+    
+    # First check for any evaluation (pending, completed, or failed) for current CV
     evaluation = (
         db.query(CVEvaluation)
-        .filter(CVEvaluation.user_id == current_user.id)
+        .filter(
+            CVEvaluation.user_id == current_user.id,
+            CVEvaluation.cv_filename == filename,
+        )
         .order_by(CVEvaluation.created_at.desc())
         .first()
     )
-    
+
     if not evaluation:
         return None
-    
+
     return evaluation_to_response(evaluation)
 
 
@@ -312,16 +393,16 @@ async def get_evaluation_history(
 ) -> List[EvaluationHistoryItem]:
     """
     Get the evaluation history for the current user.
-    
+
     Args:
         limit: Maximum number of evaluations to return (default: 10, max: 100)
-    
+
     Returns:
         List of evaluation history items (summary view)
     """
     # Clamp limit to valid range
     limit = max(1, min(limit, MAX_EVAL_LIMIT))
-    
+
     evaluations = (
         db.query(CVEvaluation)
         .filter(CVEvaluation.user_id == current_user.id)
@@ -329,7 +410,7 @@ async def get_evaluation_history(
         .limit(limit)
         .all()
     )
-    
+
     return [
         EvaluationHistoryItem(
             id=e.id,
@@ -349,13 +430,13 @@ async def get_evaluation_by_id(
 ) -> EvaluationResponse:
     """
     Get a specific CV evaluation by ID.
-    
+
     Args:
         evaluation_id: The evaluation ID to retrieve
-    
+
     Returns:
         EvaluationResponse: The evaluation results
-    
+
     Raises:
         HTTPException: If evaluation not found or doesn't belong to current user
     """
@@ -367,8 +448,8 @@ async def get_evaluation_by_id(
         )
         .first()
     )
-    
+
     if not evaluation:
         raise HTTPException(status_code=404, detail="Evaluation not found")
-    
+
     return evaluation_to_response(evaluation)

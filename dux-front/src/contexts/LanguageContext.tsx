@@ -1920,6 +1920,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Por que Corresponde',
         la: 'Cur Congruit'
     },
+    'jobs.match_score': {
+        en: 'Match Score',
+        es: 'Puntuación de Coincidencia',
+        fr: 'Score de Correspondance',
+        de: 'Übereinstimmungswert',
+        pt: 'Pontuação de Correspondência',
+        la: 'Punctus Congruentiae'
+    },
     'jobs.concerns': {
         en: 'Concerns',
         es: 'Preocupaciones',
@@ -2235,6 +2243,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'CV ainda não avaliado',
         la: 'Curriculum nondum aestimatum'
     },
+    'cv_score.evaluation_failed': {
+        en: 'CV evaluation failed. Please try again.',
+        es: 'La evaluación del CV falló. Por favor, inténtelo de nuevo.',
+        fr: 'L\'évaluation du CV a échoué. Veuillez réessayer.',
+        de: 'Die Lebenslauf-Bewertung ist fehlgeschlagen. Bitte versuchen Sie es erneut.',
+        pt: 'A avaliação do CV falhou. Por favor, tente novamente.',
+        la: 'Aestimatio curriculi defecit. Quaeso iterum temptes.'
+    },
     'cv_score.evaluate_now': {
         en: 'Evaluate Now',
         es: 'Evaluar Ahora',
@@ -2436,6 +2452,64 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Demnächst',
         pt: 'Em Breve',
         la: 'Mox Venturum'
+    },
+
+    // Match Analysis Card
+    'analysis.title': {
+        en: 'Match Analysis',
+        es: 'Análisis de Compatibilidad',
+        fr: 'Analyse de Compatibilité',
+        de: 'Matching-Analyse',
+        pt: 'Análise de Compatibilidade',
+        la: 'Analysis Congruentiae'
+    },
+    'analysis.loading': {
+        en: 'AI is analyzing your profile...',
+        es: 'La IA está analizando tu perfil...',
+        fr: 'L\'IA analyse votre profil...',
+        de: 'KI analysiert Ihr Profil...',
+        pt: 'A IA está analisando seu perfil...',
+        la: 'IA profilum tuum examinat...'
+    },
+    'analysis.technical': {
+        en: 'Technical Score',
+        es: 'Puntuación Técnica',
+        fr: 'Score Technique',
+        de: 'Technischer Wert',
+        pt: 'Pontuação Técnica',
+        la: 'Punctum Technicum'
+    },
+    'analysis.culture': {
+        en: 'Culture Fit',
+        es: 'Ajuste Cultural',
+        fr: 'Fit Culturel',
+        de: 'Kulturelle Passung',
+        pt: 'Ajuste Cultural',
+        la: 'Congruentia Culturalis'
+    },
+    'analysis.strengths': {
+        en: 'Match Reasons',
+        es: 'Puntos Fuertes',
+        fr: 'Points Forts',
+        de: 'Stärken',
+        pt: 'Pontos Fortes',
+        la: 'Puncta Fortia'
+    },
+    'analysis.weaknesses': {
+        en: 'Missing / To Improve',
+        es: 'A Mejorar / Faltante',
+        fr: 'À Améliorer / Manquant',
+        de: 'Zu Verbessern',
+        pt: 'A Melhorar',
+        la: 'Emendandum'
+    },
+    'analysis.error': {
+        en: 'Unable to retrieve analysis.',
+        es: 'No se pudo recuperar el análisis.',
+        fr: 'Impossible de récupérer l\'analyse.',
+        de: 'Analyse fehlgeschlagen.',
+        pt: 'Não foi possível recuperar a análise.',
+        la: 'Analysis recuperari non potuit.'
     }
 };
 

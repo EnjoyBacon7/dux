@@ -119,12 +119,14 @@ async def _get_optimal_offers_with_cache(
                 offers_data = [
                     {
                         "position": o.position,
+                        "job_id": o.job_id,
                         "title": o.title,
                         "company": o.company,
                         "location": o.location,
                         "score": o.score,
                         "match_reasons": o.match_reasons,
-                        "concerns": o.concerns
+                        "concerns": o.concerns,
+                        "job_data": o.job_data
                     }
                     for o in cached_offers
                 ]
@@ -162,24 +164,41 @@ async def _get_optimal_offers_with_cache(
     db.query(OptimalOffer).filter(OptimalOffer.user_id == current_user.id).delete()
 
     ranked_offers = result.get("ranked_offers", [])
+    # Map ranked offers to full job data using position (1-indexed)
+    offers_with_data = []
     for offer in ranked_offers:
+        position = offer.get("position", 0)
+        # Position is 1-indexed, so subtract 1 to get the correct offer from the list
+        job_data = offers[position - 1] if 0 < position <= len(offers) else None
+        job_id = job_data.get("id") if job_data else None
+
         db_offer = OptimalOffer(
             user_id=current_user.id,
-            position=offer.get("position", 0),
+            position=position,
+            job_id=job_id,
             title=offer.get("title", ""),
             company=offer.get("company", ""),
             location=offer.get("location", ""),
             score=offer.get("score", 0),
             match_reasons=offer.get("match_reasons", []),
-            concerns=offer.get("concerns", [])
+            concerns=offer.get("concerns", []),
+            job_data=job_data
         )
         db.add(db_offer)
+
+        # Build offer with job_data for response
+        offer_with_data = {
+            **offer,
+            "job_id": job_id,
+            "job_data": job_data
+        }
+        offers_with_data.append(offer_with_data)
 
     db.commit()
 
     # Add cache status and offers to result
     result["cached"] = False
-    result["offers"] = ranked_offers
+    result["offers"] = offers_with_data
 
     return result
 
@@ -219,53 +238,12 @@ async def match_profile_endpoint(
     _check_user_cv(current_user)
 
     try:
-        # Check if we have fresh cached offers first (to avoid unnecessary LLM call)
-        try:
-            cached_offers = db.query(OptimalOffer).filter(
-                OptimalOffer.user_id == current_user.id
-            ).order_by(OptimalOffer.position).all()
-
-            if cached_offers:
-                most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
-                last_updated = most_recent.updated_at or most_recent.created_at
-                cache_age = datetime.now(last_updated.tzinfo) - last_updated
-
-                if cache_age < timedelta(hours=24):
-                    # Cache is fresh, return cached results without LLM call
-                    offers_data = [
-                        {
-                            "position": o.position,
-                            "title": o.title,
-                            "company": o.company,
-                            "location": o.location,
-                            "score": o.score,
-                            "match_reasons": o.match_reasons,
-                            "concerns": o.concerns
-                        }
-                        for o in cached_offers
-                    ]
-
-                    return {
-                        "success": True,
-                        "ft_parameters": {},  # Not needed for cached response
-                        "offers": offers_data,
-                        "cached": True,
-                        "cache_age_hours": round(cache_age.total_seconds() / 3600, 1),
-                        "total_offers_analyzed": len(offers_data),
-                        "top_offers_returned": len(offers_data),
-                        "usage": None  # No LLM usage for cached response
-                    }
-        except Exception as e:
-            logger.warning(f"Error checking cache: {str(e)}, proceeding with fresh search")
-
-        # Cache is stale or missing, so identify FT parameters from CV
         ft_result = await identify_ft_parameters(
             current_user.cv_text,
             preferences=data.query
         )
         ft_parameters = ft_result.get("parameters", {})
 
-        # Get optimal offers using helper (with fresh search since cache was invalid)
         offers_result = await _get_optimal_offers_with_cache(
             current_user=current_user,
             db=db,
@@ -344,64 +322,6 @@ async def ft_parameters_identification_endpoint(
 # ============================================================================
 # Job Offer Ranking Endpoints
 # ============================================================================
-
-
-@router.get("/optimal_offers_cache", summary="Get stored optimal offers for current user")
-async def optimal_offers_cache(
-    request: Request,
-    db: Session = Depends(get_db_session),
-    current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Retrieve previously stored optimal offers for the current user.
-
-    Returns the ranked offers that were generated during the last profile match,
-    avoiding the need to re-run the expensive matching operation on page refresh.
-
-    Args:
-        request: FastAPI request object
-        db: Database session
-        current_user: Current authenticated user
-
-    Returns:
-        dict: Stored optimal offers with metadata
-
-    Raises:
-        HTTPException: If retrieval fails
-    """
-    try:
-        offers = db.query(OptimalOffer).filter(
-            OptimalOffer.user_id == current_user.id
-        ).order_by(OptimalOffer.position).all()
-
-        if not offers:
-            return {
-                "success": True,
-                "offers": [],
-                "count": 0
-            }
-
-        offers_data = [
-            {
-                "position": o.position,
-                "title": o.title,
-                "company": o.company,
-                "location": o.location,
-                "score": o.score,
-                "match_reasons": o.match_reasons,
-                "concerns": o.concerns
-            }
-            for o in offers
-        ]
-
-        return {
-            "success": True,
-            "offers": offers_data,
-            "count": len(offers_data)
-        }
-    except Exception as e:
-        logger.error(f"Error retrieving optimal offers: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve optimal offers")
 
 
 @router.post("/optimal_offers", summary="Find optimal job offers based on France Travail parameters")

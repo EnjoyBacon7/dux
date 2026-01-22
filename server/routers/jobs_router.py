@@ -13,7 +13,7 @@ from fastapi import APIRouter, Query, Depends
 from server.config import settings
 from server.models import Metier_ROME, User, Offres_FT
 from server.database import get_db_session
-from server.methods.job_search import search_job_offers
+from server.methods.DB_job_search import search_job_offers
 import json
 from typing import Optional, Dict, Any, List, Union, Tuple
 
@@ -40,56 +40,16 @@ def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: s
     }
     params = {"realm": "/partenaire"}
 
-    resp = requests.post(AUTH_URL, data=data, params=params, timeout = 30)
+    resp = requests.post(AUTH_URL, data=data, params=params, timeout=30)
     resp.raise_for_status()
     token = resp.json()["access_token"]
 
     return token
 
+
 def get_offers(code_rome: str) -> dict:
-    FT_CLIENT_ID = settings.ft_client_id
-    FT_CLIENT_SECRET = settings.ft_client_secret
-    FT_AUTH_URL = settings.ft_auth_url
-    FT_API_OFFRES_URL = settings.ft_api_url_offres
-
-    # Récupère un token OAuth2 en mode client_credentials.
-
-    token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/json"
-    }
-
-    resultat = []
-    # Getting the list of offers for the given ROME code
-    page = 0
-    while len(resultat) % 150 == 0 and page < 20:
-        try:
-            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers, timeout=30)
-            resp.raise_for_status()
-        except:
-            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
-
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json"
-            }
-            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers, timeout=30)
-            resp.raise_for_status()
-
-        try:
-            data = resp.json()
-        except:
-            data = {"resultats": []}
-        
-        if len(data.get("resultats", [])) == 0:
-            break
-
-        resultat += data.get("resultats", [])
-        page += 1
-
-    return resultat
+    # Reuse centralized France Travail client with built-in retries/pagination
+    return search_france_travail({"codeROME": code_rome}, nb_offres=300)
 
 
 def _to_float(s: str) -> float:
@@ -215,7 +175,7 @@ def calcul_salaire(texte_salaire: Optional[str], texte_heure: Optional[str]) -> 
     dispatch = {
         "mensuel": lambda: _parse_mensuel(ts),
         "horaire": lambda: _parse_horaire(ts, texte_heure),
-        "annuel":  lambda: _parse_annuel(ts),
+        "annuel": lambda: _parse_annuel(ts),
     }
 
     try:
@@ -582,6 +542,64 @@ def load_code_metier():
 
         code_metier += data
 
+        print(f"Nombre de codes ROME récupérés : {len(code_metier)}")
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        fiche_metier = []
+        
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+
+        for code in tqdm(code_metier):
+            try:
+                while True:
+                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
+                    if resp.status_code != 429:
+                        break
+                
+                resp.raise_for_status()
+                data = resp.json()
+                # Getting offers info from france travail API
+                liste_offres = get_offers(code.get("code"))
+                salaire = []
+                for offre in liste_offres:
+                    salaire.append(calcul_salaire(str(offre.get('salaire').get('libelle')), str(offre.get('dureeTravailLibelle'))))
+                
+            except:
+                token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json"
+                }
+                while True:
+                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
+                    if resp.status_code != 429:
+                        break
+                
+                resp.raise_for_status()
+                data = resp.json()
+
+                # Getting offers info from france travail API
+                liste_offres = get_offers(code.get("code"))
+                salaire = []
+                for offre in liste_offres:
+                    salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
+
+            if len(liste_offres) == 0:
+                data['nb_offre'] = 0
+                data['liste_salaire_offre'] = []
+            else:
+                data['nb_offre'] = len(liste_offres)
+                data['liste_salaire_offre'] = salaire
+
+            fiche_metier.append(data.copy())
+
+
         logger = logging.getLogger("uvicorn.info")
         logger.info(f"Récupération des fiches métiers : {len(code_metier)} obtenues.")
         engine = create_engine(DATABASE_URL)
@@ -599,7 +617,24 @@ def load_code_metier():
             for fiche in code_metier:
                 fiche_insert = Metier_ROME(
                     code = fiche.get("code"),
-                    libelle = fiche.get("libelle")
+                    libelle = fiche.get("libelle"),
+                    accesEmploi = fiche.get("accesEmploi"),
+                    appellations = fiche.get("appellations"),  # Array of appellations
+                    centresInteretsLies = fiche.get("centresInteretsLies"),  # Array of related interest centers
+                    competencesMobilisees = fiche.get("competencesMobilisees"),  # Array of skills
+                    contextesTravail = fiche.get("contextesTravail"),  # Array of work contexts
+                    definition = fiche.get("definition"),
+                    domaineProfessionnel = fiche.get("domaineProfessionnel"),
+                    metiersEnProximite = fiche.get("metiersEnProximite"),
+                    secteursActivitesLies = fiche.get("secteursActivitesLies"),
+                    themes = fiche.get("themes"),  # Array of themes
+                    transitionEcologique = fiche.get("transitionEcologique"),  # Ecological transition info
+                    transitionNumerique = fiche.get("transitionNumerique"),  # Digital transition info
+                    transitionDemographique = fiche.get("transitionDemographique"),  # Demographic transition info
+                    emploiCadre = fiche.get("emploiCadre"),
+                    emploiReglemente = fiche.get("emploiReglemente"),
+                    nb_offre = fiche.get("nb_offre"),
+                    liste_salaire_offre = fiche.get("liste_salaire_offre")
                                 )
                 try:
                     session.add(fiche_insert)
@@ -619,7 +654,6 @@ def load_code_metier():
     except Exception as e:
         return {"error": str(e)}
 
-
 # ============================================================================
 #  Analyse IA (Helpers & Routes)
 # ============================================================================
@@ -629,34 +663,23 @@ def _run_analysis_in_thread(
     job_id: Optional[str],
     job_payload: Optional[Dict[str, Any]],
     bind,
+    lang: str = "fr"  # <--- Ajout du paramètre
 ):
-    """
-    Fonction exécutée dans un thread séparé.
-    Elle crée sa propre session DB à partir du 'bind' (Engine) pour éviter
-    les erreurs de type DetachedInstanceError avec les objets ORM.
-    """
-    # On crée une nouvelle session dédiée à ce thread
     SessionLocal = sessionmaker(bind=bind)
     with SessionLocal() as session:
-        # On recharge l'utilisateur "frais" depuis la DB
         user = session.get(User, user_id)
         if not user:
             raise ValueError("Utilisateur introuvable dans le thread")
 
-        # Soit on cherche l'offre en DB, soit on la crée depuis le payload
         if job_payload is None:
-            # Cas Analyse par ID (GET)
             job = session.query(Offres_FT).filter(Offres_FT.id == job_id).first()
             if not job:
                 raise ValueError("Offre introuvable dans le thread")
         else:
-            # Cas Analyse Directe (POST)
-            # On recrée l'objet temporaire
-            # Gestion des compétences pour qu'elles soient en string JSON si besoin
             comps = job_payload.get('competences')
             if isinstance(comps, (list, dict)):
                 comps = json.dumps(comps)
-            
+
             job = Offres_FT(
                 id=job_payload.get('id'),
                 intitule=job_payload.get('intitule'),
@@ -665,56 +688,39 @@ def _run_analysis_in_thread(
                 competences=comps
             )
 
-        # On lance le moteur avec cette session locale au thread
         engine = MatchingEngine(session)
-        return engine.analyser_match(user, job)
+        return engine.analyser_match(user, job, lang)
 
 
 @router.get("/analyze/{job_id}")
 async def analyze_specific_job(
-    job_id: str, 
+    job_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
-    """
-    Analyse "On-Demand" via DB (Thread-Safe).
-    """
-    # On récupère le 'bind' (la connexion moteur) pour la passer au thread
     bind = db.get_bind()
     user_id = current_user.id
-
-    logger.info(f" Analyse demandée par : {current_user.username} pour l'offre {job_id}")
+    logger.info(f"Analyse demandée par : {current_user.username} pour l'offre {job_id}")
 
     try:
-        # On lance l'analyse dans un thread en passant uniquement des IDs et le bind
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
             job_id,
-            None, # Pas de payload, on utilise l'ID
-            bind
+            None,
+            bind,
+            "fr"
         )
         
-        # Pour la réponse HTTP, on peut utiliser la session normale du routeur
-        # pour récupérer les infos basiques
         offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
-        
         return {
             "status": "success",
-            "candidat": {
-                "nom": f"{current_user.first_name} {current_user.last_name}",
-                "titre": current_user.headline
-            },
-            "job": {
-                "id": job_id,
-                "intitule": offre.intitule if offre else "N/A",
-                "entreprise": offre.entreprise_nom if offre else "N/A"
-            },
+            "candidat": { "nom": f"{current_user.first_name} {current_user.last_name}" },
+            "job": { "id": job_id, "intitule": offre.intitule if offre else "N/A" },
             "analysis": evaluation
         }
-        
     except Exception as e:
-        logger.error(f"Erreur critique lors de l'analyse : {str(e)}")
+        logger.error(f"Erreur critique analyse : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -724,47 +730,38 @@ class JobDataForAnalysis(BaseModel):
     description: Optional[str] = None
     entreprise_nom: Optional[str] = None
     competences: Optional[Any] = None
+    lang: str = "fr"
 
 @router.post("/analyze")
 async def analyze_job_direct(
-    job_data: JobDataForAnalysis, 
+    job_data: JobDataForAnalysis,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
-    """
-    Analyse directe (Thread-Safe).
-    """
     bind = db.get_bind()
     user_id = current_user.id
+    lang = job_data.lang # <--- On récupère la langue
     
-    logger.info(f"Analyse directe demandée par : {current_user.username} pour l'offre {job_data.id}")
+    logger.info(f"Analyse directe ({lang}) demandée par : {current_user.username}")
 
     try:
-        # On prépare le payload sous forme de dict simple
-        payload = job_data.model_dump() # ou .dict()
+        payload = job_data.model_dump()
 
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
-            None, # Pas d'ID DB
-            payload, # On fournit le payload
-            bind
+            None, 
+            payload,
+            bind,
+            lang # <--- On la passe au thread
         )
-        
+
         return {
             "status": "success",
-            "candidat": {
-                "nom": f"{current_user.first_name} {current_user.last_name}",
-                "titre": current_user.headline
-            },
-            "job": {
-                "id": job_data.id,
-                "intitule": job_data.intitule,
-                "entreprise": job_data.entreprise_nom
-            },
+            "candidat": { "nom": f"{current_user.first_name} {current_user.last_name}" },
+            "job": { "id": job_data.id },
             "analysis": evaluation
         }
-        
     except Exception as e:
-        logger.error(f"Erreur critique lors de l'analyse directe : {str(e)}")
+        logger.error(f"Erreur critique analyse directe : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

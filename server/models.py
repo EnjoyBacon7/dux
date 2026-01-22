@@ -217,9 +217,10 @@ class Offres_FT(Base):
     def __repr__(self):
         return f"<Offres_FT(id={self.id})>"
 
+
 class Metier_ROME(Base):
     __tablename__ = "metier_rome"
-    
+
     code = Column(String, primary_key=True, index=True)
     libelle = Column(String, nullable=True)
     '''accesEmploi = Column(Text, nullable=True)
@@ -242,20 +243,22 @@ class Metier_ROME(Base):
 
     def __repr__(self):
         return f"<Metier_ROME(code={self.code})>"
-    
-    
+
+
 class OptimalOffer(Base):
     __tablename__ = "optimal_offers"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     position = Column(Integer, nullable=False)
+    job_id = Column(String, nullable=True)  # France Travail offer ID
     title = Column(String, nullable=False)
     company = Column(String, nullable=True)  # Nullable as France Travail API may not provide company info
     location = Column(String, nullable=True)  # Nullable as France Travail API may not provide location
     score = Column(Integer, nullable=False)
     match_reasons = Column(ARRAY(String), nullable=False)
     concerns = Column(ARRAY(String), nullable=True)
+    job_data = Column(JSON, nullable=True)  # Full France Travail job offer data
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -302,7 +305,7 @@ class CVEvaluation(Base):
     evaluation_id = Column(String, nullable=True)  # Pipeline evaluation ID
     processing_time_seconds = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Status tracking
     evaluation_status = Column(String, nullable=True, default="completed")  # "completed", "failed", "pending"
     error_message = Column(Text, nullable=True)  # Error message if evaluation failed

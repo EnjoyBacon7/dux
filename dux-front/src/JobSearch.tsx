@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import JobDetail from "./components/JobDetail";
+import OfferBox from "./components/OfferBox";
 import type { JobOffer } from "./components/JobDetail";
 import { useLanguage } from "./contexts/useLanguage";
 
@@ -71,26 +72,6 @@ const JobSearch: React.FC = () => {
 
         fetchJobs();
     }, [filters]);
-
-    const formatDate = (dateString: string | null) => {
-        if (!dateString) return 'N/A';
-        try {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffTime = Math.abs(now.getTime() - date.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays === 1) return t('jobs.posted_today');
-            if (diffDays < 7) return t('jobs.posted_days_ago').replace('{days}', diffDays.toString());
-            if (diffDays < 30) {
-                const weeks = Math.floor(diffDays / 7);
-                return t('jobs.posted_weeks_ago').replace('{weeks}', weeks.toString());
-            }
-            return date.toLocaleDateString();
-        } catch {
-            return dateString;
-        }
-    };
 
     const updateFilter = (key: keyof FTSearchFilters, value: any) => {
         setFilters(prev => ({
@@ -513,74 +494,19 @@ const JobSearch: React.FC = () => {
                                         style={{ cursor: 'pointer' }}
                                         onClick={() => setSelectedJob(job)}
                                     >
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                            {/* Job Header */}
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem' }}>
-                                                        {job.intitule || t('jobs.untitled')}
-                                                    </h3>
-                                                    <p style={{ margin: 0, fontSize: '1rem', opacity: 0.8 }}>
-                                                        {job["entreprise_nom"] || t('jobs.company_not_specified')}
-                                                    </p>
-                                                </div>
-                                                {job["salaire_libelle"] && (
-                                                    <div style={{
-                                                        fontWeight: 600,
-                                                        color: 'var(--nb-accent)',
-                                                        textAlign: 'right',
-                                                        fontSize: '1rem'
-                                                    }}>
-                                                        {job["salaire_libelle"]}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Job Meta Info */}
-                                            <div style={{
-                                                display: 'flex',
-                                                flexWrap: 'wrap',
-                                                gap: '0.75rem',
-                                                fontSize: '0.875rem',
-                                                opacity: 0.7
-                                            }}>
-                                                {job["lieuTravail_libelle"] && (
-                                                    <>
-                                                        <span>📍 {job["lieuTravail_libelle"]}</span>
-                                                        <span>•</span>
-                                                    </>
-                                                )}
-                                                {job.typeContratLibelle && (
-                                                    <>
-                                                        <span>💼 {job.typeContratLibelle}</span>
-                                                        <span>•</span>
-                                                    </>
-                                                )}
-                                                <span>📅 {formatDate(job.dateActualisation || job.dateCreation)}</span>
-                                            </div>
-
-                                            {/* Job Description Preview */}
-                                            {job.description && (
-                                                <p style={{ margin: 0, lineHeight: 1.6 }}>
-                                                    {job.description.length > 200
-                                                        ? job.description.substring(0, 200) + '...'
-                                                        : job.description}
-                                                </p>
-                                            )}
-
-                                            {/* View Details Button */}
-                                            <div style={{ marginTop: '0.5rem' }}>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedJob(job);
-                                                    }}
-                                                    className="nb-btn"
-                                                >
-                                                    {t('jobs.view_details')}
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <OfferBox
+                                            title={job.intitule || t('jobs.untitled')}
+                                            company={job["entreprise_nom"] ?? undefined}
+                                            location={job["lieuTravail_libelle"] ?? undefined}
+                                            contractType={job.typeContratLibelle ?? undefined}
+                                            date={job.dateActualisation || job.dateCreation || undefined}
+                                            description={job.description ?? undefined}
+                                            salary={job["salaire_libelle"] ?? undefined}
+                                            onViewDetails={(e?: any) => {
+                                                if (e && e.stopPropagation) e.stopPropagation();
+                                                setSelectedJob(job);
+                                            }}
+                                        />
                                     </div>
                                 ))}
                             </>

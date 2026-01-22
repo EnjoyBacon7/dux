@@ -189,7 +189,7 @@ def _call_openai_sync(
     prompt: str,
     system_content: str,
     temperature: float = 0.7,
-    max_tokens: int = 4000
+    max_tokens: int = 2000
 ) -> Dict[str, Any]:
     """
     Synchronous wrapper for OpenAI API call (runs in thread pool).
@@ -201,7 +201,7 @@ def _call_openai_sync(
         prompt: User message
         system_content: System message
         temperature: Model temperature
-        max_tokens: Max tokens for response
+        max_tokens: Max tokens for response (capped to avoid context overflows)
 
     Returns:
         Response from OpenAI API
@@ -226,7 +226,7 @@ async def _call_llm(
     prompt: str,
     system_content: str,
     temperature: float = 0.7,
-    max_tokens: int = 4000,
+    max_tokens: int = 2000,
     parse_json: bool = False,
     json_array: bool = False
 ) -> Dict[str, Any]:
@@ -246,7 +246,7 @@ async def _call_llm(
         prompt: User message content
         system_content: System message content
         temperature: Model temperature parameter (default: 0.7)
-        max_tokens: Maximum tokens for response (default: 4000)
+        max_tokens: Maximum tokens for response (default: 2000)
         parse_json: Whether to parse response as JSON (default: False)
         json_array: Whether to extract JSON array vs object (default: False)
 
@@ -370,7 +370,7 @@ async def identify_ft_parameters(
             prompt=prompt,
             system_content="You are an expert job search optimizer specializing in France Travail API parameters. You output only valid JSON objects with no additional text or explanation.",
             temperature=0.5,
-            max_tokens=4000,
+            max_tokens=2000,
             parse_json=True,
             json_array=False
         )
@@ -489,7 +489,7 @@ async def rank_job_offers(
             prompt=prompt,
             system_content="You are an expert job matching analyst. Analyze CVs and job offers to identify the best matches. Return only valid JSON with no additional text.",
             temperature=0.5,
-            max_tokens=4000,
+            max_tokens=2000,
             parse_json=True,
             json_array=True
         )
