@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import JobDetail from "./components/JobDetail";
 import OfferBox from "./components/OfferBox";
-import type { JobOffer } from "./components/JobDetail";
+import type { JobOffer } from "./types/job";
 import { useLanguage } from "./contexts/useLanguage";
 
 interface FTSearchFilters {

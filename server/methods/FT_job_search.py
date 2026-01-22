@@ -313,7 +313,8 @@ def search_france_travail(
                         raise ValueError(f"France Travail API returned invalid JSON on retry: {json_err}")
 
                     batch_results = data.get("resultats", [])
-                    logger.debug(f"France Travail API Response (retry) - Batch {i//150 + 1}: Received {len(batch_results)} results")
+                    logger.debug(
+                        f"France Travail API Response (retry) - Batch {i//150 + 1}: Received {len(batch_results)} results")
                     offers.extend(batch_results)
                 else:
                     # Log detailed France Travail error payload if available
@@ -348,3 +349,70 @@ def search_france_travail(
     except Exception as e:
         logger.error(f"France Travail search error: {str(e)}")
         raise ValueError(f"France Travail job search failed: {str(e)}")
+
+
+def get_offer_by_id(offer_id: str) -> Dict[str, Any]:
+    """
+    Fetch a specific job offer from France Travail API by ID.
+
+    Args:
+        offer_id: The France Travail offer ID (e.g., "202MHJK")
+
+    Returns:
+        Dictionary containing the full offer details
+
+    Raises:
+        ValueError: If the offer is not found or API request fails
+    """
+    try:
+        # Get configuration
+        CLIENT_ID = settings.ft_client_id
+        CLIENT_SECRET = settings.ft_client_secret
+        AUTH_URL = settings.ft_auth_url
+        API_SEARCH_URL = settings.ft_api_url_offres
+
+        # Accept both full /offres URL and /offres/search URL; strip trailing segments safely
+        if not all([CLIENT_ID, CLIENT_SECRET, AUTH_URL, API_SEARCH_URL]):
+            raise ValueError("France Travail API credentials not configured in environment")
+
+        api_base_url = API_SEARCH_URL.rstrip("/")
+        if api_base_url.endswith("/search"):
+            api_base_url = api_base_url[: -len("/search")]
+
+        # Get OAuth2 token
+        token = get_ft_oauth_token(CLIENT_ID, CLIENT_SECRET, AUTH_URL)
+        url = f"{api_base_url}/{offer_id}"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        logger.info(f"Fetching offer {offer_id} from France Travail API")
+        response = requests.get(url, headers=headers, timeout=30)
+
+        if response.status_code == 204:
+            raise ValueError(f"Offer {offer_id} not found (204 No Content)")
+
+        if response.status_code == 404:
+            raise ValueError(f"Offer {offer_id} not found")
+
+        if response.status_code == 400:
+            try:
+                error = response.json()
+                raise ValueError(f"Bad request for offer {offer_id}: {error.get('message', 'Unknown error')}")
+            except Exception:
+                raise ValueError(f"Bad request for offer {offer_id}")
+
+        response.raise_for_status()
+
+        offer = response.json()
+        logger.info(f"Successfully retrieved offer {offer_id}: {offer.get('intitule', 'Unknown')}")
+
+        return offer
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"France Travail API request error for offer {offer_id}: {str(e)}")
+        raise ValueError(f"Failed to fetch offer {offer_id}: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error fetching offer {offer_id}: {str(e)}")
+        raise ValueError(f"Failed to fetch offer {offer_id}: {str(e)}")

@@ -116,20 +116,17 @@ async def _get_optimal_offers_with_cache(
 
             if cache_age < timedelta(hours=cache_hours):
                 # Cache is fresh, return cached results
-                offers_data = [
-                    {
-                        "position": o.position,
+                # Return offers with job_id for frontend to fetch full data
+                offers_data = []
+                for o in cached_offers:
+                    offer_dict = {
                         "job_id": o.job_id,
-                        "title": o.title,
-                        "company": o.company,
-                        "location": o.location,
+                        "position": o.position,
                         "score": o.score,
                         "match_reasons": o.match_reasons,
                         "concerns": o.concerns,
-                        "job_data": o.job_data
                     }
-                    for o in cached_offers
-                ]
+                    offers_data.append(offer_dict)
 
                 return {
                     "success": True,
@@ -164,7 +161,7 @@ async def _get_optimal_offers_with_cache(
     db.query(OptimalOffer).filter(OptimalOffer.user_id == current_user.id).delete()
 
     ranked_offers = result.get("ranked_offers", [])
-    # Map ranked offers to full job data using position (1-indexed)
+    # Map ranked offers to get job IDs from full job data using position (1-indexed)
     offers_with_data = []
     for offer in ranked_offers:
         position = offer.get("position", 0)
@@ -176,21 +173,19 @@ async def _get_optimal_offers_with_cache(
             user_id=current_user.id,
             position=position,
             job_id=job_id,
-            title=offer.get("title", ""),
-            company=offer.get("company", ""),
-            location=offer.get("location", ""),
             score=offer.get("score", 0),
             match_reasons=offer.get("match_reasons", []),
             concerns=offer.get("concerns", []),
-            job_data=job_data
         )
         db.add(db_offer)
 
-        # Build offer with job_data for response
+        # Build simplified OptimalOffer for response
         offer_with_data = {
-            **offer,
             "job_id": job_id,
-            "job_data": job_data
+            "position": position,
+            "score": offer.get("score", 0),
+            "match_reasons": offer.get("match_reasons", []),
+            "concerns": offer.get("concerns", []),
         }
         offers_with_data.append(offer_with_data)
 

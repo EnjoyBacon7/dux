@@ -234,14 +234,10 @@ class OptimalOffer(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     position = Column(Integer, nullable=False)
-    job_id = Column(String, nullable=True)  # France Travail offer ID
-    title = Column(String, nullable=False)
-    company = Column(String, nullable=True)  # Nullable as France Travail API may not provide company info
-    location = Column(String, nullable=True)  # Nullable as France Travail API may not provide location
+    job_id = Column(String, nullable=False)  # France Travail offer ID (required)
     score = Column(Integer, nullable=False)
     match_reasons = Column(ARRAY(String), nullable=False)
     concerns = Column(ARRAY(String), nullable=True)
-    job_data = Column(JSON, nullable=True)  # Full France Travail job offer data
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -249,7 +245,7 @@ class OptimalOffer(Base):
     user = relationship("User", back_populates="optimal_offers")
 
     def __repr__(self):
-        return f"<OptimalOffer(id={self.id}, user_id={self.user_id}, title={self.title})>"
+        return f"<OptimalOffer(id={self.id}, user_id={self.user_id}, job_id={self.job_id})>"
 
 
 class CVEvaluation(Base):
