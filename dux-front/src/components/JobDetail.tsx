@@ -3,72 +3,10 @@ import ReactMarkdown from "react-markdown";
 import "../styles/job-detail.css";
 import { useLanguage } from "../contexts/useLanguage";
 import JobMatchAnalysis from "./JobMatchAnalysis";
+import type { JobOffer } from "../types/job";
 
-// Full job offer interface 
-export interface JobOffer {
-    id: string;
-    intitule: string | null;
-    description: string | null;
-    dateCreation: string | null;
-    dateActualisation: string | null;
-    romeCode: string | null;
-    romeLibelle: string | null;
-    appellationlibelle: string | null;
-    typeContrat: string | null;
-    typeContratLibelle: string | null;
-    natureContrat: string | null;
-    experienceExige: string | null;
-    experienceLibelle: string | null;
-    competences: unknown | null;
-    dureeTravailLibelle: string | null;
-    dureeTravailLibelleConverti: string | null;
-    alternance: boolean | null;
-    nombrePostes: number | null;
-    accessibleTH: boolean | null;
-    qualificationCode: string | null;
-    qualificationLibelle: string | null;
-    codeNAF: string | null;
-    secteurActivite: string | null;
-    secteurActiviteLibelle: string | null;
-    offresManqueCandidats: boolean | null;
-    entrepriseAdaptee: boolean | null;
-    employeurHandiEngage: boolean | null;
-    "lieuTravail_libelle": string | null;
-    "lieuTravail_latitude": number | null;
-    "lieuTravail_longitude": number | null;
-    "lieuTravail_codePostal": string | null;
-    "lieuTravail_commune": string | null;
-    "entreprise_nom": string | null;
-    "entreprise_entrepriseAdaptee": boolean | null;
-    "salaire_libelle": string | null;
-    "contact_nom": string | null;
-    "contact_coordonnees1": string | null;
-    "contact_courriel": string | null;
-    "origineOffre_origine": string | null;
-    "origineOffre_urlOrigine": string | null;
-    "contexteTravail_horaires": string | null;
-    formations: unknown | null;
-    qualitesProfessionnelles: unknown | null;
-    "salaire_complement1": string | null;
-    "salaire_listeComplements": unknown | null;
-    trancheEffectifEtab: string | null;
-    experienceCommentaire: string | null;
-    permis: unknown | null;
-    "salaire_complement2": string | null;
-    "contact_coordonnees2": string | null;
-    "contact_coordonnees3": string | null;
-    "agence_courriel": string | null;
-    "salaire_commentaire": string | null;
-    deplacementCode: string | null;
-    deplacementLibelle: string | null;
-    "entreprise_logo": string | null;
-    "contact_urlPostulation": string | null;
-    "contexteTravail_conditionsExercice": string | null;
-    langues: unknown | null;
-    "entreprise_description": string | null;
-    "contact_telephone": string | null;
-    "entreprise_url": string | null;
-}
+// Re-export types for backward compatibility
+export type { JobOffer, OptimalOffer } from "../types/job";
 
 interface JobDetailProps {
     job: JobOffer;
@@ -300,6 +238,32 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                             {renderField('Commune', job["lieuTravail_commune"])}
                             {renderField('Code postal', job["lieuTravail_codePostal"])}
                             {renderField('Déplacement', job.deplacementLibelle || job.deplacementCode)}
+
+                            {/* OpenStreetMap embed when coordinates are available */}
+                            {job["lieuTravail_latitude"] && job["lieuTravail_longitude"] && (
+                                <div className="jd-map-container" style={{ marginTop: '1rem' }}>
+                                    <iframe
+                                        title="Job Location Map"
+                                        width="100%"
+                                        height="250"
+                                        style={{ border: '1px solid var(--nb-fg)', borderRadius: '6px' }}
+                                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${job["lieuTravail_longitude"] - 0.01}%2C${job["lieuTravail_latitude"] - 0.01}%2C${job["lieuTravail_longitude"] + 0.01}%2C${job["lieuTravail_latitude"] + 0.01}&layer=mapnik&marker=${job["lieuTravail_latitude"]}%2C${job["lieuTravail_longitude"]}`}
+                                    />
+                                    <a
+                                        href={`https://www.openstreetmap.org/?mlat=${job["lieuTravail_latitude"]}&mlon=${job["lieuTravail_longitude"]}#map=15/${job["lieuTravail_latitude"]}/${job["lieuTravail_longitude"]}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-block',
+                                            marginTop: '0.5rem',
+                                            fontSize: '0.85rem',
+                                            opacity: 0.7
+                                        }}
+                                    >
+                                        Voir sur OpenStreetMap ↗
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     )}
 

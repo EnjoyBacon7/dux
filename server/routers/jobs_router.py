@@ -13,7 +13,6 @@ from fastapi import APIRouter, Query, Depends
 from server.config import settings
 from server.models import Metier_ROME, User, Offres_FT
 from server.database import get_db_session
-from server.methods.DB_job_search import search_job_offers
 import json
 from typing import Optional, Dict, Any, List, Union, Tuple
 
@@ -276,43 +275,11 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 
-@router.get("/search", summary="Search job offers from db")
-def search_jobs(
-    q: str = Query(None, description="Search query"),
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(20, ge=1, le=100, description="Results per page"),
-    db: Session = Depends(get_db_session)
-) -> Dict[str, Any]:
-    """
-    Search job offers from the local database with text search and pagination.
-
-    Performs full-text search across job titles, descriptions, locations,
-    company names, and other relevant fields.
-
-    Args:
-        q: Search query string
-        page: Page number for pagination (default: 1)
-        page_size: Number of results per page (default: 20, max: 100)
-        db: Database session
-
-    Returns:
-        dict: Search results with pagination info and list of matching offers
-
-    Raises:
-        Returns error dict if search fails
-    """
-    try:
-        result = search_job_offers(db, query=q, page=page, page_size=page_size)
-        return result
-    except Exception as e:
-        logger.error(f"Error searching jobs: {e}")
-        return {"error": str(e), "results": [], "page": page, "page_size": page_size, "total": 0}
-
-
 @router.post("/load_offers", summary="Load offers from France Travail API")
 async def load_offers(
     nb_offres: int = Query(150, description="Nombre d'offres à récupérer"),
-    accesTravailleurHandicape: bool = Query(None, description="Offres ouvertes aux Bénéficiaires de l'Obligation d'Emploi"),
+    accesTravailleurHandicape: bool = Query(
+        None, description="Offres ouvertes aux Bénéficiaires de l'Obligation d'Emploi"),
     appellation: str = Query(None, description="Code appellation ROME de l'offre"),
     codeNAF: str = Query(None, description="Code NAF (Code APE) de l'offre"),
     codeROME: str = Query(None, description="Code ROME de l'offre"),
@@ -325,8 +292,10 @@ async def load_offers(
     dureeHebdo: str = Query(None, description="Type de durée du contrat de l'offre"),
     dureeHebdoMax: str = Query(None, description="Durée hebdomadaire maximale (format HHMM)"),
     dureeHebdoMin: str = Query(None, description="Durée hebdomadaire minimale (format HHMM)"),
-    employeursHandiEngages: bool = Query(None, description="Filtre les offres dont l'employeur est reconnu pour ses actions en faveur du handicap"),
-    entreprisesAdaptees: bool = Query(None, description="Filtre les offres dont l'entreprise permet des conditions adaptées au handicap"),
+    employeursHandiEngages: bool = Query(
+        None, description="Filtre les offres dont l'employeur est reconnu pour ses actions en faveur du handicap"),
+    entreprisesAdaptees: bool = Query(
+        None, description="Filtre les offres dont l'entreprise permet des conditions adaptées au handicap"),
     experience: str = Query(None, description="Niveau d'expérience demandé"),
     experienceExigence: str = Query(None, description="Exigence d'expérience"),
     grandDomaine: str = Query(None, description="Code du grand domaine de l'offre"),
@@ -592,6 +561,7 @@ def load_fiche_metier():
 #  Analyse IA (Helpers & Routes)
 # ============================================================================
 
+
 def _run_analysis_in_thread(
     user_id: int,
     job_id: Optional[str],
@@ -645,12 +615,12 @@ async def analyze_specific_job(
             bind,
             "fr"
         )
-        
+
         offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
         return {
             "status": "success",
-            "candidat": { "nom": f"{current_user.first_name} {current_user.last_name}" },
-            "job": { "id": job_id, "intitule": offre.intitule if offre else "N/A" },
+            "candidat": {"nom": f"{current_user.first_name} {current_user.last_name}"},
+            "job": {"id": job_id, "intitule": offre.intitule if offre else "N/A"},
             "analysis": evaluation
         }
     except Exception as e:
@@ -666,6 +636,7 @@ class JobDataForAnalysis(BaseModel):
     competences: Optional[Any] = None
     lang: str = "fr"
 
+
 @router.post("/analyze")
 async def analyze_job_direct(
     job_data: JobDataForAnalysis,
@@ -674,8 +645,8 @@ async def analyze_job_direct(
 ):
     bind = db.get_bind()
     user_id = current_user.id
-    lang = job_data.lang # <--- On récupère la langue
-    
+    lang = job_data.lang  # <--- On récupère la langue
+
     logger.info(f"Analyse directe ({lang}) demandée par : {current_user.username}")
 
     try:
@@ -684,18 +655,47 @@ async def analyze_job_direct(
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
-            None, 
+            None,
             payload,
             bind,
-            lang # <--- On la passe au thread
+            lang  # <--- On la passe au thread
         )
 
         return {
             "status": "success",
-            "candidat": { "nom": f"{current_user.first_name} {current_user.last_name}" },
-            "job": { "id": job_data.id },
+            "candidat": {"nom": f"{current_user.first_name} {current_user.last_name}"},
+            "job": {"id": job_data.id},
             "analysis": evaluation
         }
     except Exception as e:
         logger.error(f"Erreur critique analyse directe : {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/offer/{job_id}", summary="Get job offer details by ID")
+async def get_job_offer(
+    job_id: str,
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Fetch full job offer details from France Travail API by ID.
+    Used by frontend to display full job details when showing optimal offers.
+    """
+    try:
+        from server.methods.FT_job_search import get_offer_by_id
+
+        offer_data = await asyncio.to_thread(get_offer_by_id, job_id)
+        
+        # Flatten the offer structure to match frontend expectations
+        flattened_offer = _flatten_offer(offer_data)
+        
+        return {
+            "status": "success",
+            "offer": flattened_offer
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching job offer {job_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
