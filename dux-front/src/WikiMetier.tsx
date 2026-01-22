@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Header } from "./components";
 import DetailMetier from "./components/DetailMetier";
@@ -19,12 +19,23 @@ const MetierWikiLayout: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const hasTriggeredPopulate = useRef(false);
 
   // 2) Recherche
   const [q, setQ] = useState("");
 
   useEffect(() => {
     let isActive = true;
+
+    async function populateIfEmpty() {
+      if (hasTriggeredPopulate.current) return false;
+      hasTriggeredPopulate.current = true;
+      const res = await fetch("/api/jobs/load_code_metier", { method: "POST" });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return true;
+    }
 
     async function load() {
       setLoading(true);
@@ -34,7 +45,17 @@ const MetierWikiLayout: React.FC = () => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
-        const data = (await res.json()) as MetierItem[];
+        let data = (await res.json()) as MetierItem[];
+        if (isActive && (!data || data.length === 0)) {
+          const didPopulate = await populateIfEmpty();
+          if (didPopulate) {
+            const retry = await fetch("/api/metiers");
+            if (!retry.ok) {
+              throw new Error(`HTTP ${retry.status}`);
+            }
+            data = (await retry.json()) as MetierItem[];
+          }
+        }
         if (isActive) {
           setItems(data || []);
         }
