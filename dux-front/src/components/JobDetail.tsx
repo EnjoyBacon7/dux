@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import "../styles/job-detail.css";
 import { useLanguage } from "../contexts/useLanguage";
 import JobMatchAnalysis from "./JobMatchAnalysis";
+import { useNavigate } from "react-router-dom";
 
 // Full job offer interface 
 export interface JobOffer {
@@ -107,6 +108,7 @@ const pickAnalysisFields = (job: JobOffer): JobOffer => {
 const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
     const { t } = useLanguage(); // Utilisation du hook de traduction
     const [showAnalysis, setShowAnalysis] = useState(false);
+    const navigate = useNavigate();
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'N/A';
@@ -178,20 +180,39 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                             </div>
 
                             <div style={{ marginTop: '1rem' }}>
-                                <button
-                                    onClick={() => setShowAnalysis(true)}
-                                    className="nb-btn"
-                                    style={{
+                                <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                    <button
+                                        onClick={() => setShowAnalysis(true)}
+                                        className="nb-btn"
+                                        style={{
                                         backgroundColor: 'var(--nb-accent)',
                                         color: 'var(--nb-fg)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '0.5rem',
                                         padding: '0.5rem 1rem'
-                                    }}
-                                >
-                                    <span>⚡</span> {t('analyze_match_ai')}
-                                </button>
+                                        }}
+                                    >
+                                        <span>⚡</span> {t('analyze_match_ai')}
+                                    </button>
+
+                                    <button
+                                        onClick={() =>
+                                        navigate(job.romeCode ? `/wiki-metier?rome=${encodeURIComponent(job.romeCode)}` : "/wiki-metier")
+                                        }
+                                        className="nb-btn nb-btn--secondary"
+                                        disabled={!job.romeCode}
+                                        title={!job.romeCode ? "Code ROME indisponible" : "Voir le détail du métier"}
+                                        style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 1rem'
+                                        }}
+                                    >
+                                        <span>🧾</span> Détail Métier
+                                    </button>
+                                    </div>
                             </div>
                         </div>
 

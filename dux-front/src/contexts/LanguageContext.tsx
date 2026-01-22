@@ -354,6 +354,255 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Falha ao conectar ao LinkedIn',
         la: 'Conectio ad LinkedIn defecit'
     },
+    // Metiers / Wiki
+    'metiers.sidebar_title': {
+        en: 'Professions',
+        es: 'Profesiones',
+        fr: 'Métiers',
+        de: 'Berufe',
+        pt: 'Profissões',
+        la: 'Artes'
+    },
+    'metiers.search_placeholder': {
+        en: 'Search a job (ROME or label)',
+        es: 'Buscar un oficio (ROME o etiqueta)',
+        fr: 'Rechercher un metier (ROME ou libelle)',
+        de: 'Beruf suchen (ROME oder Bezeichnung)',
+        pt: 'Pesquisar uma profissao (ROME ou rotulo)',
+        la: 'Artem quaerere (ROME vel titulus)'
+    },
+    'metiers.loading': {
+        en: 'Loading...',
+        es: 'Cargando...',
+        fr: 'Chargement...',
+        de: 'Laedt...',
+        pt: 'Carregando...',
+        la: 'Oneratur...'
+    },
+    'metiers.no_results': {
+        en: 'No results.',
+        es: 'Sin resultados.',
+        fr: 'Aucun résultat.',
+        de: 'Keine Ergebnisse.',
+        pt: 'Nenhum resultado.',
+        la: 'Nulla resultata.'
+    },
+    'metiers.select_prompt': {
+        en: 'Select a job to display the detail.',
+        es: 'Selecciona un oficio para ver la ficha.',
+        fr: 'Sélectionnez un métier pour afficher la fiche.',
+        de: 'Waehle einen Beruf, um die Details anzuzeigen.',
+        pt: 'Selecione uma profissao para ver a ficha.',
+        la: 'Artem elige ut schedam videas.'
+    },
+    'metiers.detail.loading': {
+        en: 'Loading job...',
+        es: 'Cargando oficio...',
+        fr: 'Chargement du métier...',
+        de: 'Beruf wird geladen...',
+        pt: 'Carregando profissao...',
+        la: 'Ars oneratur...'
+    },
+    'metiers.detail.no_data': {
+        en: 'No data available.',
+        es: 'No hay datos disponibles.',
+        fr: 'Aucune donnée disponible.',
+        de: 'Keine Daten verfuegbar.',
+        pt: 'Nenhum dado disponivel.',
+        la: 'Nulla data praesto.'
+    },
+    'metiers.detail.summary_fallback': {
+        en: 'Description not available for this job.',
+        es: 'Descripcion no disponible para este oficio.',
+        fr: 'Description non disponible pour ce métier.',
+        de: 'Beschreibung fuer diesen Beruf nicht verfuegbar.',
+        pt: 'Descricao nao disponível para esta profissao.',
+        la: 'Descriptio huius artis non praesto.'
+    },
+    'metiers.detail.title_fallback': {
+        en: 'Job detail',
+        es: 'Detalle del oficio',
+        fr: 'Détail métier',
+        de: 'Berufsdetails',
+        pt: 'Detalhe da profissao',
+        la: 'Detalia artis'
+    },
+    'metiers.detail.key_metrics': {
+        en: 'Key metrics',
+        es: 'Indicadores clave',
+        fr: 'Indicateurs clés',
+        de: 'Schluesselkennzahlen',
+        pt: 'Indicadores chave',
+        la: 'Indicia praecipua'
+    },
+    'metiers.detail.stats.offers': {
+        en: 'Offers',
+        es: 'Ofertas',
+        fr: 'Offres',
+        de: 'Angebote',
+        pt: 'Ofertas',
+        la: 'Offerta'
+    },
+    'metiers.detail.stats.offers_active': {
+        en: 'active offers',
+        es: 'ofertas activas',
+        fr: 'offres actives',
+        de: 'aktive Angebote',
+        pt: 'ofertas ativas',
+        la: 'offerta activa'
+    },
+    'metiers.detail.stats.avg_salary': {
+        en: 'Average salary',
+        es: 'Salario medio',
+        fr: 'Salaire moyen',
+        de: 'Durchschnittsgehalt',
+        pt: 'Salario medio',
+        la: 'Merces media'
+    },
+    'metiers.detail.stats.monthly': {
+        en: 'monthly',
+        es: 'mensual',
+        fr: 'mensuel',
+        de: 'monatlich',
+        pt: 'mensal',
+        la: 'menstruus'
+    },
+    'metiers.detail.stats.range': {
+        en: 'Range',
+        es: 'Rango',
+        fr: 'Fourchette',
+        de: 'Spanne',
+        pt: 'Faixa',
+        la: 'Spatium'
+    },
+    'metiers.detail.stats.min_max': {
+        en: 'min / max',
+        es: 'min / max',
+        fr: 'min / max',
+        de: 'min / max',
+        pt: 'min / max',
+        la: 'min / max'
+    },
+    'metiers.detail.salary_range_title': {
+        en: 'Salary range (monthly)',
+        es: 'Rango salarial (mensual)',
+        fr: 'Fourchette de salaire (mensuel)',
+        de: 'Gehaltsspanne (monatlich)',
+        pt: 'Faixa salarial (mensal)',
+        la: 'Spatium mercedis (menstruum)'
+    },
+    'metiers.detail.salary_mean': {
+        en: 'Average salary',
+        es: 'Salario medio',
+        fr: 'Salaire moyen',
+        de: 'Durchschnittsgehalt',
+        pt: 'Salario medio',
+        la: 'Merces media'
+    },
+    'metiers.detail.salary_no_data': {
+        en: 'No salary data available.',
+        es: 'No hay datos salariales disponibles.',
+        fr: 'Aucune donnée de salaire disponible.',
+        de: 'Keine Gehaltsdaten verfuegbar.',
+        pt: 'Nenhum dado salarial disponivel.',
+        la: 'Data mercedis non praesto.'
+    },
+    'metiers.detail.role_title': {
+        en: 'Role and main missions',
+        es: 'Rol y misiones principales',
+        fr: 'Role et missions principales',
+        de: 'Rolle und Hauptaufgaben',
+        pt: 'Funcao e principais missoes',
+        la: 'Munus et officia principalia'
+    },
+    'metiers.detail.description_missing': {
+        en: 'No description available.',
+        es: 'No hay descripcion disponible.',
+        fr: 'Aucune description disponible.',
+        de: 'Keine Beschreibung verfuegbar.',
+        pt: 'Nenhuma descricao disponivel.',
+        la: 'Descriptio non praesto.'
+    },
+    'metiers.detail.see_more': {
+        en: 'See more',
+        es: 'Ver mas',
+        fr: 'Voir plus',
+        de: 'Mehr anzeigen',
+        pt: 'Ver mais',
+        la: 'Plus videre'
+    },
+    'metiers.detail.see_less': {
+        en: 'See less',
+        es: 'Ver menos',
+        fr: 'Voir moins',
+        de: 'Weniger anzeigen',
+        pt: 'Ver menos',
+        la: 'Minus videre'
+    },
+    'metiers.detail.training_access_title': {
+        en: 'Training access',
+        es: 'Acceso a la formacion',
+        fr: 'Accès a la formation',
+        de: 'Zugang zur Weiterbildung',
+        pt: 'Acesso a formacao',
+        la: 'Aditus ad formationem'
+    },
+    'metiers.detail.skills_title': {
+        en: 'Skills',
+        es: 'Competencias',
+        fr: 'Compétences',
+        de: 'Kompetenzen',
+        pt: 'Competencias',
+        la: 'Peritiae'
+    },
+    'metiers.detail.skills_empty': {
+        en: 'No skills provided.',
+        es: 'No hay competencias registradas.',
+        fr: 'Aucune compétence renseignée.',
+        de: 'Keine Kompetenzen vorhanden.',
+        pt: 'Nenhuma competencia informada.',
+        la: 'Nullae peritiae praestitae.'
+    },
+    'metiers.detail.actions_title': {
+        en: 'Actions',
+        es: 'Acciones',
+        fr: 'Actions',
+        de: 'Aktionen',
+        pt: 'Acoes',
+        la: 'Actiones'
+    },
+    'metiers.detail.action_offers': {
+        en: 'See related offers',
+        es: 'Ver ofertas relacionadas',
+        fr: 'Voir les offres liees',
+        de: 'Verwandte Angebote anzeigen',
+        pt: 'Ver ofertas relacionadas',
+        la: 'Offertas cognatas videre'
+    },
+    'metiers.detail.action_compare_cv': {
+        en: 'Compare with my CV',
+        es: 'Comparar con mi CV',
+        fr: 'Comparer avec mon CV',
+        de: 'Mit meinem Lebenslauf vergleichen',
+        pt: 'Comparar com meu CV',
+        la: 'Cum CV meo comparare'
+    },
+    'metiers.detail.action_favorite': {
+        en: 'Add to favorites',
+        es: 'Anadir a favoritos',
+        fr: 'Ajouter aux favoris',
+        de: 'Zu Favoriten hinzufuegen',
+        pt: 'Adicionar aos favoritos',
+        la: 'Ad gratissima addere'
+    },
+    'metiers.detail.error_unknown': {
+        en: 'Unknown error',
+        es: 'Error desconocido',
+        fr: 'Erreur inconnue',
+        de: 'Unbekannter Fehler',
+        pt: 'Erro desconhecido',
+        la: 'Error ignotus'
+    },
     // Job Search
     'jobs.title': {
         en: 'Job Search',
@@ -2347,6 +2596,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Stellen',
         pt: 'Vagas',
         la: 'Opera'
+    },
+    'header.metiers': {
+        en: 'Occupations',
+        es: 'Profesiones',
+        fr: 'Metiers',
+        de: 'Berufe',
+        pt: 'Profissoes',
+        la: 'Artes'
     },
     'header.profile_hub': {
         en: 'Profile Hub',
