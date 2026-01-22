@@ -240,30 +240,34 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                             {renderField('Déplacement', job.deplacementLibelle || job.deplacementCode)}
 
                             {/* OpenStreetMap embed when coordinates are available */}
-                            {job["lieuTravail_latitude"] && job["lieuTravail_longitude"] && (
-                                <div className="jd-map-container" style={{ marginTop: '1rem' }}>
-                                    <iframe
-                                        title="Job Location Map"
-                                        width="100%"
-                                        height="250"
-                                        style={{ border: '1px solid var(--nb-fg)', borderRadius: '6px' }}
-                                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${job["lieuTravail_longitude"] - 0.01}%2C${job["lieuTravail_latitude"] - 0.01}%2C${job["lieuTravail_longitude"] + 0.01}%2C${job["lieuTravail_latitude"] + 0.01}&layer=mapnik&marker=${job["lieuTravail_latitude"]}%2C${job["lieuTravail_longitude"]}`}
-                                    />
-                                    <a
-                                        href={`https://www.openstreetmap.org/?mlat=${job["lieuTravail_latitude"]}&mlon=${job["lieuTravail_longitude"]}#map=15/${job["lieuTravail_latitude"]}/${job["lieuTravail_longitude"]}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            display: 'inline-block',
-                                            marginTop: '0.5rem',
-                                            fontSize: '0.85rem',
-                                            opacity: 0.7
-                                        }}
-                                    >
-                                        Voir sur OpenStreetMap ↗
-                                    </a>
-                                </div>
-                            )}
+                            {job["lieuTravail_latitude"] && job["lieuTravail_longitude"] && (() => {
+                                const lat = parseFloat(job["lieuTravail_latitude"]);
+                                const lon = parseFloat(job["lieuTravail_longitude"]);
+                                return !isNaN(lat) && !isNaN(lon) && (
+                                    <div className="jd-map-container" style={{ marginTop: '1rem' }}>
+                                        <iframe
+                                            title="Job Location Map"
+                                            width="100%"
+                                            height="250"
+                                            style={{ border: '1px solid var(--nb-fg)', borderRadius: '6px' }}
+                                            src={`https://www.openstreetmap.org/export/embed.html?bbox=${lon - 0.01}%2C${lat - 0.01}%2C${lon + 0.01}%2C${lat + 0.01}&layer=mapnik&marker=${lat}%2C${lon}`}
+                                        />
+                                        <a
+                                            href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                display: 'inline-block',
+                                                marginTop: '0.5rem',
+                                                fontSize: '0.85rem',
+                                                opacity: 0.7
+                                            }}
+                                        >
+                                            Voir sur OpenStreetMap ↗
+                                        </a>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     )}
 

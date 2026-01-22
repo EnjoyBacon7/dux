@@ -685,17 +685,35 @@ async def get_job_offer(
         from server.methods.FT_job_search import get_offer_by_id
 
         offer_data = await asyncio.to_thread(get_offer_by_id, job_id)
-        
+
         # Flatten the offer structure to match frontend expectations
         flattened_offer = _flatten_offer(offer_data)
-        
+
         return {
             "status": "success",
             "offer": flattened_offer
         }
 
+    except ValueError as e:
+        error_msg = str(e).lower()
+
+        # Check if it's a "not found" error (404)
+        if "not found" in error_msg:
+            logger.warning(f"Job offer not found: job_id={job_id}, error={str(e)}")
+            raise HTTPException(status_code=404, detail=f"Job offer {job_id} not found")
+
+        # Check if it's a "bad request" error (400)
+        elif "bad request" in error_msg:
+            logger.warning(f"Bad request for job offer: job_id={job_id}, error={str(e)}")
+            raise HTTPException(status_code=400, detail=str(e))
+
+        # Other ValueError cases - log and return 500
+        else:
+            logger.error(f"Error fetching job offer: job_id={job_id}, error={str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching job offer {job_id}: {str(e)}")
+        logger.error(f"Unexpected error fetching job offer: job_id={job_id}, error={str(e)}, type={type(e).__name__}")
         raise HTTPException(status_code=500, detail=str(e))

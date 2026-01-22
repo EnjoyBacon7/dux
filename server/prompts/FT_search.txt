@@ -79,7 +79,7 @@ Choose exactly ONE: departement (2-digit) OR commune (INSEE 5-digit) OR region O
 
 ## Contract Types (typeContrat)
 **Default**: CDI (permanent)
-**Other**: CDD (fixed-term), MIS (interim), SAI (seasonal), LIB (self-employed), CCE (commercial), FRA (franchise), REP (takeover)
+**Other**: CDD (fixed-term), MIS (interim), SAI (seasonal), LIB (self-employed), CCE (commercial), FRA (franchise), REP (takeover), TTI (temporary work contract), DDI (insertion contract), DIN (integration contract), DDT (specific duration contract)
 
 ## License Codes (permis - ONLY if driving required)
 AM/A1/A2/A: Motorcycles | B1/B: Light vehicles | B96/EB/BE: Vehicle + trailer | C1/C1E/C/CE: Trucks | D1/D/DE: Passenger transport

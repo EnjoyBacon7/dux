@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Valid parameter values for France Travail API
 VALID_PARAMETERS = {
-    "typeContrat": {"CDI", "CDD", "l", "SAI", "CCE", "FRA", "LIB", "REP", "TTI", "DDI", "DIN", "DDT"},
+    "typeContrat": {"CDI", "CDD", "MIS", "SAI", "CCE", "FRA", "LIB", "REP", "TTI", "DDI", "DIN", "DDT"},
     "experienceExigence": {"D", "S", "E"},
     "qualification": {"0", "9"},
     # periodeSalaire expected values per France Travail: A, M, H, C

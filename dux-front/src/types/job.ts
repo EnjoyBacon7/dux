@@ -36,8 +36,8 @@ export interface JobOffer {
     entrepriseAdaptee: boolean | null;
     employeurHandiEngage: boolean | null;
     "lieuTravail_libelle": string | null;
-    "lieuTravail_latitude": number | null;
-    "lieuTravail_longitude": number | null;
+    "lieuTravail_latitude": string | null;
+    "lieuTravail_longitude": string | null;
     "lieuTravail_codePostal": string | null;
     "lieuTravail_commune": string | null;
     "entreprise_nom": string | null;
