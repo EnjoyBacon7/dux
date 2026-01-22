@@ -223,23 +223,6 @@ class Metier_ROME(Base):
 
     code = Column(String, primary_key=True, index=True)
     libelle = Column(String, nullable=True)
-    '''accesEmploi = Column(Text, nullable=True)
-    appellations = Column(JSON, nullable=True)  # Array of appellations
-    centresInteretsLies = Column(JSON, nullable=True)  # Array of related interests
-    competencesMobilisees = Column(JSON, nullable=True)  # Array of competencies
-    contextesTravail = Column(JSON, nullable=True)  # Array of work contexts
-    definition = Column(Text, nullable=True)
-    domaineProfessionnel = Column(JSON, nullable=True)  # Professional domain
-    metiersEnProximite = Column(JSON, nullable=True)  # Array of related professions
-    secteursActivitesLies = Column(JSON, nullable=True)  # Array of related activity
-    themes = Column(JSON, nullable=True)  # Array of themes
-    transitionEcologique = Column(Boolean, nullable=True)  # Ecological transition info
-    transitionNumerique = Column(Boolean, nullable=True)  # Digital transition info
-    transitionDemographique = Column(Boolean, nullable=True)  # Demographic transition info
-    emploiCadre = Column(Boolean, nullable=True)
-    emploiReglemente = Column(Boolean, nullable=True)
-    nb_offre = Column(Integer, nullable=True)
-    liste_salaire_offre = Column(ARRAY(Float), nullable=True)'''
 
     def __repr__(self):
         return f"<Metier_ROME(code={self.code})>"

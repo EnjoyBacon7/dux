@@ -447,7 +447,7 @@ def load_fiche_metier(
             "Accept": "application/json"
         }
         
-        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobiliseesprincipales(libelle,@macrosavoiretreprofessionnel(riasecmineur,riasecmajeur),@competencedetaillee(riasecmineur,riasecmajeur),code,@macrosavoirfaire(riasecmineur,riasecmajeur),codeogr),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobiliseesprincipales(libelle,@macrosavoiretreprofessionnel(riasecmineur,riasecmajeur),@competencedetaillee(riasecmineur,riasecmajeur),code,@macrosavoirfaire(riasecmineur,riasecmajeur),codeogr),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),formations(libelle,code,domaine),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
 
         try:
             while True:
@@ -553,7 +553,7 @@ def load_code_metier():
 
         fiche_metier = []
         
-        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),formations(libelle,code,domaine),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
 
         for code in tqdm(code_metier):
             try:

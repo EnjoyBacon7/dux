@@ -98,6 +98,31 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         return [];
       };
 
+      const normalizeFormations = (input: any): Array<{ libelle: string }> => {
+        if (!input) return [];
+        if (Array.isArray(input)) {
+          return input
+            .map((item: any) => {
+              if (!item) return null;
+              if (typeof item === "string") return { libelle: item };
+              if (typeof item === "object") {
+                const label = item.libelle ?? item.label ?? item.name ?? item.titre;
+                return label ? { libelle: String(label) } : null;
+              }
+              return null;
+            })
+            .filter(Boolean) as Array<{ libelle: string }>;
+        }
+        if (typeof input === "string") return [{ libelle: input }];
+        if (typeof input === "object") {
+          if (Array.isArray(input.formations)) return normalizeFormations(input.formations);
+          if (Array.isArray(input.items)) return normalizeFormations(input.items);
+          const label = input.libelle ?? input.label ?? input.name ?? input.titre;
+          return label ? [{ libelle: String(label) }] : [];
+        }
+        return [];
+      };
+
       const rawCompetences =
         payload?.competencesmobiliseesprincipales ??
         payload?.competencesMobiliseesPrincipales ??
@@ -108,7 +133,15 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         payload?.competences ??
         payload?.competence;
 
+      const rawFormations =
+        payload?.formations ??
+        payload?.formation ??
+        payload?.formationsRequises ??
+        payload?.formationsrequerises ??
+        payload?.formationRequise;
+
       const competences = normalizeCompetences(rawCompetences);
+      const formations = normalizeFormations(rawFormations);
 
       return {
         romeCode: payload?.code ?? romeCode,
@@ -116,7 +149,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         definition: payload?.definition ?? null,
         accesEmploi: payload?.accesemploi ?? null,
         competences,
-        formations: [],
+        formations,
         nbOffre: typeof payload?.nb_offre === "number" ? payload.nb_offre : null,
         listeSalaireOffre: Array.isArray(payload?.liste_salaire_offre)
           ? payload.liste_salaire_offre.filter((val: any) => typeof val === "number")
