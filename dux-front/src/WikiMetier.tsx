@@ -29,12 +29,18 @@ const MetierWikiLayout: React.FC = () => {
 
     async function populateIfEmpty() {
       if (hasTriggeredPopulate.current) return false;
-      hasTriggeredPopulate.current = true;
-      const res = await fetch("/api/jobs/load_code_metier", { method: "POST" });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+      try {
+        const res = await fetch("/api/jobs/load_code_metier", { method: "POST" });
+        if (!res.ok) {
+          hasTriggeredPopulate.current = false;
+          throw new Error(`HTTP ${res.status}`);
+        }
+        hasTriggeredPopulate.current = true;
+        return true;
+      } catch (err) {
+        hasTriggeredPopulate.current = false;
+        throw err;
       }
-      return true;
     }
 
     async function load() {
