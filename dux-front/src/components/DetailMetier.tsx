@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "../contexts/useLanguage";
 
 export type MetierDetailData = {
   romeCode: string;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
+  const { t } = useLanguage();
   const [data, setData] = useState<MetierDetailData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string | null>(null);
@@ -98,29 +100,26 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         return [];
       };
 
-      const normalizeFormations = (input: any): Array<{ libelle: string }> => {
-        if (!input) return [];
+      const normalizeText = (input: any): string | null => {
+        if (!input) return null;
+        if (typeof input === "string") return input;
         if (Array.isArray(input)) {
-          return input
-            .map((item: any) => {
-              if (!item) return null;
-              if (typeof item === "string") return { libelle: item };
-              if (typeof item === "object") {
-                const label = item.libelle ?? item.label ?? item.name ?? item.titre;
-                return label ? { libelle: String(label) } : null;
-              }
-              return null;
-            })
-            .filter(Boolean) as Array<{ libelle: string }>;
+          const parts = input
+            .map((item: any) => normalizeText(item))
+            .filter((item: any) => typeof item === "string" && item.trim());
+          return parts.length ? parts.join("\n") : null;
         }
-        if (typeof input === "string") return [{ libelle: input }];
         if (typeof input === "object") {
-          if (Array.isArray(input.formations)) return normalizeFormations(input.formations);
-          if (Array.isArray(input.items)) return normalizeFormations(input.items);
-          const label = input.libelle ?? input.label ?? input.name ?? input.titre;
-          return label ? [{ libelle: String(label) }] : [];
+          const candidate =
+            input.libelle ??
+            input.label ??
+            input.texte ??
+            input.description ??
+            input.content ??
+            input.value;
+          return typeof candidate === "string" ? candidate : null;
         }
-        return [];
+        return null;
       };
 
       const rawCompetences =
@@ -133,23 +132,15 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         payload?.competences ??
         payload?.competence;
 
-      const rawFormations =
-        payload?.formations ??
-        payload?.formation ??
-        payload?.formationsRequises ??
-        payload?.formationsrequerises ??
-        payload?.formationRequise;
-
       const competences = normalizeCompetences(rawCompetences);
-      const formations = normalizeFormations(rawFormations);
 
       return {
         romeCode: payload?.code ?? romeCode,
         romeLibelle: payload?.libelle ?? null,
-        definition: payload?.definition ?? null,
-        accesEmploi: payload?.accesemploi ?? null,
+        definition: normalizeText(payload?.definition),
+        accesEmploi: normalizeText(payload?.accesemploi ?? payload?.accesEmploi),
         competences,
-        formations,
+        formations: [],
         nbOffre: typeof payload?.nb_offre === "number" ? payload.nb_offre : null,
         listeSalaireOffre: Array.isArray(payload?.liste_salaire_offre)
           ? payload.liste_salaire_offre.filter((val: any) => typeof val === "number")
@@ -177,7 +168,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
 
         if (!cancelled) setData(mapToDetail(json));
       } catch (e: any) {
-        if (!cancelled) setErr(e?.message ?? "Erreur inconnue");
+        if (!cancelled) setErr(e?.message ?? t("metiers.detail.error_unknown"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -195,11 +186,11 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   }, [romeCode]);
 
   const resume = useMemo(() => {
-    if (!data?.definition) return "Description non disponible pour ce metier.";
+    if (!data?.definition) return t("metiers.detail.summary_fallback");
     const normalized = data.definition.replace(/\s+/g, " ").trim();
     const match = normalized.match(/.*?[.!?](\s|$)/);
     return (match ? match[0] : normalized).trim();
-  }, [data?.definition]);
+  }, [data?.definition, t]);
 
   const renderDefinition = (text: string) => {
     const parts = text.split(/\\n|\r\n|\n/);
@@ -212,20 +203,20 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   };
 
   if (loading) {
-    return <div style={{ padding: "1rem" }}>Chargement du metier...</div>;
+    return <div style={{ padding: "1rem" }}>{t("metiers.detail.loading")}</div>;
   }
 
   if (err) {
     return (
       <div style={{ padding: "1rem" }}>
-        <div style={{ fontWeight: 700, marginBottom: "0.5rem" }}>Erreur</div>
+        <div style={{ fontWeight: 700, marginBottom: "0.5rem" }}>{t("common.error")}</div>
         <div style={{ opacity: 0.85 }}>{err}</div>
       </div>
     );
   }
 
   if (!data) {
-    return <div style={{ padding: "1rem" }}>Aucune donnee disponible.</div>;
+    return <div style={{ padding: "1rem" }}>{t("metiers.detail.no_data")}</div>;
   }
 
   const salaires = (data.listeSalaireOffre ?? []).filter(
@@ -260,7 +251,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     <div className="wiki-metier-detail" key={romeCode}>
       <section className="wm-card wm-hero" style={{ ["--delay" as any]: "0.02s" }}>
         <div className="wm-hero-title-row">
-          <h2 className="wm-hero-title">{data.romeLibelle ?? "Detail metier"}</h2>
+          <h2 className="wm-hero-title">{data.romeLibelle ?? t("metiers.detail.title_fallback")}</h2>
           <span className="wm-rome-badge">{data.romeCode}</span>
         </div>
         <p className="wm-hero-summary">{renderDefinition(resume)}</p>
@@ -271,7 +262,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
 
           <section className="wm-card" style={{ ["--delay" as any]: "0.14s" }}>
             <div className="wm-card-header">
-              <h3>Role et missions principales</h3>
+              <h3>{t("metiers.detail.role_title")}</h3>
             </div>
             {data.definition ? (
             <p
@@ -282,7 +273,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
               {renderDefinition(data.definition)}
             </p>
           ) : (
-              <p className="wm-body wm-muted">Aucune description disponible.</p>
+              <p className="wm-body wm-muted">{t("metiers.detail.description_missing")}</p>
             )}
             {data.definition ? (
               <button
@@ -291,59 +282,48 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
                 onClick={() => setIsExpanded((prev) => !prev)}
                 aria-expanded={isExpanded}
               >
-                {isExpanded ? "Voir moins" : "Voir plus"}
+                {isExpanded ? t("metiers.detail.see_less") : t("metiers.detail.see_more")}
               </button>
             ) : null}
 
-            {data.accesEmploi ? (
-              <div className="wm-subsection">
-                <h4>Acces a l'emploi</h4>
-                <p className="wm-body wm-body--tight">{data.accesEmploi}</p>
-              </div>
-            ) : null}
-
-            {data.formations?.length ? (
-              <div className="wm-subsection">
-                <h4>Formations</h4>
-                <ul className="wm-list">
-                  {data.formations.map((f, idx) => (
-                    <li key={idx}>{f.libelle}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+        {data.accesEmploi ? (
+          <div className="wm-subsection">
+            <h4>{t("metiers.detail.training_access_title")}</h4>
+            <p className="wm-body wm-body--tight">{data.accesEmploi}</p>
+          </div>
+        ) : null}
           </section>
 
           <section className="wm-card" style={{ ["--delay" as any]: "0.08s" }}>
             <div className="wm-card-header">
-              <h3>Indicateurs cles</h3>
+              <h3>{t("metiers.detail.key_metrics")}</h3>
             </div>
             <div className="wm-stats-grid">
               <div className="wm-stat">
-                <div className="wm-stat-label">Offres</div>
+                <div className="wm-stat-label">{t("metiers.detail.stats.offers")}</div>
                 <div className="wm-stat-value">{formatNbOffres(data.nbOffre)}</div>
-                <div className="wm-stat-sub">offres actives</div>
+                <div className="wm-stat-sub">{t("metiers.detail.stats.offers_active")}</div>
               </div>
               <div className="wm-stat">
-                <div className="wm-stat-label">Salaire moyen</div>
+                <div className="wm-stat-label">{t("metiers.detail.stats.avg_salary")}</div>
                 <div className="wm-stat-value">
                   {salaireMoyen !== null ? formatEur(salaireMoyen) : "--"}
                 </div>
-                <div className="wm-stat-sub">mensuel</div>
+                <div className="wm-stat-sub">{t("metiers.detail.stats.monthly")}</div>
               </div>
               <div className="wm-stat">
-                <div className="wm-stat-label">Fourchette</div>
+                <div className="wm-stat-label">{t("metiers.detail.stats.range")}</div>
                 <div className="wm-stat-value">
                   {salaireMin !== null && salaireMax !== null
                     ? `${formatEur(salaireMin)} - ${formatEur(salaireMax)}`
                     : "--"}
                 </div>
-                <div className="wm-stat-sub">min / max</div>
+                <div className="wm-stat-sub">{t("metiers.detail.stats.min_max")}</div>
               </div>
             </div>
 
             <div className="wm-salary-range">
-              <div className="wm-salary-header">Fourchette de salaire (mensuel)</div>
+              <div className="wm-salary-header">{t("metiers.detail.salary_range_title")}</div>
               {salaireMin !== null && salaireMax !== null ? (
                 <>
                   <div className="wm-salary-track">
@@ -360,29 +340,29 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
                   </div>
                   {salaireMoyen !== null ? (
                     <div className="wm-salary-mean">
-                      Salaire moyen: {formatEur(salaireMoyen)}
+                      {t("metiers.detail.salary_mean")}: {formatEur(salaireMoyen)}
                     </div>
                   ) : null}
                 </>
               ) : (
-                <div className="wm-muted">Aucune donnee de salaire disponible.</div>
+                <div className="wm-muted">{t("metiers.detail.salary_no_data")}</div>
               )}
             </div>
           </section>
 
           <section className="wm-card wm-actions-card" style={{ ["--delay" as any]: "0.26s" }}>
             <div className="wm-card-header">
-              <h3>Actions</h3>
+              <h3>{t("metiers.detail.actions_title")}</h3>
             </div>
             <div className="wm-actions">
               <button type="button" className="nb-btn wm-action-btn">
-                Voir les offres liees
+                {t("metiers.detail.action_offers")}
               </button>
               <button type="button" className="nb-btn wm-action-btn">
-                Comparer avec mon CV
+                {t("metiers.detail.action_compare_cv")}
               </button>
               <button type="button" className="nb-btn wm-action-btn">
-                Ajouter aux favoris
+                {t("metiers.detail.action_favorite")}
               </button>
             </div>
           </section>
@@ -391,7 +371,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         <aside className="wm-aside-column">
           <section className="wm-card" style={{ ["--delay" as any]: "0.2s" }}>
             <div className="wm-card-header">
-              <h3>Competences</h3>
+              <h3>{t("metiers.detail.skills_title")}</h3>
             </div>
             {data.competences?.length ? (
               <div className="wm-skill-wall">
@@ -402,7 +382,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
                 ))}
               </div>
             ) : (
-              <div className="wm-muted">Aucune competence renseignee.</div>
+              <div className="wm-muted">{t("metiers.detail.skills_empty")}</div>
             )}
           </section>
         </aside>

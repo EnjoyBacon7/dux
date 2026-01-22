@@ -2,6 +2,7 @@
 import { useSearchParams } from "react-router-dom";
 import { Header } from "./components";
 import DetailMetier from "./components/DetailMetier";
+import { useLanguage } from "./contexts/useLanguage";
 import "./styles/home.css";
 import "./styles/wiki-metier.css";
 
@@ -11,6 +12,7 @@ type MetierItem = {
 };
 
 const MetierWikiLayout: React.FC = () => {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   // 1) Liste des metiers (chargee depuis la base)
   const [items, setItems] = useState<MetierItem[]>([]);
@@ -38,7 +40,7 @@ const MetierWikiLayout: React.FC = () => {
         }
       } catch (err) {
         if (isActive) {
-          setError(err instanceof Error ? err.message : "Erreur");
+          setError(err instanceof Error ? err.message : t("common.error"));
           setItems([]);
         }
       } finally {
@@ -71,19 +73,33 @@ const MetierWikiLayout: React.FC = () => {
 
   useEffect(() => {
     const romeFromUrl = searchParams.get("rome");
-    if (!romeFromUrl) return;
-    setSelectedCode(romeFromUrl);
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (!selectedCode && items.length > 0) {
-      setSelectedCode(items[0].romeCode);
+    if (!romeFromUrl) {
+      setSelectedCode(items.length ? items[0].romeCode : null);
       return;
     }
-    if (selectedCode && filtered.length > 0) {
+    const existsInItems = items.some((m) => m.romeCode === romeFromUrl);
+    setSelectedCode(existsInItems ? romeFromUrl : items.length ? items[0].romeCode : null);
+  }, [items, searchParams]);
+
+  useEffect(() => {
+    if (selectedCode == null) {
+      if (filtered.length > 0) {
+        setSelectedCode(filtered[0].romeCode);
+        return;
+      }
+      if (items.length > 0) {
+        setSelectedCode(items[0].romeCode);
+      }
+      return;
+    }
+    const existsInItems = items.some((m) => m.romeCode === selectedCode);
+    if (!existsInItems) {
+      setSelectedCode(filtered.length ? filtered[0].romeCode : items.length ? items[0].romeCode : null);
+      return;
+    }
+    if (filtered.length > 0) {
       const stillVisible = filtered.some((m) => m.romeCode === selectedCode);
-      const existsInItems = items.some((m) => m.romeCode === selectedCode);
-      if (!stillVisible && existsInItems) {
+      if (!stillVisible) {
         setSelectedCode(filtered[0].romeCode);
       }
     }
@@ -97,22 +113,24 @@ const MetierWikiLayout: React.FC = () => {
           {/* Sidebar */}
           <aside className="wiki-metier-sidebar">
             <div className="wiki-metier-sidebar-header">
-              <h2 className="wiki-metier-sidebar-title">Metiers</h2>
+              <h2 className="wiki-metier-sidebar-title">{t("metiers.sidebar_title")}</h2>
             </div>
 
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Rechercher un metier (ROME ou libelle)"
+              placeholder={t("metiers.search_placeholder")}
               className="nb-input wiki-metier-search"
             />
 
             {loading ? (
-              <div className="wiki-metier-empty nb-text-dim">Chargement...</div>
+              <div className="wiki-metier-empty nb-text-dim">{t("metiers.loading")}</div>
             ) : error ? (
-              <div className="wiki-metier-empty nb-text-dim">Erreur: {error}</div>
+              <div className="wiki-metier-empty nb-text-dim">
+                {t("common.error")}: {error}
+              </div>
             ) : filtered.length === 0 ? (
-              <div className="wiki-metier-empty nb-text-dim">Aucun resultat.</div>
+              <div className="wiki-metier-empty nb-text-dim">{t("metiers.no_results")}</div>
             ) : (
               <div className="wiki-metier-list">
                 {filtered.map((m) => (
@@ -136,7 +154,7 @@ const MetierWikiLayout: React.FC = () => {
               <DetailMetier romeCode={selectedCode} />
             ) : (
               <div className="wiki-metier-empty nb-text-dim">
-                Selectionnez un metier pour afficher la fiche.
+                {t("metiers.select_prompt")}
               </div>
             )}
           </section>

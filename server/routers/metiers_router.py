@@ -61,6 +61,5 @@ def get_fiche_metier(
         "romeLibelle": metier.libelle,
         "definition": metier.definition,
         "accesEmploi": metier.accesEmploi,
-        "competences": _map_competences(metier.competencesMobilisees),
-        "formations": [],
+        "competences": _map_competences(metier.competencesMobilisees)
     }
