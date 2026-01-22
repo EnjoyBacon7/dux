@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any
 from fastapi import APIRouter
 
-from server.routers import chat_router, profile_router, jobs_router, cv_router
+from server.routers import chat_router, profile_router, jobs_router, cv_router, metiers_router
 from server.thread_pool import run_blocking_in_executor
 
 # ============================================================================
@@ -29,6 +29,7 @@ router.include_router(chat_router.router)
 router.include_router(profile_router.router)
 router.include_router(jobs_router.router)
 router.include_router(cv_router.router)
+router.include_router(metiers_router.router)
 
 
 # ============================================================================

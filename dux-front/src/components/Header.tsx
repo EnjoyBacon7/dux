@@ -128,6 +128,28 @@ const Header: React.FC = () => {
                                     {t('header.jobs')}
                                 </button>
                                 <button
+                                    onClick={() => navigate('/wiki-metier')}
+                                    className={`nb-nav-btn ${location.pathname === '/wiki-metier' ? 'nb-nav-btn--active' : ''}`}
+                                    style={{
+                                        appearance: 'none',
+                                        background: location.pathname === '/wiki-metier' ? 'var(--nb-accent)' : 'transparent',
+                                        color: location.pathname === '/wiki-metier' ? '#fff' : 'var(--nb-fg)',
+                                        border: 'var(--nb-border) solid var(--nb-fg)',
+                                        padding: '0.65rem 1rem',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.875rem',
+                                        fontWeight: location.pathname === '/wiki-metier' ? '600' : '500',
+                                        transition: 'var(--nb-transition)',
+                                        boxShadow: location.pathname === '/wiki-metier' ? 'var(--nb-shadow-xs)' : 'none'
+                                    }}
+                                >
+                                    {t('header.metiers')}
+                                </button>
+                                <button
                                     onClick={() => navigate('/profile-hub')}
                                     className={`nb-nav-btn ${location.pathname === '/profile-hub' ? 'nb-nav-btn--active' : ''}`}
                                     style={{
