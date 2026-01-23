@@ -13,7 +13,7 @@ import time
 
 from fastapi import APIRouter, Query, Depends
 from server.config import settings
-from server.models import Metier_ROME, User, Offres_FT
+from server.models import Metier_ROME, User, Offres_FT, Competence_ROME
 from server.database import get_db_session
 import json
 from typing import Optional, Dict, Any, List, Union, Tuple
@@ -576,6 +576,145 @@ def load_code_metier():
             session.close()
 
         return {"message": f"{len(code_metier)} métiers ROME chargées et sauvegardées avec succès"}
+
+    except Exception as e:
+        return {"error": str(e)}
+    
+
+@router.post("/load_fiche_competence", summary="Load fiche competence from France Travail API (ROME)")
+def load_fiche_competence(
+        codeROME : str = Query("100253", description="Code ROME Compétence à récupérer")
+    ):
+
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
+    try:
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL_COMPETENCE = settings.ft_api_url_fiche_competence
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+        
+        champs = ""
+        
+        try:
+            resp = _get_with_retry(
+                FT_API_URL_COMPETENCE + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        except (requests.RequestException, KeyError) as e:
+            logger.warning("Initial fiche metier request failed, retrying with new token: %s", e)
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = _get_with_retry(
+                FT_API_URL_COMPETENCE + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        return data
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/load_code_competences", summary="Load code competences from France Travail API (ROME)")
+def load_code_competences():
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
+    try:
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL_CODE_COMPETENCE = settings.ft_api_url_code_competence
+        DATABASE_URL = settings.database_url
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        # Récupérer les codes compétence ROME
+        code_competence = []
+
+        # Getting the list of ROME codes
+        try:
+            resp = requests.get(FT_API_URL_CODE_COMPETENCE, headers=headers, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+        except (requests.RequestException, KeyError) as e:
+            logger.warning("Initial code metier request failed, retrying with new token: %s", e)
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = requests.get(FT_API_URL_CODE_COMPETENCE, headers=headers, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+
+        code_competence += data
+
+
+        logger.info(f"Enregistrement des codes compétences : {len(code_competence)} obtenues.")
+        engine = create_engine(DATABASE_URL)
+        Session = sessionmaker(bind=engine)
+
+        if not code_competence:
+            logger.warning("Aucun code competence reçu, rien à sauvegarder.")  
+            return {"message": "Aucun code competence reçue"} 
+
+        session = Session()
+        session.execute(text("TRUNCATE TABLE Competence_ROME RESTART IDENTITY CASCADE;"))
+
+        try:
+            for fiche in code_competence:
+                fiche_insert = Competence_ROME(
+                    code = fiche.get("code"),
+                    libelle = fiche.get("libelle"),
+                                )
+                try:
+                    session.add(fiche_insert)
+                except Exception as e:
+                    logger.exception(f"Erreur lors de l'ajout du métier {fiche.get('code')}: {e}")
+                    continue
+
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Erreur lors de la sauvegarde des compétences ROME : {str(e)}", exc_info=True)
+        finally:
+            session.close()
+
+        return {"message": f"{len(code_competence)} compétences ROME chargées et sauvegardées avec succès"}
 
     except Exception as e:
         return {"error": str(e)}
