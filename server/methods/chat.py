@@ -261,8 +261,6 @@ async def _call_llm(
     """
     model = settings.openai_model
 
-
-
     try:
         # Run blocking OpenAI API call in thread pool
         response = await run_blocking_in_executor(
