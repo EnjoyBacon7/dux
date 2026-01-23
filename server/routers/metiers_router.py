@@ -10,8 +10,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from server.database import get_db_session
-from server.models import Metier_ROME
+from server.models import Metier_ROME, User
+from server.dependencies import get_current_user
+from server.methods.chat import _call_llm
 
+import logging
+from server.config import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/metiers", tags=["Metiers"])
 
@@ -44,6 +50,27 @@ def list_metiers(
         )
     rows = query.order_by(Metier_ROME.libelle.asc(), Metier_ROME.code.asc()).all()
     return [{"romeCode": row.code, "romeLibelle": row.libelle or ""} for row in rows]
+
+
+@router.get("/cv_text", summary="Get current user's cv_text")
+async def get_current_user_cv_text(
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    cv_text = current_user.cv_text
+    if not cv_text:
+        return {"cvText": None, "llm": None}
+    
+    logger.info("OPENAI_BASE_URL=%s", settings.openai_base_url)
+    logger.info("OPENAI_API_KEY suffix=%s", settings.openai_api_key)
+
+    prompt = (
+        "Here is the text extracted from a CV, I would like to have all the informations "
+        "about the jobs the person did or is doing. Please fill this python dictionnary : "
+        "{'job_name': [],'job_date':[]}  CV : " + str(cv_text)
+    )
+    llm_result = await _call_llm(prompt, "")
+
+    return {"cvText": cv_text, "llm": llm_result}
 
 
 @router.get("/{rome_code}", summary="Get fiche metier from database")

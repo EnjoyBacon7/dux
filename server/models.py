@@ -226,6 +226,15 @@ class Metier_ROME(Base):
 
     def __repr__(self):
         return f"<Metier_ROME(code={self.code})>"
+    
+class Competence_ROME(Base):
+    __tablename__ = "competence_rome"
+
+    code = Column(String, primary_key=True, index=True)
+    libelle = Column(String, nullable=True)
+
+    def __repr__(self):
+        return f"<Competence_ROME(code={self.code})>"
 
 
 class OptimalOffer(Base):

@@ -427,6 +427,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Detalhe da profissao',
         la: 'Detalia artis'
     },
+    'metiers.detail.title_cv_comparison': {
+        en: 'CV Comparison',
+        es: 'Comparación de CV',
+        fr: 'Comparaison du CV',
+        de: 'Lebenslaufvergleich',
+        pt: 'Comparação de currículos',
+        la: 'CV Comparatio'
+    },
     'metiers.detail.key_metrics': {
         en: 'Key metrics',
         es: 'Indicadores clave',

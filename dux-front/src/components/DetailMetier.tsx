@@ -25,6 +25,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [cvComparisonText, setCvComparisonText] = useState<string>("Loading CV...");
 
   useEffect(() => {
     let cancelled = false;
@@ -187,6 +188,43 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     setIsExpanded(false);
   }, [romeCode]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const buildCvComparisonText = (cvTextValue: string | null) => {
+      const cleaned = (cvTextValue ?? "").replace(/\s+/g, " ").trim();
+      if (!cleaned) {
+        return "No CV text available yet.";
+      }
+      const preview = cleaned.length > 240 ? `${cleaned.slice(0, 240)}...` : cleaned;
+      return `CV preview: ${preview}`;
+    };
+
+    async function loadCvText() {
+      try {
+        const url = `${apiBaseUrl}/api/metiers/cv_text`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+        }
+        const json = await res.json();
+        if (!cancelled) {
+          setCvComparisonText(buildCvComparisonText(json?.cvText ?? null));
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setCvComparisonText("Unable to load CV text.");
+        }
+      }
+    }
+
+    loadCvText();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBaseUrl]);
+
   const resume = useMemo(() => {
     if (!data?.definition) return t("metiers.detail.summary_fallback");
     const normalized = data.definition.replace(/\s+/g, " ").trim();
@@ -257,6 +295,13 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
           <span className="wm-rome-badge">{data.romeCode}</span>
         </div>
         <p className="wm-hero-summary">{renderDefinition(resume)}</p>
+      </section>
+
+      <section className="wm-card wm-hero" style={{ ["--delay" as any]: "0.02s" }}>
+        <div className="wm-card-header">
+          <h3>{t("metiers.detail.title_cv_comparison")}</h3>
+        </div>
+        <p className="wm-hero-summary">{cvComparisonText}</p>
       </section>
 
       <div className="wm-detail-grid">
@@ -363,9 +408,6 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
                 onClick={() => navigate(`/jobs?codeROME=${encodeURIComponent(data.romeCode)}`)}
               >
                 {t("metiers.detail.action_offers")}
-              </button>
-              <button type="button" className="nb-btn wm-action-btn">
-                {t("metiers.detail.action_compare_cv")}
               </button>
               <button type="button" className="nb-btn wm-action-btn">
                 {t("metiers.detail.action_favorite")}
