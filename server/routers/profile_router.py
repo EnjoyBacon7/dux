@@ -104,7 +104,7 @@ async def upload_endpoint(
     if result.get("extracted_text"):
         from server.routers.cv_router import run_cv_evaluation
         from server.database import SessionLocal
-        
+
         background_tasks.add_task(
             run_cv_evaluation,
             user_id=current_user.id,
@@ -233,3 +233,40 @@ async def complete_profile_setup(
         db.rollback()
         logger.error(f"Profile setup failed for user {current_user.id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to complete profile setup")
+
+
+@router.post("/setup/skip", summary="Skip profile setup")
+async def skip_profile_setup(
+    request: Request,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, str]:
+    """
+    Skip profile setup and mark it as completed.
+
+    Allows users to skip the onboarding process and complete their profile later.
+    Marks the profile_setup_completed flag as True to prevent forced redirects.
+
+    Args:
+        request: FastAPI request object
+        db: Database session
+        current_user: Current authenticated user
+
+    Returns:
+        dict: Success message confirming setup was skipped
+
+    Raises:
+        HTTPException: If database operations fail
+    """
+    try:
+        # Mark profile setup as completed even though skipped
+        current_user.profile_setup_completed = True
+        db.commit()
+
+        logger.info(f"User {current_user.id} skipped profile setup")
+        return {"message": "Profile setup skipped successfully"}
+
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to skip profile setup for user {current_user.id}: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to skip profile setup")

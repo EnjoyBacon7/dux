@@ -172,7 +172,24 @@ const ProfileSetup: React.FC = () => {
     };
 
     const skipSetup = async () => {
-        navigate('/');
+        try {
+            const response = await fetch('/api/profile/setup/skip', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to skip setup');
+            }
+
+            // Refresh user data to update profile_setup_completed flag
+            await checkAuth();
+            navigate('/');
+        } catch (err) {
+            console.error('Failed to skip setup:', err);
+            // Still navigate even if the API call fails
+            navigate('/');
+        }
     };
 
     return (
