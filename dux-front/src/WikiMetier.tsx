@@ -172,7 +172,7 @@ const MetierWikiLayout: React.FC = () => {
                     key={m.romeCode}
                     className={`wiki-metier-link${selectedCode === m.romeCode ? " wiki-metier-link--active" : ""}`}
                     onClick={() => setSelectedCode(m.romeCode)}
-                  > 
+                  >
                     <div className="wiki-metier-code">{m.romeLibelle}</div>
                     <div className="wiki-metier-label">{m.romeCode}</div>
                   </button>
