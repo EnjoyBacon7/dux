@@ -368,7 +368,14 @@ const DetailedAnalysis: React.FC = () => {
                             onClick={() => setIsContentExpanded(!isContentExpanded)}
                             role="button"
                             tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && setIsContentExpanded(!isContentExpanded)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                    if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                        e.preventDefault();
+                                    }
+                                    setIsContentExpanded(!isContentExpanded);
+                                }
+                            }}
                         >
                             <span>{t("detailed_analysis.content_analysis")}</span>
                             <svg 
@@ -854,7 +861,14 @@ const DetailedAnalysis: React.FC = () => {
                                 onClick={() => setIsVisualExpanded(!isVisualExpanded)}
                                 role="button"
                                 tabIndex={0}
-                                onKeyDown={(e) => e.key === 'Enter' && setIsVisualExpanded(!isVisualExpanded)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                        if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                            e.preventDefault();
+                                        }
+                                        setIsVisualExpanded(!isVisualExpanded);
+                                    }
+                                }}
                             >
                                 <span>{t("detailed_analysis.visual_analysis")}</span>
                                 <svg 
@@ -957,7 +971,14 @@ const DetailedAnalysis: React.FC = () => {
                                 onClick={() => setIsVisualExpanded(!isVisualExpanded)}
                                 role="button"
                                 tabIndex={0}
-                                onKeyDown={(e) => e.key === 'Enter' && setIsVisualExpanded(!isVisualExpanded)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                        if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                            e.preventDefault();
+                                        }
+                                        setIsVisualExpanded(!isVisualExpanded);
+                                    }
+                                }}
                             >
                                 <span>{t("detailed_analysis.visual_analysis")}</span>
                                 <svg 

@@ -43,7 +43,7 @@ def extract_text_from_pdf(file_path: Path) -> str:
         Extracted text from the PDF
 
     Note:
-        OCR fallback requires pytesseract and PyMuPDF to be installed
+        OCR fallback requires pytesseract and pdf2image to be installed
     """
     text = ""
     try:
@@ -55,7 +55,7 @@ def extract_text_from_pdf(file_path: Path) -> str:
         logger.warning(f"Error extracting text from PDF: {e}")
         text = ""
 
-    # If no text was extracted, try OCR using PyMuPDF for image conversion
+    # If no text was extracted, try OCR using pdf2image for image conversion
     if not text.strip():
         logger.info("No text found in PDF, attempting OCR...")
         try:
@@ -170,7 +170,8 @@ def convert_pdf_to_images(file_path: Path) -> List[Image.Image]:
     """
     Convert PDF pages to PIL Images for VLM analysis.
     
-    Uses PyMuPDF (fitz) - a pure Python library with no system dependencies.
+    Uses pdf2image library which wraps poppler-utils for PDF rendering.
+    This is a permissively licensed alternative to PyMuPDF (AGPL-3.0).
     
     Args:
         file_path: Path to the PDF file
@@ -180,30 +181,33 @@ def convert_pdf_to_images(file_path: Path) -> List[Image.Image]:
         
     Raises:
         ValueError: If PDF conversion fails
+        ImportError: If pdf2image is not installed
+        
+    Note:
+        Requires poppler-utils to be installed on the system.
+        On Windows: Download from https://github.com/oschwartz10612/poppler-windows/releases
+        On Linux: sudo apt-get install poppler-utils
+        On macOS: brew install poppler
     """
     try:
-        import fitz  # PyMuPDF
+        from pdf2image import convert_from_path
         
-        doc = fitz.open(file_path)
-        images = []
+        # Convert PDF pages to images at 200 DPI
+        images = convert_from_path(
+            str(file_path),
+            dpi=200,
+            fmt='RGB'
+        )
         
-        for page_num in range(len(doc)):
-            page = doc[page_num]
-            # Render at 200 DPI (72 is base, so 200/72 ≈ 2.78 zoom)
-            zoom = 200 / 72
-            mat = fitz.Matrix(zoom, zoom)
-            pix = page.get_pixmap(matrix=mat)
-            
-            # Convert to PIL Image
-            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            images.append(img)
-        
-        doc.close()
         return images
         
     except ImportError:
-        logger.error("PyMuPDF not installed.")
-        raise ValueError("PDF to image conversion requires pymupdf library. Install with: pip install pymupdf")
+        logger.error("pdf2image not installed.")
+        raise ValueError(
+            "PDF to image conversion requires pdf2image library. "
+            "Install with: pip install pdf2image. "
+            "Also ensure poppler-utils is installed on your system."
+        )
     except Exception as e:
         logger.error(f"Failed to convert PDF to images: {e}")
         raise ValueError(f"PDF to image conversion failed: {str(e)}")

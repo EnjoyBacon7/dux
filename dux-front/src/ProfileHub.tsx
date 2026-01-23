@@ -33,7 +33,14 @@ const ProfileHub: React.FC = () => {
                             onClick={handleDetailedAnalysis}
                             role="button"
                             tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && handleDetailedAnalysis()}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                    if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                        e.preventDefault();
+                                    }
+                                    handleDetailedAnalysis();
+                                }
+                            }}
                         >
                             <div className="profile-hub-feature-icon">📊</div>
                             <h3 className="profile-hub-feature-title">{t("profile_hub.detailed_analysis")}</h3>

@@ -133,11 +133,7 @@ class CVEvaluationPipeline:
             logger.info("Running LLM scoring and VLM visual analysis in parallel...")
             
             def run_llm_scoring():
-                try:
-                    return score_cv(structured_cv, derived_features, model=self.model)
-                except Exception as e:
-                    logger.error(f"LLM scoring failed: {e}")
-                    raise
+                return score_cv(structured_cv, derived_features, model=self.model)
             
             def run_vlm_analysis():
                 try:
@@ -151,8 +147,15 @@ class CVEvaluationPipeline:
                 llm_future = executor.submit(run_llm_scoring)
                 vlm_future = executor.submit(run_vlm_analysis)
                 
-                # Wait for both to complete
-                scores = llm_future.result()
+                # Wait for both to complete with proper error handling
+                try:
+                    scores = llm_future.result()
+                    logger.info(f"Step 3 complete: Overall score = {scores.overall_score}")
+                except Exception as e:
+                    logger.error(f"Step 3 failed: {e}")
+                    errors.append(f"Scoring failed: {e}")
+                    raise ValueError(f"Pipeline failed at Step 3 (Scoring): {e}")
+                
                 visual_analysis = vlm_future.result()
             
             if visual_analysis:
