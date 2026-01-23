@@ -16,6 +16,13 @@ const sidebars: SidebarsConfig = {
         'developers/intro',
       ],
     },
+    {
+      type: 'category',
+      label: 'Valorisation',
+      items: [
+        'valorisation/intro',
+      ],
+    },
   ],
 };
 
