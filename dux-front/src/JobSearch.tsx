@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Header from "./components/Header";
 import JobDetail from "./components/JobDetail";
 import OfferBox from "./components/OfferBox";
@@ -24,12 +25,24 @@ interface FTSearchFilters {
 
 const JobSearch: React.FC = () => {
     const { t } = useLanguage();
-    const [filters, setFilters] = useState<FTSearchFilters>({});
+    const [searchParams] = useSearchParams();
+    const [filters, setFilters] = useState<FTSearchFilters>(() => {
+        const romeFromQuery = searchParams.get("codeROME") || searchParams.get("rome");
+        return romeFromQuery ? { codeROME: romeFromQuery } : {};
+    });
     const [jobs, setJobs] = useState<JobOffer[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedJob, setSelectedJob] = useState<JobOffer | null>(null);
     const [total, setTotal] = useState(0);
+
+    useEffect(() => {
+        const romeFromQuery = searchParams.get("codeROME") || searchParams.get("rome");
+        if (!romeFromQuery) return;
+        setFilters(prev => (
+            prev.codeROME === romeFromQuery ? prev : { ...prev, codeROME: romeFromQuery }
+        ));
+    }, [searchParams]);
 
     // Fetch jobs from France Travail API
     useEffect(() => {

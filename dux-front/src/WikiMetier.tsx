@@ -98,15 +98,18 @@ const MetierWikiLayout: React.FC = () => {
     );
   }, [items, q]);
 
+  const romeParam = useMemo(() => {
+    const value = searchParams.get("rome");
+    return value ? value.trim().toUpperCase() : null;
+  }, [searchParams]);
+
   useEffect(() => {
-    const romeFromUrl = searchParams.get("rome");
-    if (!romeFromUrl) {
-      setSelectedCode(items.length ? items[0].romeCode : null);
+    if (romeParam) {
+      setSelectedCode(romeParam);
       return;
     }
-    const existsInItems = items.some((m) => m.romeCode === romeFromUrl);
-    setSelectedCode(existsInItems ? romeFromUrl : items.length ? items[0].romeCode : null);
-  }, [items, searchParams]);
+    setSelectedCode(items.length ? items[0].romeCode : null);
+  }, [items, romeParam]);
 
   useEffect(() => {
     if (selectedCode == null) {
@@ -117,6 +120,9 @@ const MetierWikiLayout: React.FC = () => {
       if (items.length > 0) {
         setSelectedCode(items[0].romeCode);
       }
+      return;
+    }
+    if (romeParam && selectedCode === romeParam) {
       return;
     }
     const existsInItems = items.some((m) => m.romeCode === selectedCode);
