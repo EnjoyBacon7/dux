@@ -482,6 +482,210 @@ select:focus {
     gap: 1rem;
 }
 
+.nb-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nb-brand button {
+    margin: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.nb-brand h2 {
+    margin: 0;
+}
+
+.nb-nav-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+}
+
+.nb-nav {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.nb-nav-btn {
+    appearance: none;
+    background: transparent;
+    color: var(--nb-fg);
+    border: var(--nb-border) solid var(--nb-fg);
+    padding: 0.65rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--nb-transition);
+    box-shadow: none;
+    white-space: nowrap;
+}
+
+.nb-nav-btn:hover {
+    transform: translate(calc(var(--shadow-offset) * -0.25), calc(var(--shadow-offset) * -0.25));
+    box-shadow: var(--nb-shadow-xs);
+}
+
+.nb-nav-btn--active {
+    background: var(--nb-accent);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: var(--nb-shadow-xs);
+}
+
+.nb-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nb-menu-toggle {
+    appearance: none;
+    background: var(--nb-bg);
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: 6px;
+    padding: 0.55rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.35rem;
+    cursor: pointer;
+    transition: var(--nb-transition);
+    min-height: 44px;
+    width: 44px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--nb-shadow-xs);
+}
+
+.nb-menu-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--nb-fg);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nb-menu-toggle.is-open span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+
+.nb-menu-toggle.is-open span:nth-child(2) {
+    opacity: 0;
+}
+
+.nb-menu-toggle.is-open span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+.nb-nav-drawer {
+    position: fixed;
+    inset: 0;
+    display: none;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 120;
+}
+
+.nb-nav-drawer.is-open {
+    display: flex;
+    pointer-events: auto;
+    opacity: 1;
+}
+
+.nb-nav-drawer__overlay {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.28);
+}
+
+.nb-nav-drawer__panel {
+    width: min(82vw, 360px);
+    max-width: 420px;
+    background: var(--nb-card-bg);
+    border-left: var(--nb-border) solid var(--nb-fg);
+    box-shadow: var(--nb-shadow-md);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.nb-nav--mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+
+@media (max-width: 900px) {
+    .nb-header-content {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .nb-brand {
+        order: 1;
+        flex: 1 1 40%;
+    }
+
+    .nb-actions {
+        order: 2;
+    }
+
+    .nb-nav-wrapper {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        display: none;
+    }
+
+    .nb-nav {
+        width: 100%;
+        overflow-x: auto;
+        padding-inline: 0.25rem;
+        padding-bottom: 0.25rem;
+        margin-inline: -0.25rem;
+        scrollbar-width: none;
+    }
+
+    .nb-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nb-nav-btn {
+        flex: 0 0 auto;
+        padding: 0.55rem 0.85rem;
+        font-size: 0.82rem;
+    }
+
+    .nb-menu-toggle {
+        display: flex;
+    }
+
+    .nb-nav-drawer {
+        display: flex;
+    }
+
+    .nb-nav--mobile .nb-nav-btn {
+        flex: 1 1 auto;
+        justify-content: flex-start;
+        text-align: left;
+        width: 100%;
+    }
+}
+
 /* Theme Selector */
 .nb-theme-selector {
     display: flex;

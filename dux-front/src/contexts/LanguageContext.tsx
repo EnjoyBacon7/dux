@@ -190,6 +190,70 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Bem-vindo ao Dux',
         la: 'Salve ad Dux'
     },
+    'home.welcome_intro': {
+        en: 'Your AI-powered job search companion. Get started with these features:',
+        es: 'Tu compañero de búsqueda de empleo impulsado por IA. Comienza con estas funciones:',
+        fr: 'Votre assistant de recherche d\'emploi alimenté par l\'IA. Commencez avec ces fonctionnalités :',
+        de: 'Ihr KI-gestützter Begleiter für die Jobsuche. Beginnen Sie mit diesen Funktionen:',
+        pt: 'Seu companheiro de busca de emprego com IA. Comece com esses recursos:',
+        la: 'Socius tuus quaerendi operis per AI. Incipe his functionibus:'
+    },
+    'home.feature_cv_title': {
+        en: 'CV Analysis',
+        es: 'Análisis de CV',
+        fr: 'Analyse de CV',
+        de: 'Lebenslauf-Analyse',
+        pt: 'Análise de Currículo',
+        la: 'Analysis CV'
+    },
+    'home.feature_cv_desc': {
+        en: 'Upload your CV to get AI-powered insights and improvement suggestions.',
+        es: 'Sube tu CV para obtener información y sugerencias de mejora impulsadas por IA.',
+        fr: 'Téléchargez votre CV pour obtenir des informations et suggestions d\'amélioration par IA.',
+        de: 'Laden Sie Ihren Lebenslauf hoch, um KI-gestützte Einblicke und Verbesserungsvorschläge zu erhalten.',
+        pt: 'Carregue seu currículo para obter insights e sugestões de melhoria com IA.',
+        la: 'Transfer CV tuum ut consilium et suggestiones meliorationis per AI habeas.'
+    },
+    'home.feature_jobs_title': {
+        en: 'Smart Job Matching',
+        es: 'Emparejamiento Inteligente de Trabajos',
+        fr: 'Correspondance Intelligente d\'Emplois',
+        de: 'Intelligente Job-Matching',
+        pt: 'Correspondência Inteligente de Vagas',
+        la: 'Comparatio Intelligens Operum'
+    },
+    'home.feature_jobs_desc': {
+        en: 'Browse jobs tailored to your profile with AI-powered match scores.',
+        es: 'Explora trabajos adaptados a tu perfil con puntuaciones de coincidencia impulsadas por IA.',
+        fr: 'Parcourez les emplois adaptés à votre profil avec des scores de correspondance par IA.',
+        de: 'Durchsuchen Sie Jobs, die auf Ihr Profil zugeschnitten sind, mit KI-gestützten Match-Scores.',
+        pt: 'Navegue por vagas adaptadas ao seu perfil com pontuações de correspondência com IA.',
+        la: 'Perlustra opera ad professionem tuam accommodata cum punctis comparationis per AI.'
+    },
+    'home.feature_analysis_title': {
+        en: 'Job Insights',
+        es: 'Perspectivas de Trabajo',
+        fr: 'Informations sur les Emplois',
+        de: 'Job-Einblicke',
+        pt: 'Insights de Vagas',
+        la: 'Perspicacia Operum'
+    },
+    'home.feature_analysis_desc': {
+        en: 'Get detailed analysis of how your profile matches each job opportunity.',
+        es: 'Obtén análisis detallados de cómo tu perfil coincide con cada oportunidad laboral.',
+        fr: 'Obtenez une analyse détaillée de la correspondance de votre profil avec chaque opportunité.',
+        de: 'Erhalten Sie detaillierte Analysen darüber, wie Ihr Profil zu jeder Jobmöglichkeit passt.',
+        pt: 'Obtenha análises detalhadas de como seu perfil corresponde a cada oportunidade.',
+        la: 'Accipe analysim detailem quomodo professio tua cum unaquaque opportunitate congruat.'
+    },
+    'home.explore_jobs': {
+        en: 'Explore Jobs',
+        es: 'Explorar Trabajos',
+        fr: 'Explorer les Emplois',
+        de: 'Jobs Erkunden',
+        pt: 'Explorar Vagas',
+        la: 'Explora Opera'
+    },
     'home.authenticated': {
         en: 'You are now authenticated and can access protected features.',
         es: 'Ahora estás autenticado y puedes acceder a funciones protegidas.',
@@ -2485,12 +2549,12 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         la: 'Curriculum mitte ut punctum tuum accipias'
     },
     'cv_score.evaluating': {
-        en: 'Analyzing your CV...',
-        es: 'Analizando tu CV...',
-        fr: 'Analyse de votre CV...',
-        de: 'Analysiere Ihren Lebenslauf...',
-        pt: 'Analisando seu CV...',
-        la: 'Curriculum tuum examinando...'
+        en: 'Analyzing your CV, come back in a few minutes...',
+        es: 'Analizando tu CV, vuelve en unos minutos...',
+        fr: 'Analyse de votre CV, revenez dans quelques minutes...',
+        de: 'Analysiere Ihren Lebenslauf, kommen Sie in ein paar Minuten zurück...',
+        pt: 'Analisando seu CV, volte em alguns minutos...',
+        la: 'Curriculum tuum examinando, post paucos minutos redi...'
     },
     'cv_score.no_evaluation': {
         en: 'No CV evaluation yet',
