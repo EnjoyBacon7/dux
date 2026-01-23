@@ -18,11 +18,14 @@ import time
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
 
-from server.cv.cv_schemas import EvaluationResult, StructuredCV, DerivedFeatures, CVScores
+from server.cv.cv_schemas import EvaluationResult, StructuredCV, DerivedFeatures, CVScores, VisualAnalysis
 from server.cv.cv_extractor import extract_cv_facts
 from server.cv.cv_validator import validate_and_compute_features
 from server.cv.cv_scorer import score_cv
+from server.cv.cv_visual_analyzer import analyze_cv_visuals
+from server.methods.upload import UPLOAD_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +68,7 @@ class CVEvaluationPipeline:
         self,
         raw_cv_text: str,
         cv_filename: Optional[str] = None,
+        cv_file_path: Optional[Path] = None,
     ) -> EvaluationResult:
         """
         Run the complete CV evaluation pipeline.
@@ -72,6 +76,7 @@ class CVEvaluationPipeline:
         Args:
             raw_cv_text: Raw text content of the CV
             cv_filename: Optional original filename for reference
+            cv_file_path: Optional path to CV file for VLM visual analysis
         
         Returns:
             EvaluationResult: Complete evaluation with all intermediate outputs
@@ -82,10 +87,24 @@ class CVEvaluationPipeline:
         start_time = time.time()
         evaluation_id = str(uuid.uuid4())
         errors = []
+        visual_analysis: Optional[VisualAnalysis] = None
         
         logger.info(f"Starting CV evaluation pipeline (ID: {evaluation_id})")
         
-        # Step 1: Extract structured facts
+        # Determine file path for VLM analysis
+        file_path_for_vlm = None
+        file_extension = None
+        if cv_file_path and cv_file_path.exists():
+            file_path_for_vlm = cv_file_path
+            file_extension = cv_file_path.suffix.lower()
+        elif cv_filename:
+            # Try to construct path from filename
+            potential_path = UPLOAD_DIR / cv_filename
+            if potential_path.exists():
+                file_path_for_vlm = potential_path
+                file_extension = potential_path.suffix.lower()
+        
+        # Step 1: Extract structured facts (LLM)
         logger.info("Step 1: Extracting structured facts from CV...")
         try:
             structured_cv = extract_cv_facts(raw_cv_text, model=self.model)
@@ -106,15 +125,49 @@ class CVEvaluationPipeline:
             errors.append(f"Validation failed: {e}")
             raise ValueError(f"Pipeline failed at Step 2 (Validation): {e}")
         
-        # Step 3: Score the CV
+        # Step 3: Score the CV (LLM) - Run in parallel with VLM if file available
         logger.info("Step 3: Scoring CV...")
-        try:
-            scores = score_cv(structured_cv, derived_features, model=self.model)
-            logger.info(f"Step 3 complete: Overall score = {scores.overall_score}")
-        except Exception as e:
-            logger.error(f"Step 3 failed: {e}")
-            errors.append(f"Scoring failed: {e}")
-            raise ValueError(f"Pipeline failed at Step 3 (Scoring): {e}")
+        
+        # Run LLM scoring and VLM analysis in parallel if file is available
+        if file_path_for_vlm and file_extension in ['.pdf', '.docx', '.doc']:
+            logger.info("Running LLM scoring and VLM visual analysis in parallel...")
+            
+            def run_llm_scoring():
+                try:
+                    return score_cv(structured_cv, derived_features, model=self.model)
+                except Exception as e:
+                    logger.error(f"LLM scoring failed: {e}")
+                    raise
+            
+            def run_vlm_analysis():
+                try:
+                    return analyze_cv_visuals(file_path_for_vlm, file_extension, model=None)
+                except Exception as e:
+                    logger.warning(f"VLM analysis failed (non-critical): {e}")
+                    return None
+            
+            # Run both in parallel using ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                llm_future = executor.submit(run_llm_scoring)
+                vlm_future = executor.submit(run_vlm_analysis)
+                
+                # Wait for both to complete
+                scores = llm_future.result()
+                visual_analysis = vlm_future.result()
+            
+            if visual_analysis:
+                logger.info("VLM visual analysis completed successfully")
+            else:
+                logger.warning("VLM visual analysis was skipped or failed (non-critical)")
+        else:
+            # No file available, run LLM scoring only
+            try:
+                scores = score_cv(structured_cv, derived_features, model=self.model)
+                logger.info(f"Step 3 complete: Overall score = {scores.overall_score}")
+            except Exception as e:
+                logger.error(f"Step 3 failed: {e}")
+                errors.append(f"Scoring failed: {e}")
+                raise ValueError(f"Pipeline failed at Step 3 (Scoring): {e}")
         
         # Step 4: Assemble final result
         processing_time = time.time() - start_time
@@ -126,6 +179,7 @@ class CVEvaluationPipeline:
             structured_cv=structured_cv,
             derived_features=derived_features,
             scores=scores,
+            visual_analysis=visual_analysis,
             processing_time_seconds=round(processing_time, 2),
             errors=errors,
         )
@@ -198,7 +252,7 @@ class CVEvaluationPipeline:
             with open(file_path, 'r', encoding='utf-8') as f:
                 raw_text = f.read()
         
-        return self.evaluate(raw_text, cv_filename=file_path.name)
+        return self.evaluate(raw_text, cv_filename=file_path.name, cv_file_path=file_path)
 
 
 def evaluate_cv(

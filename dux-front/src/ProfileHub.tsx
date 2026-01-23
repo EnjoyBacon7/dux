@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "./components";
 import { useLanguage } from "./contexts/useLanguage";
 import { useAuth } from "./contexts/useAuth";
@@ -7,8 +8,13 @@ import "./styles/home.css";
 const ProfileHub: React.FC = () => {
     const { t } = useLanguage();
     const { user } = useAuth();
+    const navigate = useNavigate();
 
     if (!user) return null;
+
+    const handleDetailedAnalysis = () => {
+        navigate("/profile-hub/detailed-analysis");
+    };
 
     return (
         <>
@@ -21,12 +27,18 @@ const ProfileHub: React.FC = () => {
                     </div>
 
                     <div className="profile-hub-grid">
-                        {/* Placeholder cards for future features */}
-                        <div className="nb-card profile-hub-feature-card">
+                        {/* Detailed Analysis Card - Now Clickable */}
+                        <div 
+                            className="nb-card profile-hub-feature-card profile-hub-feature-card--clickable"
+                            onClick={handleDetailedAnalysis}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && handleDetailedAnalysis()}
+                        >
                             <div className="profile-hub-feature-icon">📊</div>
                             <h3 className="profile-hub-feature-title">{t("profile_hub.detailed_analysis")}</h3>
                             <p className="profile-hub-feature-desc">{t("profile_hub.detailed_analysis_desc")}</p>
-                            <span className="profile-hub-coming-soon">{t("profile_hub.coming_soon")}</span>
+                            <span className="profile-hub-view-btn">{t("profile_hub.view_analysis")}</span>
                         </div>
 
                         <div className="nb-card profile-hub-feature-card">

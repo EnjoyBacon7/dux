@@ -6,6 +6,7 @@ import ProfileSetup from "./ProfileSetup";
 import ProfileHub from "./ProfileHub";
 import LinkedInCallback from "./LinkedInCallback";
 import PrivacyPolicy from "./PrivacyPolicy";
+import { DetailedAnalysis } from "./components";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
@@ -39,6 +40,7 @@ function App() {
                         <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
                         <Route path="/jobs" element={<RequireAuth><JobSearch /></RequireAuth>} />
                         <Route path="/profile-hub" element={<RequireAuth><ProfileHub /></RequireAuth>} />
+                        <Route path="/profile-hub/detailed-analysis" element={<RequireAuth><DetailedAnalysis /></RequireAuth>} />
                         <Route path="/linkedin/callback" element={<LinkedInCallback />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />

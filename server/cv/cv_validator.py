@@ -147,16 +147,24 @@ def _analyze_quantified_results(cv: StructuredCV, features: DerivedFeatures) -> 
     return features
 
 
-def _parse_date(date_str: Optional[str]) -> Optional[datetime]:
+def _parse_date(date_str: Optional[str], extract_end: bool = False) -> Optional[datetime]:
     """
     Attempt to parse a date string into a datetime object.
     
     Handles various formats:
-    - "Present", "Current", "Now" -> returns None (handled specially)
+    - "Present", "Current", "Now" -> returns current date
     - "2020" -> January 2020
-    - "Jan 2020", "January 2020" -> parsed month/year
+    - "Jan 2020", "January 2020", "August 2023" -> parsed month/year
     - "01/2020", "2020-01" -> parsed month/year
     - Full dates like "Jan 15, 2020" -> parsed date
+    - Date ranges like "August 2023 - February 2024" -> extracts start or end date
+    
+    Args:
+        date_str: Date string to parse
+        extract_end: If True and date_str is a range, extract the end date; otherwise extract start
+    
+    Returns:
+        Parsed datetime object or None if parsing fails
     """
     if not date_str:
         return None
@@ -167,32 +175,109 @@ def _parse_date(date_str: Optional[str]) -> Optional[datetime]:
     if date_str.lower() in ['present', 'current', 'now', 'ongoing', 'aujourd\'hui', 'présent']:
         return datetime.now()
     
+    # Detect and handle date ranges (e.g., "August 2023 - February 2024", "Jan 2020 to Dec 2020")
+    # Common separators: dash, "to", "–" (en dash), "—" (em dash)
+    range_pattern = r'(.+?)\s*(?:[-–—]|to|à)\s*(.+)'
+    range_match = re.match(range_pattern, date_str, re.IGNORECASE)
+    if range_match:
+        start_part = range_match.group(1).strip()
+        end_part = range_match.group(2).strip()
+        # Extract the appropriate part of the range
+        date_str = end_part if extract_end else start_part
+    
+    # Try dateutil parser first (handles most formats including "August 2023")
     try:
-        # Try dateutil parser first (handles most formats)
-        parsed = date_parser.parse(date_str, default=datetime(2000, 1, 1))
-        return parsed
-    except (ValueError, TypeError):
+        # Use fuzzy=False to avoid parsing ambiguous dates incorrectly
+        # But allow it to handle month names
+        parsed = date_parser.parse(date_str, default=datetime(2000, 1, 1), fuzzy=False)
+        # If parsed date seems reasonable (not the default), return it
+        if parsed.year > 1900 and parsed.year <= datetime.now().year + 1:
+            return parsed
+    except (ValueError, TypeError, OverflowError):
         pass
+    
+    # Try month name + year format explicitly (e.g., "August 2023", "Jan 2020", "août 2023")
+    # This handles cases where dateutil might fail, including French month names
+    month_year_pattern = r'^([A-Za-zÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]+)\s+(\d{4})$'
+    month_match = re.match(month_year_pattern, date_str)
+    if month_match:
+        month_name = month_match.group(1).lower()
+        year = int(month_match.group(2))
+        
+        # French month names mapping
+        french_months = {
+            'janvier': 1, 'février': 2, 'fevrier': 2, 'mars': 3, 'avril': 4,
+            'mai': 5, 'juin': 6, 'juillet': 7, 'août': 8, 'aout': 8,
+            'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12, 'decembre': 12
+        }
+        
+        # Check French month names first
+        if month_name in french_months:
+            return datetime(year, french_months[month_name], 1)
+        
+        # Try English month names
+        try:
+            # Try full month name
+            month_num = datetime.strptime(month_name, '%B').month
+        except ValueError:
+            try:
+                # Try abbreviated month name
+                month_num = datetime.strptime(month_name, '%b').month
+            except ValueError:
+                month_num = None
+        
+        if month_num and 1 <= month_num <= 12:
+            return datetime(year, month_num, 1)
     
     # Try year-only format
     year_match = re.match(r'^(\d{4})$', date_str)
     if year_match:
-        return datetime(int(year_match.group(1)), 1, 1)
+        year = int(year_match.group(1))
+        if 1900 <= year <= datetime.now().year + 1:
+            return datetime(year, 1, 1)
     
     # Try month/year formats like "01/2020" or "2020/01"
     my_match = re.match(r'^(\d{1,2})[/\-](\d{4})$', date_str)
     if my_match:
         month, year = int(my_match.group(1)), int(my_match.group(2))
-        if 1 <= month <= 12:
+        if 1 <= month <= 12 and 1900 <= year <= datetime.now().year + 1:
             return datetime(year, month, 1)
     
     my_match2 = re.match(r'^(\d{4})[/\-](\d{1,2})$', date_str)
     if my_match2:
         year, month = int(my_match2.group(1)), int(my_match2.group(2))
-        if 1 <= month <= 12:
+        if 1 <= month <= 12 and 1900 <= year <= datetime.now().year + 1:
             return datetime(year, month, 1)
     
     return None
+
+
+def _extract_date_range(date_str: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """
+    Extract start and end dates from a date range string.
+    
+    Handles formats like:
+    - "August 2023 - February 2024"
+    - "Jan 2020 to Dec 2020"
+    - "2020-01 - 2020-12"
+    
+    Returns:
+        Tuple of (start_date_str, end_date_str) or (date_str, None) if not a range
+    """
+    if not date_str:
+        return None, None
+    
+    date_str = date_str.strip()
+    
+    # Detect date ranges
+    range_pattern = r'(.+?)\s*(?:[-–—]|to|à)\s*(.+)'
+    range_match = re.match(range_pattern, date_str, re.IGNORECASE)
+    if range_match:
+        start_part = range_match.group(1).strip()
+        end_part = range_match.group(2).strip()
+        return start_part, end_part
+    
+    return date_str, None
 
 
 def _months_between(start: datetime, end: datetime) -> int:
@@ -210,8 +295,19 @@ def _analyze_timeline(cv: StructuredCV, features: DerivedFeatures) -> DerivedFea
     # Parse all dates and build timeline
     timeline_entries = []
     for i, exp in enumerate(cv.work_experience):
-        start = _parse_date(exp.start_date)
-        end = _parse_date(exp.end_date) if not exp.is_current else datetime.now()
+        # Handle date ranges that might be in one field
+        start_date_to_parse = exp.start_date
+        end_date_to_parse = exp.end_date
+        
+        if exp.start_date and not exp.end_date and not exp.is_current:
+            # Check if start_date contains a range
+            start_part, end_part = _extract_date_range(exp.start_date)
+            if end_part:
+                start_date_to_parse = start_part
+                end_date_to_parse = end_part
+        
+        start = _parse_date(start_date_to_parse, extract_end=False)
+        end = _parse_date(end_date_to_parse, extract_end=True) if not exp.is_current else datetime.now()
         
         if start and end:
             timeline_entries.append({
@@ -304,14 +400,26 @@ def _validate_dates(cv: StructuredCV, features: DerivedFeatures) -> DerivedFeatu
     for i, exp in enumerate(cv.work_experience):
         section = f"work_experience[{i}]"
         
-        if not exp.start_date:
+        # Check if start_date contains a range and end_date is missing
+        start_date_to_parse = exp.start_date
+        end_date_to_parse = exp.end_date
+        
+        if exp.start_date and not exp.end_date and not exp.is_current:
+            # Check if start_date contains a range
+            start_part, end_part = _extract_date_range(exp.start_date)
+            if end_part:
+                # Range found in start_date, use the parts
+                start_date_to_parse = start_part
+                end_date_to_parse = end_part
+        
+        if not start_date_to_parse:
             date_issues.append(DateIssue(
                 section=section,
                 issue_type="missing_start_date",
                 description=f"Missing start date for {exp.role} at {exp.company}"
             ))
         else:
-            parsed = _parse_date(exp.start_date)
+            parsed = _parse_date(start_date_to_parse, extract_end=False)
             if not parsed:
                 date_issues.append(DateIssue(
                     section=section,
@@ -325,12 +433,21 @@ def _validate_dates(cv: StructuredCV, features: DerivedFeatures) -> DerivedFeatu
                     description=f"Start date '{exp.start_date}' is in the future"
                 ))
         
-        if not exp.is_current and not exp.end_date:
-            date_issues.append(DateIssue(
-                section=section,
-                issue_type="missing_end_date",
-                description=f"Missing end date for non-current position {exp.role} at {exp.company}"
-            ))
+        if not exp.is_current:
+            if not end_date_to_parse:
+                date_issues.append(DateIssue(
+                    section=section,
+                    issue_type="missing_end_date",
+                    description=f"Missing end date for non-current position {exp.role} at {exp.company}"
+                ))
+            else:
+                parsed = _parse_date(end_date_to_parse, extract_end=True)
+                if not parsed:
+                    date_issues.append(DateIssue(
+                        section=section,
+                        issue_type="invalid_format",
+                        description=f"Could not parse end date '{exp.end_date or end_date_to_parse}'"
+                    ))
     
     # Validate education dates
     for i, edu in enumerate(cv.education):
@@ -346,7 +463,7 @@ def _validate_dates(cv: StructuredCV, features: DerivedFeatures) -> DerivedFeatu
                 ))
         
         if edu.end_date:
-            parsed = _parse_date(edu.end_date)
+            parsed = _parse_date(edu.end_date, extract_end=True)
             if not parsed:
                 date_issues.append(DateIssue(
                     section=section,

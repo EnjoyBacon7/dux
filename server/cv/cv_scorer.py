@@ -10,6 +10,7 @@ It does NOT re-interpret the raw CV text.
 
 import json
 import logging
+from pathlib import Path
 from typing import Optional
 
 from openai import OpenAI
@@ -24,95 +25,32 @@ from server.cv.cv_schemas import (
 
 logger = logging.getLogger(__name__)
 
-# System prompt for the scorer LLM
-SCORER_SYSTEM_PROMPT = """You are a professional CV evaluator. Your task is to score and evaluate a CV based ONLY on the structured data and computed features provided.
 
-CRITICAL RULES:
-1. Base ALL evaluations strictly on the provided structured CV data and derived features
-2. Do NOT make assumptions about information not present in the data
-3. Every score and claim must be justified with evidence from the input data
-4. Be fair and objective - focus on what IS present, not what could be
-5. Scores are 0-100 where:
-   - 0-20: Very Poor - Critical issues or major gaps
-   - 21-40: Below Average - Significant weaknesses
-   - 41-60: Average - Meets basic expectations
-   - 61-80: Good - Above average with some strengths
-   - 81-100: Excellent - Outstanding quality
+def _load_prompt_template(template_name: str) -> str:
+    """
+    Load a prompt template from the prompts directory.
 
-SCORING DIMENSIONS:
-1. Completeness: Are all important sections present and filled?
-2. Experience Quality: Quality, relevance, and progression of work experience
-3. Skills Relevance: Breadth, specificity, and organization of skills
-4. Impact Evidence: Presence of quantified achievements and results
-5. Clarity: Structure, organization, and readability signals
-6. Consistency: Timeline coherence, logical progression, no red flags
+    Args:
+        template_name: Name of the template file (without .txt extension)
 
-OUTPUT: Return a valid JSON object with scores, justifications, and feedback."""
+    Returns:
+        Template content as string
+
+    Raises:
+        FileNotFoundError: If template file doesn't exist
+    """
+    prompts_dir = Path(__file__).parent.parent / "prompts"
+    template_path = prompts_dir / f"{template_name}.txt"
+
+    if not template_path.exists():
+        raise FileNotFoundError(f"Prompt template not found: {template_path}")
+
+    return template_path.read_text(encoding="utf-8")
 
 
-SCORING_PROMPT_TEMPLATE = """Evaluate this CV based on the structured data and derived features below.
-
-## STRUCTURED CV DATA:
-```json
-{structured_cv_json}
-```
-
-## DERIVED FEATURES (Computed Signals):
-```json
-{derived_features_json}
-```
-
-## YOUR TASK:
-Provide a comprehensive evaluation as a JSON object with this structure:
-
-{{
-    "overall_score": <0-100>,
-    "overall_summary": "Brief 2-3 sentence summary of the CV quality",
-    
-    "completeness": {{
-        "score": <0-100>,
-        "justification": "Explain the score based on missing_sections, has_* flags",
-        "evidence": ["Quote specific data points supporting this score"]
-    }},
-    
-    "experience_quality": {{
-        "score": <0-100>,
-        "justification": "Evaluate based on experience_count, tenure, responsibilities quality",
-        "evidence": ["Evidence from work_experience data"]
-    }},
-    
-    "skills_relevance": {{
-        "score": <0-100>,
-        "justification": "Evaluate based on skills_count, organization, specificity",
-        "evidence": ["Evidence from skills data"]
-    }},
-    
-    "impact_evidence": {{
-        "score": <0-100>,
-        "justification": "Evaluate based on quantified_results_count, quantified_examples",
-        "evidence": ["Quote actual quantified results found"]
-    }},
-    
-    "clarity": {{
-        "score": <0-100>,
-        "justification": "Evaluate organization, section structure, professional summary",
-        "evidence": ["Evidence about structure and clarity"]
-    }},
-    
-    "consistency": {{
-        "score": <0-100>,
-        "justification": "Evaluate based on timeline_gaps, timeline_overlaps, date_issues",
-        "evidence": ["Evidence about timeline consistency"]
-    }},
-    
-    "strengths": ["List 3-5 key strengths based on the data"],
-    "weaknesses": ["List 3-5 areas for improvement"],
-    "missing_info": ["List important missing information"],
-    "red_flags": ["List any concerns (job hopping, gaps, inconsistencies) or empty if none"],
-    "recommendations": ["List 3-5 actionable improvement suggestions"]
-}}
-
-Return ONLY the JSON object, no additional text."""
+# Load prompts from files
+SCORER_SYSTEM_PROMPT = _load_prompt_template("cv_scorer_system")
+SCORING_PROMPT_TEMPLATE = _load_prompt_template("cv_scorer_template")
 
 
 def create_openai_client() -> OpenAI:

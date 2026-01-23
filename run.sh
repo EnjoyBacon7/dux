@@ -61,8 +61,6 @@ else
     echo "PostgreSQL may not be installed correctly."
 fi
 
-
-
 # Ensure static directory exists
 mkdir -p static
 

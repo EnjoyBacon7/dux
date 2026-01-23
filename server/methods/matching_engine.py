@@ -1,10 +1,33 @@
 import json
 import logging
+from pathlib import Path
 from openai import OpenAI
 from server.models import User, Offres_FT
 from server.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def _load_prompt_template(template_name: str) -> str:
+    """
+    Load a prompt template from the prompts directory.
+
+    Args:
+        template_name: Name of the template file (without .txt extension)
+
+    Returns:
+        Template content as string
+
+    Raises:
+        FileNotFoundError: If template file doesn't exist
+    """
+    prompts_dir = Path(__file__).parent.parent / "prompts"
+    template_path = prompts_dir / f"{template_name}.txt"
+
+    if not template_path.exists():
+        raise FileNotFoundError(f"Prompt template not found: {template_path}")
+
+    return template_path.read_text(encoding="utf-8")
 
 class MatchingEngine:
     def __init__(self, db_session):
@@ -56,35 +79,19 @@ class MatchingEngine:
             except (json.JSONDecodeError, TypeError, ValueError):
                 pass
 
-        # Instruction pour l'IA
-        prompt = f"""
-        Tu es un expert en recrutement multilingue.
-        
-        IMPORTANT: Provide the 'verdict', 'match_reasons', and 'missing_skills' values strictly in {target_lang}.
-        (Keep the JSON keys in English, only translate the values).
-
-        PROFIL CANDIDAT:
-        - Titre: {user.headline or 'Non spécifié'}
-        - Résumé: {user.summary or 'Non spécifié'}
-        - Compétences: {skills}
-        - Expériences: {experiences_txt}
-
-        OFFRE D'EMPLOI:
-        - Titre: {job.intitule}
-        - Entreprise: {job.entreprise_nom}
-        - Description: {job.description}
-        - Compétences requises: {job_skills}
-
-        TA MISSION:
-        Analyse le matching et retourne UNIQUEMENT un JSON valide :
-        {{
-            "score_technique": (int 0-100),
-            "score_culturel": (int 0-100),
-            "match_reasons": ["Point 1 ({target_lang})", "Point 2 ({target_lang})"],
-            "missing_skills": ["Compétence 1 ({target_lang})", "Compétence 2 ({target_lang})"],
-            "verdict": "Synthèse courte et directe en {target_lang}."
-        }}
-        """
+        # Load prompt template and format it
+        template = _load_prompt_template("profile_match_template")
+        prompt = template.format(
+            target_lang=target_lang,
+            headline=user.headline or 'Non spécifié',
+            summary=user.summary or 'Non spécifié',
+            skills=skills,
+            experiences=experiences_txt,
+            job_title=job.intitule,
+            company_name=job.entreprise_nom,
+            job_description=job.description,
+            job_skills=job_skills
+        )
         return prompt
 
     def analyser_match(self, user: User, job: Offres_FT, lang: str = "fr") -> dict:

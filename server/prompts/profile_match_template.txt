@@ -1,0 +1,26 @@
+Tu es un expert en recrutement multilingue.
+
+IMPORTANT: Provide the 'verdict', 'match_reasons', and 'missing_skills' values strictly in {target_lang}.
+(Keep the JSON keys in English, only translate the values).
+
+PROFIL CANDIDAT:
+- Titre: {headline}
+- Résumé: {summary}
+- Compétences: {skills}
+- Expériences: {experiences}
+
+OFFRE D'EMPLOI:
+- Titre: {job_title}
+- Entreprise: {company_name}
+- Description: {job_description}
+- Compétences requises: {job_skills}
+
+TA MISSION:
+Analyse le matching et retourne UNIQUEMENT un JSON valide :
+{{
+    "score_technique": (int 0-100),
+    "score_culturel": (int 0-100),
+    "match_reasons": ["Point 1 ({target_lang})", "Point 2 ({target_lang})"],
+    "missing_skills": ["Compétence 1 ({target_lang})", "Compétence 2 ({target_lang})"],
+    "verdict": "Synthèse courte et directe en {target_lang}."
+}}
