@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/useLanguage";
 
 export type MetierDetailData = {
@@ -19,6 +20,7 @@ type Props = {
 
 const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [data, setData] = useState<MetierDetailData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string | null>(null);
@@ -355,7 +357,11 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
               <h3>{t("metiers.detail.actions_title")}</h3>
             </div>
             <div className="wm-actions">
-              <button type="button" className="nb-btn wm-action-btn">
+              <button
+                type="button"
+                className="nb-btn wm-action-btn"
+                onClick={() => navigate(`/jobs?codeROME=${encodeURIComponent(data.romeCode)}`)}
+              >
                 {t("metiers.detail.action_offers")}
               </button>
               <button type="button" className="nb-btn wm-action-btn">
