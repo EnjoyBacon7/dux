@@ -59,9 +59,6 @@ async def get_current_user_cv_text(
     cv_text = current_user.cv_text
     if not cv_text:
         return {"cvText": None, "llm": None}
-    
-    logger.info("OPENAI_BASE_URL=%s", settings.openai_base_url)
-    logger.info("OPENAI_API_KEY suffix=%s", settings.openai_api_key)
 
     prompt = (
         "Here is the text extracted from a CV, I would like to have all the informations "
