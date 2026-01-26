@@ -101,10 +101,10 @@ class MatchingEngine:
         if not self.client:
             raise Exception("Client IA non initialisé")
 
-        # Passage du paramètre lang
-        prompt = self._generate_prompt(user, job, lang)
-
         try:
+            # Passage du paramètre lang - moved inside try block to catch FileNotFoundError
+            prompt = self._generate_prompt(user, job, lang)
+            
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[

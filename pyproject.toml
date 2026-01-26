@@ -37,3 +37,7 @@ dependencies = [
 
 [tool.setuptools]
 packages = ["server"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+server = ["prompts/*.txt"]

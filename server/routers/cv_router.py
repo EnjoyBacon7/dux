@@ -295,20 +295,34 @@ def _deduplicate_recommendations(recommendations: List[tuple[str, str]]) -> List
         
         # Check if similar recommendation already exists
         is_duplicate = False
+        to_remove = None  # Track which seen_rec to remove if replacing
+        to_replace_index = None  # Track which unique entry to replace
+        
         for seen_rec in seen_lower:
             # Simple substring matching for duplicates
             if rec_normalized in seen_rec or seen_rec in rec_normalized:
                 # If one is significantly longer, prefer the longer one
                 if len(rec_normalized) > len(seen_rec) * 1.5:
-                    # Replace shorter with longer
-                    seen_lower.remove(seen_rec)
-                    unique = [r for r in unique if r[1].lower().strip() != seen_rec]
+                    # Mark for replacement (don't modify sets/lists during iteration)
+                    to_remove = seen_rec
+                    # Find the index in unique to replace
+                    for idx, (_, existing_rec) in enumerate(unique):
+                        if existing_rec.lower().strip() == seen_rec:
+                            to_replace_index = idx
+                            break
                     break
                 else:
                     is_duplicate = True
                     break
         
-        if not is_duplicate:
+        # Perform updates after iteration
+        if to_remove is not None:
+            # Replace shorter with longer
+            seen_lower.remove(to_remove)
+            if to_replace_index is not None:
+                unique[to_replace_index] = (source_type, rec)
+            seen_lower.add(rec_normalized)
+        elif not is_duplicate:
             unique.append((source_type, rec))
             seen_lower.add(rec_normalized)
     
@@ -397,9 +411,25 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
         # Determine file path for VLM analysis
         cv_file_path = None
         if cv_filename:
-            potential_path = UPLOAD_DIR / cv_filename
-            if potential_path.exists():
-                cv_file_path = potential_path
+            # Security: Reject absolute paths and validate path is within UPLOAD_DIR
+            filename_path = Path(cv_filename)
+            if filename_path.is_absolute():
+                logger.warning(f"Rejected absolute path in cv_filename: {cv_filename}")
+            else:
+                potential_path = UPLOAD_DIR / cv_filename
+                try:
+                    # Resolve to absolute path and verify it's within UPLOAD_DIR
+                    resolved_path = potential_path.resolve()
+                    upload_root = UPLOAD_DIR.resolve()
+                    
+                    # Check if resolved path is within upload root
+                    if resolved_path.is_relative_to(upload_root) and potential_path.exists():
+                        cv_file_path = potential_path
+                    else:
+                        logger.warning(f"Rejected path traversal attempt or non-existent file: {cv_filename}")
+                except (ValueError, OSError) as e:
+                    # Handle path resolution errors (e.g., too long paths, invalid characters)
+                    logger.warning(f"Path resolution error for cv_filename '{cv_filename}': {e}")
         
         # Run the pipeline (don't save to file, we'll save to DB)
         pipeline = CVEvaluationPipeline(save_results=False)
