@@ -15,7 +15,7 @@ from server.database import get_db_session
 from server.models import User, CVEvaluation
 from server.cv.cv_pipeline import CVEvaluationPipeline
 from server.cv.cv_schemas import EvaluationResult
-from server.dependencies import get_current_user
+from server.utils.dependencies import get_current_user
 
 # ============================================================================
 # Router Setup

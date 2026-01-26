@@ -17,7 +17,7 @@ from server.methods.chat import identify_ft_parameters, rank_job_offers
 from server.methods.FT_job_search import search_france_travail
 from server.database import get_db_session
 from server.models import User, OptimalOffer
-from server.dependencies import get_current_user
+from server.utils.dependencies import get_current_user
 from server.thread_pool import run_blocking_in_executor
 
 # ============================================================================

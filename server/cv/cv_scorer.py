@@ -12,9 +12,7 @@ import json
 import logging
 from typing import Optional
 
-from openai import OpenAI
-
-from server.config import settings
+from server.utils.openai_client import create_openai_client
 from server.cv.cv_schemas import (
     StructuredCV,
     DerivedFeatures,
@@ -115,12 +113,9 @@ Provide a comprehensive evaluation as a JSON object with this structure:
 Return ONLY the JSON object, no additional text."""
 
 
-def create_openai_client() -> OpenAI:
-    """Create OpenAI client with settings from config"""
-    return OpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
-    )
+# ============================================================================
+# CV Scoring Functions
+# ============================================================================
 
 
 def score_cv(

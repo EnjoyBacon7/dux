@@ -14,7 +14,7 @@ import mimetypes
 from server.methods.upload import UPLOAD_DIR, upload_file
 from server.database import get_db_session
 from server.models import User
-from server.dependencies import get_current_user
+from server.utils.dependencies import get_current_user
 
 # ============================================================================
 # Router Setup

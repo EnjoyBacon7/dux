@@ -10,9 +10,7 @@ import json
 import logging
 from typing import Optional
 
-from openai import OpenAI
-
-from server.config import settings
+from server.utils.openai_client import create_openai_client
 from server.cv.cv_schemas import (
     StructuredCV,
     PersonalInfo,
@@ -132,12 +130,9 @@ Extract and return a JSON object with the following structure:
 Return ONLY the JSON object, no additional text."""
 
 
-def create_openai_client() -> OpenAI:
-    """Create OpenAI client with settings from config"""
-    return OpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
-    )
+# ============================================================================
+# CV Extraction Functions
+# ============================================================================
 
 
 def extract_cv_facts(raw_cv_text: str, model: Optional[str] = None) -> StructuredCV:

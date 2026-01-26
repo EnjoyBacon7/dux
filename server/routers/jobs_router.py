@@ -24,7 +24,7 @@ from tqdm.auto import tqdm
 
 from server.methods.FT_job_search import search_france_travail
 from server.thread_pool import run_blocking_in_executor
-from server.dependencies import get_current_user
+from server.utils.dependencies import get_current_user
 from server.methods.matching_engine import MatchingEngine
 import asyncio
 
