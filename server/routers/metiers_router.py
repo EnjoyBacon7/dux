@@ -17,7 +17,6 @@ from server.dependencies import get_current_user
 from server.methods.chat import _call_llm
 
 import logging
-from server.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +68,9 @@ async def get_current_user_cv_text(
     cv_text = current_user.cv_text
     if not cv_text:
         return {"cvText": None, "llm": None, "metiers": metiers, "emploisCV": []}
-
+    
+    print(cv_text)
+    
     def _normalize_text(text: str) -> str:
         text = (text or "").lower()
         text = re.sub(r"[^a-zà-ÿ0-9\\s\\-]", " ", text)
@@ -101,7 +102,7 @@ async def get_current_user_cv_text(
     max_cv_chars = 6000
     cv_text_llm = cv_text[:max_cv_chars]
 
-    prompt = (
+    '''prompt = (
         "Tu es un assistant expert RH. A partir du CV ci-dessous, identifie les emplois "
         "occupes et estime le temps passe dans chaque emploi. Retourne UNIQUEMENT du "
         "JSON valide sans texte additionnel.\n\n"
@@ -125,26 +126,32 @@ async def get_current_user_cv_text(
 
     llm_result = await _call_llm(
         prompt=prompt,
-        system_content="You are a precise JSON-only extractor. Return only valid JSON.",
-        temperature=0.2,
-        max_tokens=2000,
+        system_content="Tu es un assistant expert RH. Retourne uniquement du JSON valide sans texte additionnel.",
+        temperature=0.3,
+        max_tokens=1200,
         parse_json=True,
         json_array=False,
-    )
-    emplois_cv: List[Dict[str, Any]] = []
+    )'''
+
+    '''emplois_cv: List[Dict[str, Any]] = []
     if isinstance(llm_result.get("data"), dict):
         emplois_cv = llm_result["data"].get("emplois") or []
+
+    print(emplois_cv)
 
     for emploi in emplois_cv:
         intitule = emploi.get("intitule") or ""
         emploi["topMetiers"] = _top_metiers_for_title(intitule, limit=5)
-    print(emplois_cv)
+
     return {
         "cvText": cv_text,
         "metiers": metiers,
         "emploisCV": emplois_cv,
         "llm": {"model": llm_result.get("model"), "usage": llm_result.get("usage")},
     }
+    '''
+    
+
 
 @router.get("/{rome_code}", summary="Get fiche metier from database")
 def get_fiche_metier(
