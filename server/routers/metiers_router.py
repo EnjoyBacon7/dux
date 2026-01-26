@@ -6,7 +6,9 @@ Provides endpoints for fetching metier fiche data from the database.
 
 from typing import Any, Dict, List, Optional, Tuple
 import re
-from difflib import SequenceMatcher
+import json
+import ast
+import difflib
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -38,6 +40,10 @@ def _map_competences(competences: Any) -> List[Dict[str, str]]:
     return mapped
 
 
+def _chunk_list(items: List[Any], size: int) -> List[List[Any]]:
+    return [items[i:i + size] for i in range(0, len(items), size)]
+
+
 @router.get("", summary="List metiers from database")
 def list_metiers(
     q: Optional[str] = Query(None, description="Filter by code or libelle"),
@@ -66,90 +72,63 @@ async def get_current_user_cv_text(
     metiers = [{"romeCode": row.code, "romeLibelle": row.libelle or ""} for row in rows]
 
     cv_text = current_user.cv_text
-    if not cv_text:
-        return {"cvText": None, "llm": None, "metiers": metiers, "emploisCV": []}
-    
-    print(cv_text)
-    
-    def _normalize_text(text: str) -> str:
-        text = (text or "").lower()
-        text = re.sub(r"[^a-zà-ÿ0-9\\s\\-]", " ", text)
-        text = re.sub(r"\\s+", " ", text).strip()
-        return text
+    '''if not cv_text:
+        return {"cvText": None, "llm": None, "metiers": metiers, "emploisCV": []}'''
 
-    def _score_match(a: str, b: str) -> float:
-        if not a or not b:
-            return 0.0
-        a_norm = _normalize_text(a)
-        b_norm = _normalize_text(b)
-        if not a_norm or not b_norm:
-            return 0.0
-        return SequenceMatcher(None, a_norm, b_norm).ratio()
+    prompt = f"Voici un CV, extrais les emplois occupés avec leur date en conservant le maximum de détails. Retourne uniquement un dictionnaire python au format {{'job_name' : [],'job_time':[],'job_text':[],'job_description':[]}} : {cv_text}"
 
-    def _top_metiers_for_title(title: str, limit: int = 5) -> List[Dict[str, Any]]:
-        scored: List[Tuple[float, Metier_ROME]] = []
-        for row in rows:
-            score = _score_match(title, row.libelle or "")
-            if score > 0:
-                scored.append((score, row))
-        scored.sort(key=lambda item: item[0], reverse=True)
-        top = scored[:limit]
-        return [
-            {"romeCode": row.code, "romeLibelle": row.libelle or "", "score": round(score, 4)}
-            for score, row in top
-        ]
+    llm_emploi = await _call_llm(prompt, "", max_tokens=800)
 
-    max_cv_chars = 6000
-    cv_text_llm = cv_text[:max_cv_chars]
+    prompt = f"A partir de cette liste {json.dumps(llm_emploi)} de poste occupé, rempli un JSON avec ces clés : job_name, job_time, job_text et job_description. En t'assurant de bien mettre l'intitulé du poste dans job_name, la durée convertie en nombre d'année du poste dans job_time (tu peux la chercher dans tous le texte de l'emploi et mettre des virgules), tous le texte de l'emploi dans job_text et enfin dans job_description ajoute un texte que tu auras généré à partir du reste pour décrire le poste occupé. Return ONLY valid JSON, without markdown, without explanation."
 
-    '''prompt = (
-        "Tu es un assistant expert RH. A partir du CV ci-dessous, identifie les emplois "
-        "occupes et estime le temps passe dans chaque emploi. Retourne UNIQUEMENT du "
-        "JSON valide sans texte additionnel.\n\n"
-        "Schema JSON attendu:\n"
-        "{\n"
-        '  "emplois": [\n'
-        "    {\n"
-        '      "intitule": "texte du poste dans le CV si disponible",\n'
-        '      "dateDebut": "YYYY-MM" | null,\n'
-        '      "dateFin": "YYYY-MM" | null,\n'
-        '      "dureeMois": number | null\n'
-        "    }\n"
-        "  ]\n"
-        "}\n\n"
-        "Contraintes:\n"
-        "- Si la duree n'est pas claire, laisse dateDebut/dateFin/dureeMois a null.\n"
-        "- Si aucun emploi, retourne une liste vide.\n\n"
-        "CV:\n"
-        f"{cv_text_llm}\n"
-    )
+    llm_result = await _call_llm(prompt, "", max_tokens=800)
 
-    llm_result = await _call_llm(
-        prompt=prompt,
-        system_content="Tu es un assistant expert RH. Retourne uniquement du JSON valide sans texte additionnel.",
-        temperature=0.3,
-        max_tokens=1200,
-        parse_json=True,
-        json_array=False,
-    )'''
+    llm_result = llm_result['data'].replace("```json", "").replace("```", "").strip().replace("\n","")
 
-    '''emplois_cv: List[Dict[str, Any]] = []
-    if isinstance(llm_result.get("data"), dict):
-        emplois_cv = llm_result["data"].get("emplois") or []
+    llm_result = json.loads(str(llm_result))
+    jobs = llm_result
+    for job in jobs:
+        job.setdefault("romeCode", None)
+        job.setdefault("romeLibelle", None)
 
-    print(emplois_cv)
+    for metiers_chunk in _chunk_list(metiers, 200):
+        metiers_prompt = (
+            "Voici la liste des métiers (ROMECODE + libellé) : "
+            f"{json.dumps(metiers_chunk, ensure_ascii=False)}. "
+            "Voici la liste des emplois extraits du CV : "
+            f"{json.dumps(jobs, ensure_ascii=False)}. "
+            "Pour chaque emploi, associe le métier ROME le plus pertinent dans la liste. "
+            "Retourne UNIQUEMENT un JSON (liste d'objets) avec les clés : "
+            "job_name, job_time, job_text, job_description, romeCode, romeLibelle. "
+            "Si aucun métier ne correspond, mets romeCode et romeLibelle à null."
+        )
 
-    for emploi in emplois_cv:
-        intitule = emploi.get("intitule") or ""
-        emploi["topMetiers"] = _top_metiers_for_title(intitule, limit=5)
+        llm_metiers = await _call_llm(metiers_prompt, "", max_tokens=500)
+        llm_metiers = (
+            llm_metiers["data"]
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
+            .replace("\n", "")
+        )
+        chunk_result = json.loads(str(llm_metiers))
+        for idx, item in enumerate(chunk_result):
+            if idx >= len(jobs):
+                break
+            if not jobs[idx].get("romeCode") and item.get("romeCode"):
+                jobs[idx]["romeCode"] = item.get("romeCode")
+                jobs[idx]["romeLibelle"] = item.get("romeLibelle")
 
-    return {
-        "cvText": cv_text,
-        "metiers": metiers,
-        "emploisCV": emplois_cv,
-        "llm": {"model": llm_result.get("model"), "usage": llm_result.get("usage")},
+    llm_result = jobs
+
+    llm_result = {
+        key: [item.get(key) for item in llm_result]
+        for key in llm_result[0].keys()
     }
-    '''
+
+    print(llm_result)
+
+    return llm_result
     
 
 
