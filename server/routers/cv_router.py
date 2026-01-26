@@ -281,6 +281,7 @@ def _parse_visual_analysis(visual_analysis_dict: Optional[Dict[str, Any]], evalu
     Parse visual analysis dictionary into VisualAnalysisResponse.
     
     Shared helper to ensure consistent parsing and defaults across all endpoints.
+    Coerces None list fields to empty lists to handle database JSON where list fields may be null.
     
     Args:
         visual_analysis_dict: Dictionary containing visual analysis data from database
@@ -293,14 +294,30 @@ def _parse_visual_analysis(visual_analysis_dict: Optional[Dict[str, Any]], evalu
         return None
     
     try:
+        # Coerce None list fields to empty lists to handle database JSON where they may be null
+        visual_strengths = visual_analysis_dict.get("visual_strengths") or []
+        visual_weaknesses = visual_analysis_dict.get("visual_weaknesses") or []
+        visual_recommendations = visual_analysis_dict.get("visual_recommendations") or []
+        image_quality_notes = visual_analysis_dict.get("image_quality_notes") or []
+        
+        # Ensure they are lists (handle case where they might be other falsy values)
+        if not isinstance(visual_strengths, list):
+            visual_strengths = []
+        if not isinstance(visual_weaknesses, list):
+            visual_weaknesses = []
+        if not isinstance(visual_recommendations, list):
+            visual_recommendations = []
+        if not isinstance(image_quality_notes, list):
+            image_quality_notes = []
+        
         return VisualAnalysisResponse(
-            visual_strengths=visual_analysis_dict.get("visual_strengths", []),
-            visual_weaknesses=visual_analysis_dict.get("visual_weaknesses", []),
-            visual_recommendations=visual_analysis_dict.get("visual_recommendations", []),
+            visual_strengths=visual_strengths,
+            visual_weaknesses=visual_weaknesses,
+            visual_recommendations=visual_recommendations,
             layout_assessment=visual_analysis_dict.get("layout_assessment"),
             typography_assessment=visual_analysis_dict.get("typography_assessment"),
             readability_assessment=visual_analysis_dict.get("readability_assessment"),
-            image_quality_notes=visual_analysis_dict.get("image_quality_notes", []),
+            image_quality_notes=image_quality_notes,
         )
     except Exception as e:
         eval_id_str = f" for evaluation {evaluation_id}" if evaluation_id else ""
@@ -454,9 +471,11 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
                     resolved_path = potential_path.resolve()
                     upload_root = UPLOAD_DIR.resolve()
                     
-                    # Check if resolved path is within upload root
-                    if resolved_path.is_relative_to(upload_root) and potential_path.exists():
-                        cv_file_path = potential_path
+                    # Check if resolved path is within upload root, exists, and is a file (not a directory)
+                    if (resolved_path.is_relative_to(upload_root) and 
+                        resolved_path.exists() and 
+                        resolved_path.is_file()):
+                        cv_file_path = resolved_path
                     else:
                         logger.warning(f"Rejected path traversal attempt or non-existent file: {cv_filename}")
                 except (ValueError, OSError) as e:
@@ -685,38 +704,38 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
                 completeness=ScoreDimensionResponse(
                     score=fs.get("completeness", {}).get("score", 0),
                     justification=fs.get("completeness", {}).get("justification", ""),
-                    evidence=fs.get("completeness", {}).get("evidence", []),
+                    evidence=fs.get("completeness", {}).get("evidence") or [],
                 ),
                 experience_quality=ScoreDimensionResponse(
                     score=fs.get("experience_quality", {}).get("score", 0),
                     justification=fs.get("experience_quality", {}).get("justification", ""),
-                    evidence=fs.get("experience_quality", {}).get("evidence", []),
+                    evidence=fs.get("experience_quality", {}).get("evidence") or [],
                 ),
                 skills_relevance=ScoreDimensionResponse(
                     score=fs.get("skills_relevance", {}).get("score", 0),
                     justification=fs.get("skills_relevance", {}).get("justification", ""),
-                    evidence=fs.get("skills_relevance", {}).get("evidence", []),
+                    evidence=fs.get("skills_relevance", {}).get("evidence") or [],
                 ),
                 impact_evidence=ScoreDimensionResponse(
                     score=fs.get("impact_evidence", {}).get("score", 0),
                     justification=fs.get("impact_evidence", {}).get("justification", ""),
-                    evidence=fs.get("impact_evidence", {}).get("evidence", []),
+                    evidence=fs.get("impact_evidence", {}).get("evidence") or [],
                 ),
                 clarity=ScoreDimensionResponse(
                     score=fs.get("clarity", {}).get("score", 0),
                     justification=fs.get("clarity", {}).get("justification", ""),
-                    evidence=fs.get("clarity", {}).get("evidence", []),
+                    evidence=fs.get("clarity", {}).get("evidence") or [],
                 ),
                 consistency=ScoreDimensionResponse(
                     score=fs.get("consistency", {}).get("score", 0),
                     justification=fs.get("consistency", {}).get("justification", ""),
-                    evidence=fs.get("consistency", {}).get("evidence", []),
+                    evidence=fs.get("consistency", {}).get("evidence") or [],
                 ),
-                strengths=fs.get("strengths", []),
-                weaknesses=fs.get("weaknesses", []),
-                missing_info=fs.get("missing_info", []),
-                red_flags=fs.get("red_flags", []),
-                recommendations=fs.get("recommendations", []),
+                strengths=fs.get("strengths") or [],
+                weaknesses=fs.get("weaknesses") or [],
+                missing_info=fs.get("missing_info") or [],
+                red_flags=fs.get("red_flags") or [],
+                recommendations=fs.get("recommendations") or [],
             )
         except Exception as e:
             logger.warning(f"Failed to parse full_scores for evaluation {evaluation.id}: {e}")
@@ -747,7 +766,7 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
             
             # Parse work experience
             work_exp = []
-            for we in scv.get("work_experience", []):
+            for we in scv.get("work_experience") or []:
                 work_exp.append(WorkExperienceResponse(
                     role=we.get("role", ""),
                     company=we.get("company", ""),
@@ -755,12 +774,12 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
                     end_date=we.get("end_date"),
                     is_current=we.get("is_current", False),
                     location=we.get("location"),
-                    responsibilities=we.get("responsibilities", []),
+                    responsibilities=we.get("responsibilities") or [],
                 ))
             
             # Parse education
             education = []
-            for edu in scv.get("education", []):
+            for edu in scv.get("education") or []:
                 education.append(EducationResponse(
                     degree=edu.get("degree", ""),
                     field_of_study=edu.get("field_of_study"),
@@ -773,26 +792,26 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
             
             # Parse skills
             skills = []
-            for sk in scv.get("skills", []):
+            for sk in scv.get("skills") or []:
                 skills.append(SkillCategoryResponse(
                     category=sk.get("category"),
-                    skills=sk.get("skills", []),
+                    skills=sk.get("skills") or [],
                 ))
             
             # Parse projects
             projects = []
-            for proj in scv.get("projects", []):
+            for proj in scv.get("projects") or []:
                 projects.append(ProjectResponse(
                     name=proj.get("name", ""),
                     description=proj.get("description"),
-                    technologies=proj.get("technologies", []),
+                    technologies=proj.get("technologies") or [],
                     url=proj.get("url"),
                     date=proj.get("date"),
                 ))
             
             # Parse certifications
             certifications = []
-            for cert in scv.get("certifications", []):
+            for cert in scv.get("certifications") or []:
                 certifications.append(CertificationResponse(
                     name=cert.get("name", ""),
                     issuer=cert.get("issuer"),
@@ -802,7 +821,7 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
             
             # Parse languages
             languages = []
-            for lang in scv.get("languages", []):
+            for lang in scv.get("languages") or []:
                 languages.append(LanguageResponse(
                     language=lang.get("language", ""),
                     proficiency=lang.get("proficiency"),
@@ -829,8 +848,8 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
             
             # Parse timeline gaps
             timeline_gaps = []
-            for gap in df.get("timeline_gaps", []):
-                between_jobs = gap.get("between_jobs", [])
+            for gap in df.get("timeline_gaps") or []:
+                between_jobs = gap.get("between_jobs") or []
                 if isinstance(between_jobs, tuple):
                     between_jobs = list(between_jobs)
                 timeline_gaps.append(TimelineGapResponse(
@@ -842,7 +861,7 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
             
             # Parse timeline overlaps
             timeline_overlaps = []
-            for overlap in df.get("timeline_overlaps", []):
+            for overlap in df.get("timeline_overlaps") or []:
                 timeline_overlaps.append(TimelineOverlapResponse(
                     job1=overlap.get("job1", ""),
                     job2=overlap.get("job2", ""),
@@ -853,7 +872,7 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
             
             # Parse date issues
             date_issues = []
-            for issue in df.get("date_issues", []):
+            for issue in df.get("date_issues") or []:
                 date_issues.append(DateIssueResponse(
                     section=issue.get("section", ""),
                     issue_type=issue.get("issue_type", ""),
@@ -870,7 +889,7 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
                 certifications_count=df.get("certifications_count", 0),
                 has_quantified_results=df.get("has_quantified_results", False),
                 quantified_results_count=df.get("quantified_results_count", 0),
-                quantified_examples=df.get("quantified_examples", []),
+                quantified_examples=df.get("quantified_examples") or [],
                 timeline_gaps=timeline_gaps,
                 timeline_overlaps=timeline_overlaps,
                 date_issues=date_issues,
@@ -878,7 +897,7 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
                 shortest_tenure_months=df.get("shortest_tenure_months"),
                 longest_tenure_months=df.get("longest_tenure_months"),
                 job_hopping_flag=df.get("job_hopping_flag", False),
-                missing_sections=df.get("missing_sections", []),
+                missing_sections=df.get("missing_sections") or [],
                 has_contact_info=df.get("has_contact_info", False),
                 has_summary=df.get("has_summary", False),
                 has_experience=df.get("has_experience", False),

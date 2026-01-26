@@ -30,8 +30,13 @@ logger = logging.getLogger(__name__)
 
 
 # Load prompts from files
-EXTRACTOR_SYSTEM_PROMPT = load_prompt_template("cv_extractor_system")
-EXTRACTION_PROMPT_TEMPLATE = load_prompt_template("cv_extractor_template")
+try:
+    EXTRACTOR_SYSTEM_PROMPT = load_prompt_template("cv_extractor_system")
+    EXTRACTION_PROMPT_TEMPLATE = load_prompt_template("cv_extractor_template")
+except FileNotFoundError as e:
+    raise RuntimeError(
+        "Missing prompt templates. Ensure server/prompts/*.txt is packaged and deployed."
+    ) from e
 
 
 def create_openai_client() -> OpenAI:

@@ -415,7 +415,28 @@ def create_job_ranking_prompt(
     Returns:
         Formatted prompt for the LLM
     """
-    template = load_prompt_template("job_ranking")
+    try:
+        template = load_prompt_template("job_ranking")
+    except FileNotFoundError:
+        logger.warning("job_ranking template not found, using fallback")
+        template = """You are a job matching and ranking expert.
+
+Analyze the provided job offers and rank them based on how well they match the user's CV and preferences.
+
+## USER'S CV
+
+{cv_text}
+
+{preferences}## JOB OFFERS TO RANK
+
+{offers_text}
+
+## YOUR TASK
+
+Rank and score the top {top_k} job offers that best match the user's profile.
+Return a JSON object with ranked offers, scores, and match reasons.
+Only return the JSON object, no additional text."""
+    
     offers_text = _format_job_offers_for_analysis(job_offers)
 
     preferences_section = ""
