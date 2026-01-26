@@ -8,7 +8,7 @@ for all users with CVs, ensuring fresh recommendations are always available.
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from sqlalchemy.orm import Session
 
@@ -16,6 +16,7 @@ from server.database import SessionLocal
 from server.models import User
 from server.routers.chat_router import _get_optimal_offers_with_cache
 from server.methods.chat import identify_ft_parameters
+from server.utils.task_cleanup import recover_stale_evaluations
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +123,16 @@ def start_scheduler() -> None:
         replace_existing=True,
         next_run_time=datetime.now()  # Run immediately on startup
     )
+    
+    # Schedule stale evaluation recovery to run every 5 minutes
+    scheduler.add_job(
+        recover_stale_evaluations_task,
+        trigger=IntervalTrigger(minutes=5),
+        id="recover_stale_evaluations",
+        name="Recover stale CV evaluations",
+        replace_existing=True,
+        next_run_time=datetime.now() + timedelta(minutes=1)  # Start after 1 minute
+    )
 
     scheduler.start()
     logger.info("Background task scheduler started successfully")
@@ -153,3 +164,26 @@ def get_scheduler() -> Optional[AsyncIOScheduler]:
         The scheduler instance if running, None otherwise
     """
     return scheduler
+
+
+async def recover_stale_evaluations_task() -> None:
+    """
+    Periodic task to recover stale CV evaluations.
+    
+    Marks any pending evaluations that have been in progress for too long as failed.
+    This prevents the frontend from getting stuck waiting for evaluations that hung or crashed.
+    """
+    db = SessionLocal()
+    try:
+        logger.info("Starting stale evaluation recovery")
+        
+        # Check for evaluations stuck in pending state for more than 30 minutes
+        recovered_count = recover_stale_evaluations(db, stale_after_minutes=30)
+        
+        if recovered_count > 0:
+            logger.info(f"Recovered {recovered_count} stale evaluations")
+            
+    except Exception as e:
+        logger.error(f"Error in stale evaluation recovery task: {e}")
+    finally:
+        db.close()

@@ -23,6 +23,8 @@ from server.database import init_db
 from server.config import settings
 from server.thread_pool import shutdown_thread_pool
 from server.scheduler import start_scheduler, shutdown_scheduler
+from server.database import SessionLocal
+from server.utils.task_cleanup import cleanup_pending_tasks
 
 # ============================================================================
 # Logging Configuration
@@ -156,10 +158,26 @@ async def shutdown_event():
     """
     Cleanup on application shutdown.
 
-    Gracefully shuts down the thread pool executor and background task scheduler.
+    Gracefully shuts down the thread pool executor, background task scheduler,
+    and marks pending CV evaluations as failed to prevent frontend from hanging.
     """
+    logger.info("Starting application shutdown...")
+    
+    try:
+        # Mark any pending CV evaluations as failed
+        db = SessionLocal()
+        try:
+            failed_count = cleanup_pending_tasks(db)
+            if failed_count > 0:
+                logger.info(f"Marked {failed_count} pending evaluations as failed due to shutdown")
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"Error during task cleanup on shutdown: {e}")
+    
     shutdown_scheduler()
     shutdown_thread_pool()
+    logger.info("Application shutdown complete")
 
 
 # ============================================================================
