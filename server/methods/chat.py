@@ -29,7 +29,6 @@ def get_openai_client(base_url: Optional[str] = None, api_key: Optional[str] = N
     """
     api_key = api_key or settings.openai_api_key
     base_url = base_url or settings.openai_base_url
-
     if not api_key:
         raise ValueError("OPENAI_API_KEY not configured in environment variables")
 
