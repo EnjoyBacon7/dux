@@ -12,7 +12,9 @@ import json
 import logging
 from typing import Optional
 
+from server.config import settings
 from server.utils.openai_client import create_openai_client
+from server.utils.llm import call_llm_sync
 from server.cv.cv_schemas import (
     StructuredCV,
     DerivedFeatures,
@@ -137,8 +139,6 @@ def score_cv(
     Raises:
         ValueError: If scoring fails
     """
-    model = model or settings.openai_model
-    client = create_openai_client()
     
     logger.info(f"Scoring CV using model: {model}")
     
@@ -147,25 +147,20 @@ def score_cv(
     derived_features_json = derived_features.model_dump_json(indent=2, exclude={'validation_timestamp'})
     
     try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": SCORER_SYSTEM_PROMPT},
-                {"role": "user", "content": SCORING_PROMPT_TEMPLATE.format(
-                    structured_cv_json=structured_cv_json,
-                    derived_features_json=derived_features_json,
-                )},
-            ],
+        result = call_llm_sync(
+            prompt=SCORING_PROMPT_TEMPLATE.format(
+                structured_cv_json=structured_cv_json,
+                derived_features_json=derived_features_json,
+            ),
+            system_content=SCORER_SYSTEM_PROMPT,
             temperature=0.3,  # Slightly higher than extractor for more nuanced evaluation
+            max_tokens=3000,
+            parse_json=True,
+            model=model,
             response_format={"type": "json_object"},
         )
         
-        response_text = response.choices[0].message.content
-        if not response_text:
-            raise ValueError("LLM returned empty response")
-        
-        # Parse JSON response
-        scores_data = json.loads(response_text)
+        scores_data = result["data"]
         
         # Convert to Pydantic model with validation
         cv_scores = _parse_scores_data(scores_data)
