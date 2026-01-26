@@ -1,33 +1,11 @@
 import json
 import logging
-from pathlib import Path
 from openai import OpenAI
 from server.models import User, Offres_FT
 from server.config import settings
+from server.utils.prompts import load_prompt_template
 
 logger = logging.getLogger(__name__)
-
-
-def _load_prompt_template(template_name: str) -> str:
-    """
-    Load a prompt template from the prompts directory.
-
-    Args:
-        template_name: Name of the template file (without .txt extension)
-
-    Returns:
-        Template content as string
-
-    Raises:
-        FileNotFoundError: If template file doesn't exist
-    """
-    prompts_dir = Path(__file__).parent.parent / "prompts"
-    template_path = prompts_dir / f"{template_name}.txt"
-
-    if not template_path.exists():
-        raise FileNotFoundError(f"Prompt template not found: {template_path}")
-
-    return template_path.read_text(encoding="utf-8")
 
 class MatchingEngine:
     def __init__(self, db_session):
@@ -78,9 +56,13 @@ class MatchingEngine:
                     job_skills = ", ".join([s.get('libelle', '') for s in loaded if s.get('libelle')])
             except (json.JSONDecodeError, TypeError, ValueError):
                 pass
+        elif isinstance(job_skills, list):
+            job_skills = ", ".join(str(s) for s in job_skills if s)
+        elif job_skills is None:
+            job_skills = "Non renseigné"
 
         # Load prompt template and format it
-        template = _load_prompt_template("profile_match_template")
+        template = load_prompt_template("profile_match_template")
         prompt = template.format(
             target_lang=target_lang,
             headline=user.headline or 'Non spécifié',

@@ -1,10 +1,10 @@
 import logging
 import json
 from typing import Optional, Dict, Any, List
-from pathlib import Path
 from openai import OpenAI, APIError
 from server.config import settings
 from server.thread_pool import run_blocking_in_executor
+from server.utils.prompts import load_prompt_template
 
 logger = logging.getLogger(__name__)
 
@@ -135,26 +135,6 @@ def _build_usage_dict(response: Any) -> Dict[str, int]:
 # ============================================================================
 
 
-def _load_prompt_template(template_name: str) -> str:
-    """
-    Load a prompt template from the prompts directory.
-
-    Args:
-        template_name: Name of the template file (without .txt extension)
-
-    Returns:
-        Template content as string
-
-    Raises:
-        FileNotFoundError: If template file doesn't exist
-    """
-    prompts_dir = Path(__file__).parent.parent / "prompts"
-    template_path = prompts_dir / f"{template_name}.txt"
-
-    if not template_path.exists():
-        raise FileNotFoundError(f"Prompt template not found: {template_path}")
-
-    return template_path.read_text(encoding="utf-8")
 
 
 def _validate_cv_text(cv_text: str) -> None:
@@ -320,7 +300,7 @@ def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None)
         Formatted prompt for the LLM
     """
     try:
-        base_prompt = _load_prompt_template("FT_search")
+        base_prompt = load_prompt_template("FT_search")
     except FileNotFoundError:
         logger.warning("FT_search template not found, using fallback")
         base_prompt = """You are a job search parameter optimizer for the France Travail API.
@@ -435,7 +415,7 @@ def create_job_ranking_prompt(
     Returns:
         Formatted prompt for the LLM
     """
-    template = _load_prompt_template("job_ranking")
+    template = load_prompt_template("job_ranking")
     offers_text = _format_job_offers_for_analysis(job_offers)
 
     preferences_section = ""

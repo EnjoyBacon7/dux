@@ -19,35 +19,14 @@ from PIL import Image
 from server.config import settings
 from server.cv.cv_schemas import VisualAnalysis
 from server.methods.upload import convert_file_to_images
+from server.utils.prompts import load_prompt_template
 
 logger = logging.getLogger(__name__)
 
 
-def _load_prompt_template(template_name: str) -> str:
-    """
-    Load a prompt template from the prompts directory.
-
-    Args:
-        template_name: Name of the template file (without .txt extension)
-
-    Returns:
-        Template content as string
-
-    Raises:
-        FileNotFoundError: If template file doesn't exist
-    """
-    prompts_dir = Path(__file__).parent.parent / "prompts"
-    template_path = prompts_dir / f"{template_name}.txt"
-
-    if not template_path.exists():
-        raise FileNotFoundError(f"Prompt template not found: {template_path}")
-
-    return template_path.read_text(encoding="utf-8")
-
-
 # Load prompts from files
-VLM_SYSTEM_PROMPT = _load_prompt_template("cv_vlm_system")
-VLM_ANALYSIS_PROMPT = _load_prompt_template("cv_vlm_analysis")
+VLM_SYSTEM_PROMPT = load_prompt_template("cv_vlm_system")
+VLM_ANALYSIS_PROMPT = load_prompt_template("cv_vlm_analysis")
 
 
 def create_vlm_client() -> OpenAI:

@@ -8,12 +8,12 @@ Each extracted item includes verbatim evidence quotes from the CV.
 
 import json
 import logging
-from pathlib import Path
 from typing import Optional
 
 from openai import OpenAI
 
 from server.config import settings
+from server.utils.prompts import load_prompt_template
 from server.cv.cv_schemas import (
     StructuredCV,
     PersonalInfo,
@@ -29,31 +29,9 @@ from server.cv.cv_schemas import (
 logger = logging.getLogger(__name__)
 
 
-def _load_prompt_template(template_name: str) -> str:
-    """
-    Load a prompt template from the prompts directory.
-
-    Args:
-        template_name: Name of the template file (without .txt extension)
-
-    Returns:
-        Template content as string
-
-    Raises:
-        FileNotFoundError: If template file doesn't exist
-    """
-    prompts_dir = Path(__file__).parent.parent / "prompts"
-    template_path = prompts_dir / f"{template_name}.txt"
-
-    if not template_path.exists():
-        raise FileNotFoundError(f"Prompt template not found: {template_path}")
-
-    return template_path.read_text(encoding="utf-8")
-
-
 # Load prompts from files
-EXTRACTOR_SYSTEM_PROMPT = _load_prompt_template("cv_extractor_system")
-EXTRACTION_PROMPT_TEMPLATE = _load_prompt_template("cv_extractor_template")
+EXTRACTOR_SYSTEM_PROMPT = load_prompt_template("cv_extractor_system")
+EXTRACTION_PROMPT_TEMPLATE = load_prompt_template("cv_extractor_template")
 
 
 def create_openai_client() -> OpenAI:

@@ -276,6 +276,38 @@ class DetailedEvaluationResponse(BaseModel):
 # ============================================================================
 
 
+def _parse_visual_analysis(visual_analysis_dict: Optional[Dict[str, Any]], evaluation_id: Optional[int] = None) -> Optional[VisualAnalysisResponse]:
+    """
+    Parse visual analysis dictionary into VisualAnalysisResponse.
+    
+    Shared helper to ensure consistent parsing and defaults across all endpoints.
+    
+    Args:
+        visual_analysis_dict: Dictionary containing visual analysis data from database
+        evaluation_id: Optional evaluation ID for logging purposes
+        
+    Returns:
+        VisualAnalysisResponse if parsing succeeds, None otherwise
+    """
+    if not visual_analysis_dict:
+        return None
+    
+    try:
+        return VisualAnalysisResponse(
+            visual_strengths=visual_analysis_dict.get("visual_strengths", []),
+            visual_weaknesses=visual_analysis_dict.get("visual_weaknesses", []),
+            visual_recommendations=visual_analysis_dict.get("visual_recommendations", []),
+            layout_assessment=visual_analysis_dict.get("layout_assessment"),
+            typography_assessment=visual_analysis_dict.get("typography_assessment"),
+            readability_assessment=visual_analysis_dict.get("readability_assessment"),
+            image_quality_notes=visual_analysis_dict.get("image_quality_notes", []),
+        )
+    except Exception as e:
+        eval_id_str = f" for evaluation {evaluation_id}" if evaluation_id else ""
+        logger.warning(f"Failed to parse visual_analysis{eval_id_str}: {e}")
+        return None
+
+
 def _deduplicate_recommendations(recommendations: List[tuple[str, str]]) -> List[tuple[str, str]]:
     """
     Remove duplicate recommendations using simple string similarity.
@@ -367,8 +399,8 @@ def merge_and_prioritize_recommendations(
     # Remove duplicates
     unique_recs = _deduplicate_recommendations(all_recs)
     
-    # Sort by priority (content first, then visual, then alphabetically)
-    unique_recs.sort(key=lambda x: (x[0] == "visual", x[1].lower()))
+    # Sort by priority (content first, then visual) while preserving original order within each bucket
+    unique_recs.sort(key=lambda x: (x[0] == "visual"))
     
     # Return top N
     return [rec[1] for rec in unique_recs[:max_recommendations]]
@@ -598,20 +630,7 @@ def save_failed_evaluation_to_db(db: Session, user_id: int, cv_filename: str, er
 def evaluation_to_response(evaluation: CVEvaluation) -> EvaluationResponse:
     """Convert a CVEvaluation database record to an API response."""
     # Extract visual analysis if available
-    visual_analysis_data = None
-    if evaluation.visual_analysis:
-        try:
-            visual_analysis_data = VisualAnalysisResponse(
-                visual_strengths=evaluation.visual_analysis.get("visual_strengths", []),
-                visual_weaknesses=evaluation.visual_analysis.get("visual_weaknesses", []),
-                visual_recommendations=evaluation.visual_analysis.get("visual_recommendations", []),
-                layout_assessment=evaluation.visual_analysis.get("layout_assessment"),
-                typography_assessment=evaluation.visual_analysis.get("typography_assessment"),
-                readability_assessment=evaluation.visual_analysis.get("readability_assessment"),
-                image_quality_notes=evaluation.visual_analysis.get("image_quality_notes", []),
-            )
-        except Exception as e:
-            logger.warning(f"Failed to parse visual_analysis for evaluation {evaluation.id}: {e}")
+    visual_analysis_data = _parse_visual_analysis(evaluation.visual_analysis, evaluation.id)
     
     # Merge and prioritize recommendations
     llm_recommendations = evaluation.recommendations or []
@@ -653,20 +672,7 @@ def evaluation_to_response(evaluation: CVEvaluation) -> EvaluationResponse:
 def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluationResponse:
     """Convert a CVEvaluation database record to a detailed API response with all data."""
     # Parse visual analysis
-    visual_analysis_data = None
-    if evaluation.visual_analysis:
-        try:
-            visual_analysis_data = VisualAnalysisResponse(
-                visual_strengths=evaluation.visual_analysis.get("visual_strengths", []),
-                visual_weaknesses=evaluation.visual_analysis.get("visual_weaknesses", []),
-                visual_recommendations=evaluation.visual_analysis.get("visual_recommendations", []),
-                layout_assessment=evaluation.visual_analysis.get("layout_assessment"),
-                typography_assessment=evaluation.visual_analysis.get("typography_assessment"),
-                readability_assessment=evaluation.visual_analysis.get("readability_assessment"),
-                image_quality_notes=evaluation.visual_analysis.get("image_quality_notes", []),
-            )
-        except Exception as e:
-            logger.warning(f"Failed to parse visual_analysis for evaluation {evaluation.id}: {e}")
+    visual_analysis_data = _parse_visual_analysis(evaluation.visual_analysis, evaluation.id)
     
     # Parse full scores
     full_scores_data = None
