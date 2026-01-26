@@ -16,10 +16,22 @@ interface EvaluationFeedback {
     recommendations: string[];
 }
 
+interface VisualAnalysis {
+    visual_strengths: string[];
+    visual_weaknesses: string[];
+    visual_recommendations: string[];
+    layout_assessment?: string;
+    typography_assessment?: string;
+    readability_assessment?: string;
+    image_quality_notes?: string[];
+}
+
 interface Evaluation {
     id: number;
     scores: EvaluationScores;
     feedback: EvaluationFeedback;
+    visual_analysis?: VisualAnalysis | null;
+    merged_recommendations?: string[]; // Top prioritized recommendations from both LLM and VLM
     created_at: string | null;
     evaluation_status: string | null; // "pending", "completed", "failed"
     error_message: string | null;
@@ -421,17 +433,23 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                         </div>
                     </div>
 
-                    {/* Recommendations */}
-                    {evaluation?.feedback.recommendations && evaluation.feedback.recommendations.length > 0 && (
-                        <div className="cv-score-recommendations">
-                            <h3 className="cv-score-recommendations-title">{t("cv_score.recommendations")}</h3>
-                            <ul className="cv-score-recommendations-list">
-                                {evaluation.feedback.recommendations.slice(0, 3).map((rec, idx) => (
-                                    <li key={idx}>{rec}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                    {/* Recommendations - Use merged recommendations if available, otherwise fallback to LLM recommendations */}
+                    {(() => {
+                        const recommendations = evaluation?.merged_recommendations && evaluation.merged_recommendations.length > 0
+                            ? evaluation.merged_recommendations
+                            : (evaluation?.feedback.recommendations || []);
+                        
+                        return recommendations.length > 0 ? (
+                            <div className="cv-score-recommendations">
+                                <h3 className="cv-score-recommendations-title">{t("cv_score.recommendations")}</h3>
+                                <ul className="cv-score-recommendations-list">
+                                    {recommendations.slice(0, 5).map((rec, idx) => (
+                                        <li key={idx}>{rec}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ) : null;
+                    })()}
 
                     {/* Profile Hub Button - shown below score */}
                     <div className="cv-score-actions">

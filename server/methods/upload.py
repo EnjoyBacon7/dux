@@ -11,11 +11,12 @@ import shutil
 import os
 import uuid
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import PyPDF2
 import pytesseract
 from docx import Document
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -54,13 +55,11 @@ def extract_text_from_pdf(file_path: Path) -> str:
         logger.warning(f"Error extracting text from PDF: {e}")
         text = ""
 
-    # If no text was extracted, try OCR
+    # If no text was extracted, try OCR using pdf2image for image conversion
     if not text.strip():
         logger.info("No text found in PDF, attempting OCR...")
         try:
-            # Convert PDF to images and run OCR
-            from pdf2image import convert_from_path
-            images = convert_from_path(file_path)
+            images = convert_pdf_to_images(file_path)
             for image in images:
                 text += pytesseract.image_to_string(image) + "\n"
         except Exception as e:
@@ -160,6 +159,85 @@ def extract_text_from_file(file_path: Path, file_extension: str) -> str:
     
     # Sanitize text to remove problematic characters before returning
     return sanitize_text(text)
+
+
+# ============================================================================
+# Image Conversion Functions (for VLM analysis)
+# ============================================================================
+
+
+def convert_pdf_to_images(file_path: Path) -> List[Image.Image]:
+    """
+    Convert PDF pages to PIL Images for VLM analysis.
+    
+    Uses pdf2image library which wraps poppler-utils for PDF rendering.
+    This is a permissively licensed alternative to PyMuPDF (AGPL-3.0).
+    
+    Args:
+        file_path: Path to the PDF file
+        
+    Returns:
+        List of PIL Image objects, one per page
+        
+    Raises:
+        ValueError: If PDF conversion fails
+        ImportError: If pdf2image is not installed
+        
+    Note:
+        Requires poppler-utils to be installed on the system.
+        On Windows: Download from https://github.com/oschwartz10612/poppler-windows/releases
+        On Linux: sudo apt-get install poppler-utils
+        On macOS: brew install poppler
+    """
+    try:
+        from pdf2image import convert_from_path
+        
+        # Convert PDF pages to images at 200 DPI
+        images = convert_from_path(
+            str(file_path),
+            dpi=200,
+            fmt='RGB'
+        )
+        
+        return images
+        
+    except ImportError:
+        logger.error("pdf2image not installed.")
+        raise ValueError(
+            "PDF to image conversion requires pdf2image library. "
+            "Install with: pip install pdf2image. "
+            "Also ensure poppler-utils is installed on your system."
+        )
+    except Exception as e:
+        logger.error(f"Failed to convert PDF to images: {e}")
+        raise ValueError(f"PDF to image conversion failed: {str(e)}")
+
+
+def convert_file_to_images(file_path: Path, file_extension: str) -> List[Image.Image]:
+    """
+    Convert file to images based on its extension.
+    
+    Routes to appropriate conversion function based on file type.
+    
+    Args:
+        file_path: Path to the file
+        file_extension: File extension (e.g., ".pdf", ".docx")
+        
+    Returns:
+        List of PIL Image objects
+        
+    Raises:
+        ValueError: If file type is unsupported or conversion fails
+    """
+    if file_extension == ".pdf":
+        return convert_pdf_to_images(file_path)
+    elif file_extension in [".docx", ".doc"]:
+        # For DOCX, we don't support direct image conversion
+        # The VLM will work with PDF files only for visual analysis
+        logger.warning("DOCX visual analysis not supported. Only PDF files can be visually analyzed.")
+        raise ValueError("Visual analysis only supports PDF files. DOCX files will use text-based analysis only.")
+    else:
+        raise ValueError(f"Image conversion not supported for file type: {file_extension}")
 
 
 # ============================================================================

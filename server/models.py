@@ -287,6 +287,7 @@ class CVEvaluation(Base):
     structured_cv = Column(JSON, nullable=True)
     derived_features = Column(JSON, nullable=True)
     full_scores = Column(JSON, nullable=True)
+    visual_analysis = Column(JSON, nullable=True)  # VLM visual analysis results
 
     # Metadata
     cv_filename = Column(String, nullable=True)  # CV filename at time of evaluation
