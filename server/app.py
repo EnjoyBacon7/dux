@@ -22,6 +22,7 @@ from server.auth_api import router as auth_router
 from server.database import init_db
 from server.config import settings
 from server.thread_pool import shutdown_thread_pool
+from server.scheduler import start_scheduler, shutdown_scheduler
 
 # ============================================================================
 # Logging Configuration
@@ -143,9 +144,11 @@ async def startup_event():
     """
     Initialize application on startup.
 
-    Currently initializes the database connection and schema.
+    Initializes the database connection and schema, and starts
+    the background task scheduler for periodic job offer generation.
     """
     init_db()
+    start_scheduler()
 
 
 @app.on_event("shutdown")
@@ -153,8 +156,9 @@ async def shutdown_event():
     """
     Cleanup on application shutdown.
 
-    Gracefully shuts down the thread pool executor used for blocking operations.
+    Gracefully shuts down the thread pool executor and background task scheduler.
     """
+    shutdown_scheduler()
     shutdown_thread_pool()
 
 

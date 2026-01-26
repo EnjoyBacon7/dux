@@ -71,6 +71,7 @@ async def upload_endpoint(
     if result.get("extracted_text"):
         from server.routers.cv_router import run_cv_evaluation
         from server.database import SessionLocal
+        from server.scheduler import generate_optimal_offers_for_user
 
         background_tasks.add_task(
             run_cv_evaluation,
@@ -81,6 +82,23 @@ async def upload_endpoint(
         )
         result["evaluation_status"] = "started"
         logger.info(f"CV evaluation triggered for user {current_user.id}")
+
+        # Trigger optimal offers generation after CV upload
+        # Create a new database session for the background task
+        def generate_offers_task():
+            """Background task to generate optimal offers after CV upload."""
+            import asyncio
+            db_session = SessionLocal()
+            try:
+                asyncio.run(generate_optimal_offers_for_user(current_user.id, db_session))
+                logger.info(f"Optimal offers generation triggered for user {current_user.id}")
+            except Exception as e:
+                logger.error(f"Error generating optimal offers for user {current_user.id}: {str(e)}")
+            finally:
+                db_session.close()
+
+        background_tasks.add_task(generate_offers_task)
+        result["optimal_offers_status"] = "started"
 
     return result
 

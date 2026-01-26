@@ -11,6 +11,7 @@ Dux aims to simplify job searching by leveraging AI to match candidates with opp
 ## Tech Stack
 
 ### Backend
+
 - **FastAPI** - Modern Python web framework for building APIs
 - **SQLAlchemy** - SQL toolkit and ORM for database management
 - **PostgreSQL** - Relational database for data persistence
@@ -21,8 +22,10 @@ Dux aims to simplify job searching by leveraging AI to match candidates with opp
 - **Pytesseract & Pillow** - OCR capabilities for document analysis
 - **Pandas** - Data manipulation and analysis
 - **Python-DOCX** - Microsoft Word document processing
+- **APScheduler** - Background task scheduling for automated job matching
 
 ### Frontend
+
 - **React 19** - UI library for building interactive interfaces
 - **TypeScript** - Type-safe JavaScript development
 - **Vite** - Build tool and development server
@@ -31,9 +34,11 @@ Dux aims to simplify job searching by leveraging AI to match candidates with opp
 - **Playwright** - End-to-end testing framework
 
 ### Documentation
+
 - **Docusaurus** - Documentation site generator with internationalization support
 
 ### Infrastructure
+
 - **Docker & Docker Compose** - Containerization and orchestration
 - **PostgreSQL 16** - Database container
 - **Alembic** - Database migrations
@@ -49,18 +54,21 @@ Dux aims to simplify job searching by leveraging AI to match candidates with opp
 ### Quick Start with Docker
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/EnjoyBacon7/dux.git
 cd dux
 ```
 
 2. Set up environment variables (optional):
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
 ```
 
 3. Start the application:
+
 ```bash
 docker-compose up
 ```
@@ -72,11 +80,13 @@ The application will be available at `http://localhost:8080`
 #### Backend Setup
 
 1. Install Python dependencies:
+
 ```bash
 pip install -e .
 ```
 
 2. Set up the database:
+
 ```bash
 # Start PostgreSQL container
 docker-compose up db -d
@@ -86,6 +96,7 @@ alembic upgrade head
 ```
 
 3. Start the development server:
+
 ```bash
 uvicorn server.app:app --reload --host 0.0.0.0 --port 8080
 ```
@@ -93,16 +104,19 @@ uvicorn server.app:app --reload --host 0.0.0.0 --port 8080
 #### Frontend Setup
 
 1. Navigate to the frontend directory:
+
 ```bash
 cd dux-front
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -110,16 +124,19 @@ npm run dev
 #### Documentation Setup
 
 1. Navigate to the documentation directory:
+
 ```bash
 cd dux-docs
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the documentation server:
+
 ```bash
 npm run start
 ```
@@ -140,7 +157,7 @@ Refer to [docker-compose.yml](docker-compose.yml) for the complete list of confi
 ## Features
 
 - **CV Analysis** - Upload CVs in PDF or DOCX format for AI-powered analysis
-- **Smart Job Matching** - AI-ranked job opportunities based on profile compatibility
+- **Automated Job Recommendations** - Optimal job offers are automatically generated hourly for all users and immediately after CV upload
 - **Job Search** - Advanced filtering and search across job databases
 - **Profile Management** - Comprehensive user profiles with experience and skills
 - **LinkedIn Integration** - OAuth integration for profile enrichment
@@ -148,15 +165,26 @@ Refer to [docker-compose.yml](docker-compose.yml) for the complete list of confi
 - **Passwordless Authentication** - Modern passkey-based authentication with WebAuthn
 - **Privacy-Focused** - User data ownership and transparency
 
+## Background Tasks
+
+The platform includes automated background tasks that run periodically to ensure users always have fresh job recommendations:
+
+- **Hourly Job Matching** - Every hour, the system automatically generates optimal job offers for all users who have uploaded a CV
+- **On-Upload Matching** - When a user uploads a new CV, the system immediately generates personalized job recommendations
+- **Smart Caching** - Results are cached for one hour to optimize performance while ensuring freshnesshentication with WebAuthn
+- **Privacy-Focused** - User data ownership and transparency
+
 ## Testing
 
 Run frontend tests:
+
 ```bash
 cd dux-front
 npm test
 ```
 
 Run backend tests:
+
 ```bash
 pytest
 ```
