@@ -4,6 +4,10 @@ from typing import Optional, Dict, Any, List
 from pathlib import Path
 from server.config import settings
 from server.utils.llm import call_llm_async, call_llm_sync, extract_response_content, parse_json_response
+from openai import OpenAI, APIError
+from server.config import settings
+from server.thread_pool import run_blocking_in_executor
+from server.utils.prompts import load_prompt_template
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +24,101 @@ def get_openai_client(base_url: Optional[str] = None, api_key: Optional[str] = N
 
     This function is kept for backwards compatibility only.
     """
-    from server.utils.openai_client import create_openai_client
-    return create_openai_client()
+    api_key = api_key or settings.openai_api_key
+    base_url = base_url or settings.openai_base_url
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not configured in environment variables")
+
+    return OpenAI(api_key=api_key, base_url=base_url)
+
+
+# ============================================================================
+# Response Extraction and Parsing Utilities
+# ============================================================================
+
+
+def _extract_response_content(choice: Any) -> str:
+    """
+    Extract content from API response choice, handling reasoning models.
+
+    Args:
+        choice: Response choice object from OpenAI API
+
+    Returns:
+        str: Extracted content
+
+    Raises:
+        ValueError: If no valid content found in response
+    """
+    content = choice.message.content
+
+    # Handle reasoning models that put content in reasoning_content
+    if content is None:
+        if hasattr(choice.message, 'reasoning_content') and choice.message.reasoning_content:
+            content = choice.message.reasoning_content
+            logger.info("Using reasoning_content from message")
+        elif hasattr(choice, 'provider_specific_fields'):
+            fields = choice.provider_specific_fields
+            if isinstance(fields, dict) and 'reasoning_content' in fields:
+                content = fields['reasoning_content']
+                logger.info("Using reasoning_content from provider_specific_fields")
+
+        if content is None:
+            logger.error(f"Content is None. Finish reason: {choice.finish_reason}")
+            if choice.finish_reason == "length":
+                raise ValueError(
+                    "Response was cut off due to max_tokens limit. Try increasing max_tokens or shortening your query."
+                )
+            elif choice.finish_reason == "content_filter":
+                raise ValueError("Response was filtered by content policy")
+            else:
+                raise ValueError(f"No content in response (finish_reason: {choice.finish_reason})")
+
+    if not content:
+        raise ValueError("Empty response from LLM")
+
+    return content
+
+
+def _parse_json_response(content: str, json_array: bool = False) -> Dict[str, Any] | List[Any]:
+    """
+    Parse JSON from LLM response, extracting JSON from surrounding text if needed.
+
+    Args:
+        content: Response content string
+        json_array: Whether to extract JSON array (vs object)
+
+    Returns:
+        Parsed JSON object or array
+
+    Raises:
+        ValueError: If JSON parsing fails
+    """
+    try:
+        if json_array:
+            json_start = content.find('[')
+            json_end = content.rfind(']') + 1
+        else:
+            json_start = content.find('{')
+            json_end = content.rfind('}') + 1
+
+        if json_start >= 0 and json_end > json_start:
+            json_str = content[json_start:json_end]
+            return json.loads(json_str)
+        else:
+            return json.loads(content)
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse JSON response: {content}")
+        raise ValueError(f"Invalid JSON in LLM response: {str(e)}")
+
+
+def _build_usage_dict(response: Any) -> Dict[str, int]:
+    """Build usage statistics dictionary from API response."""
+    return {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens
+    }
 
 
 # ============================================================================
@@ -34,26 +131,6 @@ def get_openai_client(base_url: Optional[str] = None, api_key: Optional[str] = N
 # ============================================================================
 
 
-def _load_prompt_template(template_name: str) -> str:
-    """
-    Load a prompt template from the prompts directory.
-
-    Args:
-        template_name: Name of the template file (without .txt extension)
-
-    Returns:
-        Template content as string
-
-    Raises:
-        FileNotFoundError: If template file doesn't exist
-    """
-    prompts_dir = Path(__file__).parent.parent / "prompts"
-    template_path = prompts_dir / f"{template_name}.txt"
-
-    if not template_path.exists():
-        raise FileNotFoundError(f"Prompt template not found: {template_path}")
-
-    return template_path.read_text(encoding="utf-8")
 
 
 def _validate_cv_text(cv_text: str) -> None:
@@ -104,7 +181,7 @@ def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None)
         Formatted prompt for the LLM
     """
     try:
-        base_prompt = _load_prompt_template("FT_search")
+        base_prompt = load_prompt_template("FT_search")
     except FileNotFoundError:
         logger.warning("FT_search template not found, using fallback")
         base_prompt = """You are a job search parameter optimizer for the France Travail API.
@@ -219,7 +296,28 @@ def create_job_ranking_prompt(
     Returns:
         Formatted prompt for the LLM
     """
-    template = _load_prompt_template("job_ranking")
+    try:
+        template = load_prompt_template("job_ranking")
+    except FileNotFoundError:
+        logger.warning("job_ranking template not found, using fallback")
+        template = """You are a job matching and ranking expert.
+
+Analyze the provided job offers and rank them based on how well they match the user's CV and preferences.
+
+## USER'S CV
+
+{cv_text}
+
+{preferences}## JOB OFFERS TO RANK
+
+{offers_text}
+
+## YOUR TASK
+
+Rank and score the top {top_k} job offers that best match the user's profile.
+Return a JSON object with ranked offers, scores, and match reasons.
+Only return the JSON object, no additional text."""
+    
     offers_text = _format_job_offers_for_analysis(job_offers)
 
     preferences_section = ""

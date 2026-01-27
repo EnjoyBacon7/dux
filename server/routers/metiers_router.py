@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from server.database import get_db_session
 from server.models import Metier_ROME, User
+
 from server.utils.dependencies import get_current_user
 from server.utils.llm import call_llm_async
 
@@ -145,7 +146,6 @@ async def get_current_user_cv_text(
         "emploisCV": emplois_cv,
         "llm": {"model": llm_result.get("model"), "usage": llm_result.get("usage")},
     }
-
 
 @router.get("/{rome_code}", summary="Get fiche metier from database")
 def get_fiche_metier(

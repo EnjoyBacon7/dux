@@ -13,6 +13,7 @@ from typing import Optional
 from server.config import settings
 from server.utils.openai_client import create_openai_client
 from server.utils.llm import call_llm_sync
+from server.utils.prompts import load_prompt_template
 from server.cv.cv_schemas import (
     StructuredCV,
     PersonalInfo,
@@ -27,109 +28,15 @@ from server.cv.cv_schemas import (
 
 logger = logging.getLogger(__name__)
 
-# System prompt for the extractor LLM
-EXTRACTOR_SYSTEM_PROMPT = """You are a precise CV fact extractor. Your task is to extract ONLY explicit information from the provided CV text.
 
-CRITICAL RULES:
-1. Extract ONLY information that is explicitly stated in the CV text
-2. Do NOT infer, guess, or complete missing information
-3. If information is missing or unclear, use null or empty values
-4. For each extracted item, include a verbatim "evidence_quote" from the CV text
-5. Preserve original formatting of dates, names, and terms exactly as written
-6. Do NOT translate or modify any text - extract as-is
-
-OUTPUT FORMAT:
-Return a valid JSON object matching the specified schema. Include evidence_quote fields with exact text snippets from the CV.
-
-HANDLING AMBIGUITY:
-- If a date is unclear (e.g., "2020" vs "Jan 2020"), extract exactly as written
-- If a section header is ambiguous, use your best judgment but note in extraction_warnings
-- If text is in a non-English language, extract as-is without translation"""
-
-
-EXTRACTION_PROMPT_TEMPLATE = """Extract structured information from this CV text. Follow the schema exactly.
-
-CV TEXT:
----
-{cv_text}
----
-
-Extract and return a JSON object with the following structure:
-{{
-    "personal_info": {{
-        "name": "Full name or null",
-        "email": "Email or null",
-        "phone": "Phone or null",
-        "location": "Location or null",
-        "linkedin_url": "LinkedIn URL or null",
-        "portfolio_url": "Portfolio URL or null",
-        "evidence_quote": "Verbatim text containing contact info"
-    }},
-    "professional_summary": {{
-        "text": "Summary/objective text or null",
-        "evidence_quote": "Verbatim text"
-    }} or null if not present,
-    "work_experience": [
-        {{
-            "role": "Job title",
-            "company": "Company name",
-            "start_date": "Start date as written",
-            "end_date": "End date as written or 'Present'",
-            "is_current": true/false,
-            "location": "Location or null",
-            "responsibilities": ["List of responsibilities/achievements"],
-            "evidence_quote": "Verbatim text for this job entry"
-        }}
-    ],
-    "education": [
-        {{
-            "degree": "Degree type",
-            "field_of_study": "Field or null",
-            "institution": "School name",
-            "start_date": "Start date or null",
-            "end_date": "End date or null",
-            "gpa": "GPA or null",
-            "honors": "Honors or null",
-            "evidence_quote": "Verbatim text"
-        }}
-    ],
-    "skills": [
-        {{
-            "category": "Category name or null",
-            "skills": ["skill1", "skill2"],
-            "evidence_quote": "Verbatim text"
-        }}
-    ],
-    "projects": [
-        {{
-            "name": "Project name",
-            "description": "Description or null",
-            "technologies": ["tech1", "tech2"],
-            "url": "URL or null",
-            "date": "Date or null",
-            "evidence_quote": "Verbatim text"
-        }}
-    ],
-    "certifications": [
-        {{
-            "name": "Certification name",
-            "issuer": "Issuer or null",
-            "date": "Date or null",
-            "credential_id": "ID or null",
-            "evidence_quote": "Verbatim text"
-        }}
-    ],
-    "languages": [
-        {{
-            "language": "Language name",
-            "proficiency": "Level or null",
-            "evidence_quote": "Verbatim text or null"
-        }}
-    ],
-    "extraction_warnings": ["Any warnings about unclear or ambiguous content"]
-}}
-
-Return ONLY the JSON object, no additional text."""
+# Load prompts from files
+try:
+    EXTRACTOR_SYSTEM_PROMPT = load_prompt_template("cv_extractor_system")
+    EXTRACTION_PROMPT_TEMPLATE = load_prompt_template("cv_extractor_template")
+except FileNotFoundError as e:
+    raise RuntimeError(
+        "Missing prompt templates. Ensure server/prompts/*.txt is packaged and deployed."
+    ) from e
 
 
 # ============================================================================

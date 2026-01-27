@@ -231,6 +231,27 @@ class CVScores(BaseModel):
 
 
 # =============================================================================
+# Visual Analysis Schema (VLM Output)
+# =============================================================================
+
+class VisualAnalysis(BaseModel):
+    """
+    Visual analysis of CV document - Output from VLM analysis
+    
+    Focuses exclusively on visual/structural aspects of the CV presentation.
+    Does NOT evaluate content, skills, or candidate quality.
+    """
+    visual_strengths: list[str] = Field(default_factory=list, description="Visual strengths of the CV layout")
+    visual_weaknesses: list[str] = Field(default_factory=list, description="Visual weaknesses in layout/presentation")
+    visual_recommendations: list[str] = Field(default_factory=list, description="Actionable visual improvement suggestions")
+    layout_assessment: Optional[str] = Field(None, description="Overall layout quality description")
+    typography_assessment: Optional[str] = Field(None, description="Typography quality description")
+    readability_assessment: Optional[str] = Field(None, description="Readability assessment")
+    image_quality_notes: list[str] = Field(default_factory=list, description="Notes about image quality issues if any")
+    analysis_timestamp: datetime = Field(default_factory=utc_now)
+
+
+# =============================================================================
 # Step 4: Full Evaluation Result (Pipeline Output)
 # =============================================================================
 
@@ -249,6 +270,7 @@ class EvaluationResult(BaseModel):
     structured_cv: StructuredCV = Field(..., description="Structured CV data (Step 1 output)")
     derived_features: DerivedFeatures = Field(..., description="Computed features (Step 2 output)")
     scores: CVScores = Field(..., description="Evaluation scores (Step 3 output)")
+    visual_analysis: Optional[VisualAnalysis] = Field(None, description="Visual analysis from VLM (parallel to LLM)")
     
     # Pipeline metadata
     pipeline_version: str = Field("1.0.0", description="Pipeline version")

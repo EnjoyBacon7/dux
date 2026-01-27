@@ -4,6 +4,7 @@ import asyncio
 from server.models import User, Offres_FT
 from server.config import settings
 from server.utils.llm import call_llm_sync
+from server.utils.prompts import load_prompt_template
 
 logger = logging.getLogger(__name__)
 
@@ -52,36 +53,24 @@ class MatchingEngine:
                     job_skills = ", ".join([s.get('libelle', '') for s in loaded if s.get('libelle')])
             except (json.JSONDecodeError, TypeError, ValueError):
                 pass
+        elif isinstance(job_skills, list):
+            job_skills = ", ".join(str(s) for s in job_skills if s)
+        elif job_skills is None:
+            job_skills = "Non renseigné"
 
-        # Instruction pour l'IA
-        prompt = f"""
-        Tu es un expert en recrutement multilingue.
-        
-        IMPORTANT: Provide the 'verdict', 'match_reasons', and 'missing_skills' values strictly in {target_lang}.
-        (Keep the JSON keys in English, only translate the values).
-
-        PROFIL CANDIDAT:
-        - Titre: {user.headline or 'Non spécifié'}
-        - Résumé: {user.summary or 'Non spécifié'}
-        - Compétences: {skills}
-        - Expériences: {experiences_txt}
-
-        OFFRE D'EMPLOI:
-        - Titre: {job.intitule}
-        - Entreprise: {job.entreprise_nom}
-        - Description: {job.description}
-        - Compétences requises: {job_skills}
-
-        TA MISSION:
-        Analyse le matching et retourne UNIQUEMENT un JSON valide :
-        {{
-            "score_technique": (int 0-100),
-            "score_culturel": (int 0-100),
-            "match_reasons": ["Point 1 ({target_lang})", "Point 2 ({target_lang})"],
-            "missing_skills": ["Compétence 1 ({target_lang})", "Compétence 2 ({target_lang})"],
-            "verdict": "Synthèse courte et directe en {target_lang}."
-        }}
-        """
+        # Load prompt template and format it
+        template = load_prompt_template("profile_match_template")
+        prompt = template.format(
+            target_lang=target_lang,
+            headline=user.headline or 'Non spécifié',
+            summary=user.summary or 'Non spécifié',
+            skills=skills,
+            experiences=experiences_txt,
+            job_title=job.intitule,
+            company_name=job.entreprise_nom,
+            job_description=job.description,
+            job_skills=job_skills
+        )
         return prompt
 
     def analyser_match(self, user: User, job: Offres_FT, lang: str = "fr") -> dict:

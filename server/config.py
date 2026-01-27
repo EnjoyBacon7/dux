@@ -85,6 +85,11 @@ class Settings(BaseSettings):
     openai_model: str = ""
     openai_base_url: str = ""
 
+    # VLM Configuration (hosted API)
+    vlm_key: str = ""
+    vlm_model: str = "Qwen2.5-VL-7B-Instruct"
+    vlm_base_url: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
