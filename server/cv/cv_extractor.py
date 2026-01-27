@@ -8,11 +8,9 @@ Each extracted item includes verbatim evidence quotes from the CV.
 
 import json
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 
-from openai import OpenAI
-
-from server.config import settings
+from server.utils.llm import call_llm_sync
 from server.utils.prompts import load_prompt_template
 from server.cv.cv_schemas import (
     StructuredCV,
@@ -39,63 +37,57 @@ except FileNotFoundError as e:
     ) from e
 
 
-def create_openai_client() -> OpenAI:
-    """Create OpenAI client with settings from config"""
-    return OpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
-    )
+# ============================================================================
+# CV Extraction Functions
+# ============================================================================
 
 
-def extract_cv_facts(raw_cv_text: str, model: Optional[str] = None) -> StructuredCV:
+def extract_cv_facts(
+    raw_cv_text: str,
+    model: Optional[str] = None,
+    vlm_request: Optional[Dict[str, Any]] = None
+) -> StructuredCV:
     """
     Extract structured facts from raw CV text using LLM.
-    
+
     Args:
         raw_cv_text: The raw text content of the CV
         model: Optional model override (defaults to settings.openai_model)
-    
+        vlm_request: Optional VLM request (not used in extraction, for API consistency)
+
     Returns:
         StructuredCV: Validated structured CV data
-    
+
     Raises:
         ValueError: If extraction fails or returns invalid data
     """
     if not raw_cv_text or not raw_cv_text.strip():
         raise ValueError("CV text is empty or contains only whitespace")
-    
-    model = model or settings.openai_model
-    client = create_openai_client()
-    
+
     logger.info(f"Extracting CV facts using model: {model}")
-    
+
     try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": EXTRACTOR_SYSTEM_PROMPT},
-                {"role": "user", "content": EXTRACTION_PROMPT_TEMPLATE.format(cv_text=raw_cv_text)},
-            ],
+        result = call_llm_sync(
+            prompt=EXTRACTION_PROMPT_TEMPLATE.format(cv_text=raw_cv_text),
+            system_content=EXTRACTOR_SYSTEM_PROMPT,
             temperature=0.1,  # Low temperature for consistent extraction
+            max_tokens=4000,
+            parse_json=True,
+            model=model,
             response_format={"type": "json_object"},
         )
-        
-        response_text = response.choices[0].message.content
-        if not response_text:
-            raise ValueError("LLM returned empty response")
-        
-        # Parse JSON response
-        extracted_data = json.loads(response_text)
-        
+
+        extracted_data = result["data"]
+
         # Convert to Pydantic models with validation
         structured_cv = _parse_extracted_data(extracted_data)
-        
+
         logger.info(f"Successfully extracted CV with {len(structured_cv.work_experience)} experiences, "
-                   f"{len(structured_cv.education)} education entries, "
-                   f"{len(structured_cv.skills)} skill categories")
-        
+                    f"{len(structured_cv.education)} education entries, "
+                    f"{len(structured_cv.skills)} skill categories")
+
         return structured_cv
-        
+
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse LLM response as JSON: {e}")
         raise ValueError(f"LLM returned invalid JSON: {e}")
@@ -107,7 +99,7 @@ def extract_cv_facts(raw_cv_text: str, model: Optional[str] = None) -> Structure
 def _parse_extracted_data(data: dict) -> StructuredCV:
     """
     Parse extracted JSON data into validated Pydantic models.
-    
+
     Handles missing fields gracefully and validates structure.
     """
     # Parse personal info
@@ -121,7 +113,7 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
         portfolio_url=personal_info_data.get("portfolio_url"),
         evidence_quote=personal_info_data.get("evidence_quote"),
     )
-    
+
     # Parse professional summary
     summary_data = data.get("professional_summary")
     professional_summary = None
@@ -130,7 +122,7 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
             text=summary_data.get("text"),
             evidence_quote=summary_data.get("evidence_quote"),
         )
-    
+
     # Parse work experience
     work_experience = []
     for exp_data in data.get("work_experience", []):
@@ -145,7 +137,7 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
                 responsibilities=exp_data.get("responsibilities", []),
                 evidence_quote=exp_data.get("evidence_quote", ""),
             ))
-    
+
     # Parse education
     education = []
     for edu_data in data.get("education", []):
@@ -160,7 +152,7 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
                 honors=edu_data.get("honors"),
                 evidence_quote=edu_data.get("evidence_quote", ""),
             ))
-    
+
     # Parse skills
     skills = []
     for skill_data in data.get("skills", []):
@@ -170,7 +162,7 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
                 skills=skill_data["skills"],
                 evidence_quote=skill_data.get("evidence_quote"),
             ))
-    
+
     # Parse projects
     projects = []
     for proj_data in data.get("projects", []):
@@ -183,7 +175,7 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
                 date=proj_data.get("date"),
                 evidence_quote=proj_data.get("evidence_quote", ""),
             ))
-    
+
     # Parse certifications
     certifications = []
     for cert_data in data.get("certifications", []):
@@ -195,7 +187,7 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
                 credential_id=cert_data.get("credential_id"),
                 evidence_quote=cert_data.get("evidence_quote", ""),
             ))
-    
+
     # Parse languages
     languages = []
     for lang_data in data.get("languages", []):
@@ -205,7 +197,7 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
                 proficiency=lang_data.get("proficiency"),
                 evidence_quote=lang_data.get("evidence_quote"),
             ))
-    
+
     # Build final structured CV
     return StructuredCV(
         personal_info=personal_info,
@@ -224,15 +216,13 @@ def _parse_extracted_data(data: dict) -> StructuredCV:
 def extract_from_file(file_path: str) -> StructuredCV:
     """
     Extract CV facts from a text file.
-    
+
     Args:
         file_path: Path to a text file containing CV content
-    
+
     Returns:
         StructuredCV: Validated structured CV data
     """
     with open(file_path, 'r', encoding='utf-8') as f:
         cv_text = f.read()
     return extract_cv_facts(cv_text)
-
-

@@ -1,1 +1,1 @@
-# Server utilities package
+"""Shared utilities and helper functions."""

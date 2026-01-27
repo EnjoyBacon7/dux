@@ -43,7 +43,7 @@ def extract_text_from_pdf(file_path: Path) -> str:
         Extracted text from the PDF
 
     Note:
-        OCR fallback requires pytesseract and pdf2image to be installed
+        OCR fallback requires pytesseract and PyMuPDF to be installed
     """
     text = ""
     try:
@@ -55,7 +55,7 @@ def extract_text_from_pdf(file_path: Path) -> str:
         logger.warning(f"Error extracting text from PDF: {e}")
         text = ""
 
-    # If no text was extracted, try OCR using pdf2image for image conversion
+    # If no text was extracted, try OCR using PyMuPDF for image conversion
     if not text.strip():
         logger.info("No text found in PDF, attempting OCR...")
         try:
@@ -169,45 +169,42 @@ def extract_text_from_file(file_path: Path, file_extension: str) -> str:
 def convert_pdf_to_images(file_path: Path) -> List[Image.Image]:
     """
     Convert PDF pages to PIL Images for VLM analysis.
-    
-    Uses pdf2image library which wraps poppler-utils for PDF rendering.
-    This is a permissively licensed alternative to PyMuPDF (AGPL-3.0).
-    
+
+    Uses PyMuPDF (fitz) for rendering, avoiding external poppler dependency.
+
     Args:
         file_path: Path to the PDF file
-        
+
     Returns:
         List of PIL Image objects, one per page
-        
+
     Raises:
         ValueError: If PDF conversion fails
-        ImportError: If pdf2image is not installed
-        
-    Note:
-        Requires poppler-utils to be installed on the system.
-        On Windows: Download from https://github.com/oschwartz10612/poppler-windows/releases
-        On Linux: sudo apt-get install poppler-utils
-        On macOS: brew install poppler
+        ImportError: If PyMuPDF is not installed
     """
     try:
-        from pdf2image import convert_from_path
-        
-        # Convert PDF pages to images at 200 DPI
-        images = convert_from_path(
-            str(file_path),
-            dpi=200,
-            fmt='RGB'
-        )
-        
-        return images
-        
+        import fitz  # PyMuPDF - import here to make it optional
     except ImportError:
-        logger.error("pdf2image not installed.")
+        logger.error("PyMuPDF (fitz) not installed.")
         raise ValueError(
-            "PDF to image conversion requires pdf2image library. "
-            "Install with: pip install pdf2image. "
-            "Also ensure poppler-utils is installed on your system."
+            "PDF to image conversion requires PyMuPDF (fitz). "
+            "Install with: pip install pymupdf."
         )
+    
+    try:
+        with fitz.open(str(file_path)) as doc:
+            images: List[Image.Image] = []
+
+            # Use 2x scaling (~200 DPI) for better OCR without huge memory
+            zoom = 2.0
+            matrix = fitz.Matrix(zoom, zoom)
+
+            for page in doc:
+                pix = page.get_pixmap(matrix=matrix, alpha=False)
+                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                images.append(img)
+
+        return images
     except Exception as e:
         logger.error(f"Failed to convert PDF to images: {e}")
         raise ValueError(f"PDF to image conversion failed: {str(e)}")

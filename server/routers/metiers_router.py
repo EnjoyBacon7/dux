@@ -13,8 +13,9 @@ from sqlalchemy.orm import Session
 
 from server.database import get_db_session
 from server.models import Metier_ROME, User
-from server.dependencies import get_current_user
-from server.methods.chat import _call_llm
+
+from server.utils.dependencies import get_current_user
+from server.utils.llm import call_llm_async
 
 import logging
 from server.config import settings
@@ -123,7 +124,7 @@ async def get_current_user_cv_text(
         f"{cv_text_llm}\n"
     )
 
-    llm_result = await _call_llm(
+    llm_result = await call_llm_async(
         prompt=prompt,
         system_content="You are a precise JSON-only extractor. Return only valid JSON.",
         temperature=0.2,

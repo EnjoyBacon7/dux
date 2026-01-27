@@ -20,18 +20,14 @@ from datetime import datetime
 from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
 
-from server.cv.cv_schemas import EvaluationResult, StructuredCV, DerivedFeatures, CVScores, VisualAnalysis
+from server.cv.cv_schemas import EvaluationResult, VisualAnalysis
 from server.cv.cv_extractor import extract_cv_facts
 from server.cv.cv_validator import validate_and_compute_features
 from server.cv.cv_scorer import score_cv
 from server.cv.cv_visual_analyzer import analyze_cv_visuals
-from server.methods.upload import UPLOAD_DIR
+from server.config import settings
 
 logger = logging.getLogger(__name__)
-
-# Default output directory for evaluation results
-DEFAULT_OUTPUT_DIR = Path(__file__).parent / "evaluations"
-
 
 class CVEvaluationPipeline:
     """
@@ -57,7 +53,7 @@ class CVEvaluationPipeline:
             model: OpenAI model to use (default: from settings)
             save_results: Whether to automatically save results
         """
-        self.output_dir = output_dir or DEFAULT_OUTPUT_DIR
+        self.output_dir = output_dir or Path(settings.evaluation_dir)
         self.model = model
         self.save_results = save_results
         
@@ -99,7 +95,7 @@ class CVEvaluationPipeline:
             file_extension = cv_file_path.suffix.lower()
         elif cv_filename:
             # Try to construct path from filename
-            potential_path = UPLOAD_DIR / cv_filename
+            potential_path = Path(settings.upload_dir) / cv_filename
             if potential_path.exists():
                 file_path_for_vlm = potential_path
                 file_extension = potential_path.suffix.lower()
