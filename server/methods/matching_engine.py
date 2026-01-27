@@ -17,8 +17,6 @@ class MatchingEngine:
         missing_vars = []
         if not settings.openai_api_key:
             missing_vars.append("openai_api_key")
-        if not settings.openai_base_url:
-            missing_vars.append("openai_base_url")
         if not settings.openai_model:
             missing_vars.append("openai_model")
 

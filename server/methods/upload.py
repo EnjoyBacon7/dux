@@ -15,7 +15,6 @@ from typing import Dict, Any, List
 
 import PyPDF2
 import pytesseract
-import fitz  # PyMuPDF
 from docx import Document
 from PIL import Image
 
