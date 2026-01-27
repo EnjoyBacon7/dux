@@ -877,12 +877,12 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         la: 'Regio'
     },
     'jobs.region_placeholder': {
-        en: 'e.g., Île-de-France',
-        es: 'Ej: Île-de-France',
-        fr: 'Ex: Île-de-France',
-        de: 'z.B. Île-de-France',
-        pt: 'Ex: Île-de-France',
-        la: 'Exempli gratia: Île-de-France'
+        en: 'e.g., 11 (Île-de-France)',
+        es: 'Ej: 11 (Île-de-France)',
+        fr: 'Ex: 11 (Île-de-France)',
+        de: 'z.B. 11 (Île-de-France)',
+        pt: 'Ex: 11 (Île-de-France)',
+        la: 'Exempli gratia: 11 (Île-de-France)'
     },
     'jobs.distance': {
         en: 'Distance (km)',

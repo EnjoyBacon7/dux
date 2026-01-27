@@ -6,7 +6,7 @@ from slowapi.util import get_remote_address
 from server.database import get_db_session
 from server.config import settings
 from server.models import User
-from server.dependencies import get_current_user
+from server.utils.dependencies import get_current_user
 from server.methods.passkey_auth import (
     get_passkey_register_options,
     verify_passkey_registration,
