@@ -4,11 +4,24 @@
     padding: 0;
     min-height: calc(100vh - var(--header-height, 60px));
     background: var(--nb-bg);
+    --wm-text: var(--nb-fg);
+    --wm-title: var(--nb-fg);
+    --wm-body: var(--nb-fg);
+    --wm-muted: var(--nb-fg);
+    --wm-card-bg: var(--nb-card-bg);
+    --wm-card-border: var(--nb-fg);
+    --wm-hero-bg: linear-gradient(135deg, var(--nb-bg) 0%, var(--nb-bg-alt) 100%);
+    --wm-rome-bg: var(--nb-bg-alt);
+    --wm-rome-border: var(--nb-fg);
+    --wm-stat-bg: var(--nb-bg-alt);
+    --wm-stat-border: var(--nb-fg);
+    --wm-track-bg: var(--nb-bg-muted);
+    --wm-divider: var(--nb-fg);
 }
 
 .wiki-metier-grid {
     display: grid;
-    grid-template-columns: minmax(260px, 320px) 1fr;
+    grid-template-columns: 400px 1fr;
     gap: 0;
     min-height: calc(100vh - var(--header-height, 60px));
     width: 100%;
@@ -71,7 +84,7 @@
 }
 
 .wiki-metier-link--active {
-    background: var(--nb-bg-muted);
+    background: var(--nb-bg-alt);
     box-shadow: var(--nb-shadow-sm);
 }
 
@@ -136,11 +149,11 @@
 }
 
 .wm-card {
-    background: var(--wm-card-bg, #2f2f34);
-    border: 1px solid var(--wm-card-border, rgba(255, 255, 255, 0.14));
-    border-radius: calc(var(--nb-radius) - 2px);
-    padding: 1.75rem 1.75rem;
-    box-shadow: 0 16px 40px rgba(10, 10, 20, 0.18);
+    background: var(--wm-card-bg, var(--nb-card-bg));
+    border: var(--nb-border) solid var(--wm-card-border, var(--nb-fg));
+    border-radius: var(--nb-radius);
+    padding: 1.5rem 1.5rem;
+    box-shadow: var(--nb-shadow-sm);
     position: relative;
     animation: wmFadeIn 0.3s ease both;
     animation-delay: var(--delay, 0s);
@@ -148,8 +161,8 @@
 }
 
 .wm-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 44px rgba(10, 10, 20, 0.28);
+    transform: translate(calc(var(--shadow-offset) * -0.2), calc(var(--shadow-offset) * -0.2));
+    box-shadow: var(--nb-shadow);
 }
 
 .wm-card-header {
@@ -162,11 +175,11 @@
 .wm-card-header h3 {
     margin: 0;
     font-size: 1.1rem;
-    color: var(--wm-title, #f8f6ff);
+    color: var(--wm-title, var(--nb-fg));
 }
 
 .wm-hero {
-    background: linear-gradient(120deg, rgba(195, 185, 248, 0.18), rgba(47, 47, 52, 0.95));
+    background: var(--wm-hero-bg, linear-gradient(135deg, var(--nb-bg) 0%, var(--nb-bg-alt) 100%));
 }
 
 .wm-hero-title-row {
@@ -179,7 +192,7 @@
 .wm-hero-title {
     margin: 0;
     font-size: clamp(1.8rem, 3vw, 2.6rem);
-    color: var(--wm-title, #f8f6ff);
+    color: var(--wm-title, var(--nb-fg));
 }
 
 .wm-rome-badge {
@@ -187,17 +200,17 @@
     align-items: center;
     padding: 0.25rem 0.65rem;
     border-radius: 999px;
-    background: rgba(195, 185, 248, 0.25);
-    color: var(--wm-title, #f8f6ff);
+    background: var(--wm-rome-bg, var(--nb-bg-alt));
+    color: var(--wm-title, var(--nb-fg));
     font-weight: 700;
-    border: 1px solid rgba(195, 185, 248, 0.4);
+    border: var(--nb-border) solid var(--wm-rome-border, var(--nb-fg));
     letter-spacing: 0.4px;
 }
 
 .wm-hero-summary {
     margin: 0.65rem 0 0;
     max-width: 100%;
-    color: var(--wm-body, #e1deea);
+    color: var(--wm-body, var(--nb-fg));
     line-height: 1.6;
 }
 
@@ -208,57 +221,61 @@
 }
 
 .wm-stat {
-    background: rgba(16, 16, 22, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--wm-stat-bg, var(--nb-bg-alt));
+    border: var(--nb-border) solid var(--wm-stat-border, var(--nb-fg));
     border-radius: calc(var(--nb-radius) - 6px);
     padding: 0.85rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    box-shadow: var(--nb-shadow-xs);
 }
 
 .wm-stat-label {
     font-size: 0.8rem;
-    color: var(--wm-muted, #b8b5c5);
+    color: var(--nb-fg);
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    opacity: 0.75;
 }
 
 .wm-stat-value {
     font-size: 1.15rem;
     font-weight: 700;
-    color: var(--wm-title, #f8f6ff);
+    color: var(--wm-title, var(--nb-fg));
 }
 
 .wm-stat-sub {
     font-size: 0.8rem;
-    color: var(--wm-muted, #b8b5c5);
+    color: var(--nb-fg);
+    opacity: 0.7;
 }
 
 .wm-salary-range {
     margin-top: 1.25rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: var(--nb-border) solid var(--wm-divider, var(--nb-fg));
 }
 
 .wm-salary-header {
     font-size: 0.9rem;
-    color: var(--wm-muted, #b8b5c5);
+    color: var(--nb-fg);
     margin-bottom: 0.6rem;
+    opacity: 0.75;
 }
 
 .wm-salary-track {
     position: relative;
     height: 10px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--wm-track-bg, var(--nb-bg-muted));
     overflow: hidden;
 }
 
 .wm-salary-gradient {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(195, 185, 248, 0.2), rgba(195, 185, 248, 0.85));
+    background: linear-gradient(90deg, var(--nb-bg-alt), var(--nb-accent-alt));
 }
 
 .wm-salary-thumb {
@@ -268,9 +285,9 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #f8f6ff;
-    border: 2px solid rgba(195, 185, 248, 0.9);
-    box-shadow: 0 0 0 6px rgba(195, 185, 248, 0.15);
+    background: var(--nb-fg);
+    border: 2px solid var(--nb-accent-alt);
+    box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.08);
 }
 
 .wm-salary-labels {
@@ -278,17 +295,18 @@
     justify-content: space-between;
     margin-top: 0.5rem;
     font-size: 0.85rem;
-    color: var(--wm-title, #f8f6ff);
+    color: var(--wm-title, var(--nb-fg));
 }
 
 .wm-salary-mean {
     margin-top: 0.4rem;
     font-size: 0.85rem;
-    color: var(--wm-muted, #b8b5c5);
+    color: var(--nb-fg);
+    opacity: 0.7;
 }
 
 .wm-body {
-    color: var(--wm-body, #e1deea);
+    color: var(--wm-body, var(--nb-fg));
     line-height: 1.7;
     margin: 0 0 0.65rem;
     max-width: 100%;
@@ -312,7 +330,7 @@
 .wm-link-btn {
     background: none;
     border: none;
-    color: var(--nb-accent-alt);
+    color: var(--nb-accent);
     font-weight: 700;
     cursor: pointer;
     padding: 0;
@@ -330,13 +348,13 @@
 .wm-subsection h4 {
     margin: 0 0 0.35rem;
     font-size: 0.95rem;
-    color: var(--wm-title, #f8f6ff);
+    color: var(--wm-title, var(--nb-fg));
 }
 
 .wm-list {
     margin: 0;
     padding-left: 1.1rem;
-    color: var(--wm-body, #e1deea);
+    color: var(--wm-body, var(--nb-fg));
 }
 
 .wm-skill-wall {
@@ -361,7 +379,7 @@
     font-size: 0.85rem;
     display: inline-flex;
     align-items: center;
-    color: var(--wm-title, #f8f6ff);
+    color: var(--wm-title, var(--nb-fg));
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -381,7 +399,8 @@
 }
 
 .wm-muted {
-    color: var(--wm-muted, #b8b5c5);
+    color: var(--wm-muted, var(--nb-fg));
+    opacity: 0.7;
 }
 
 @keyframes wmFadeIn {

@@ -13,7 +13,7 @@ import mimetypes
 
 from server.methods.upload import UPLOAD_DIR, upload_file
 from server.database import get_db_session
-from server.models import User
+from server.models import User, Metier_ROME
 from server.dependencies import get_current_user
 
 # ============================================================================
@@ -64,6 +64,16 @@ async def upload_endpoint(
     # Update user's CV filename and extracted text in database
     current_user.cv_filename = result["filename"]
     current_user.cv_text = result["extracted_text"]
+
+    # Extraction of experience
+    rows = (
+        db.query(Metier_ROME)
+        .order_by(Metier_ROME.libelle.asc(), Metier_ROME.code.asc())
+        .all()
+    )
+    metiers = [{row.libelle : row.code} for row in rows]
+
+    
 
     db.commit()
 
