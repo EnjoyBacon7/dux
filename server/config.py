@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     upload_dir: str = "./uploads"
+    evaluation_dir: str = "./evaluations"
     debug: bool = False  # Set to True to show detailed error messages
     log_level: str = "INFO"  # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
@@ -86,7 +87,7 @@ class Settings(BaseSettings):
     openai_base_url: str = ""
 
     # VLM Configuration (hosted API)
-    vlm_key: str = ""
+    vlm_api_key: str = ""
     vlm_model: str = "Qwen2.5-VL-7B-Instruct"
     vlm_base_url: str = ""
 

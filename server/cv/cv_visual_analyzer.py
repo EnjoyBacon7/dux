@@ -8,18 +8,16 @@ Does NOT evaluate content, skills, or candidate quality.
 
 import json
 import logging
-import base64
-from io import BytesIO
 from typing import Optional, List
 from pathlib import Path
 
-from openai import OpenAI
 from PIL import Image
 
 from server.config import settings
 from server.cv.cv_schemas import VisualAnalysis
 from server.methods.upload import convert_file_to_images
 from server.utils.prompts import load_prompt_template
+from server.utils.llm import call_llm_sync
 
 logger = logging.getLogger(__name__)
 
@@ -48,47 +46,13 @@ def _load_vlm_prompts() -> tuple[str, str]:
     return _VLM_SYSTEM_PROMPT, _VLM_ANALYSIS_PROMPT
 
 
-def create_vlm_client() -> OpenAI:
-    """Create VLM client with settings from config"""
-    if not settings.vlm_key:
-        raise ValueError("VLM API key not configured. Set VLM_KEY in environment variables.")
-    if not settings.vlm_base_url:
-        raise ValueError("VLM base URL not configured. Set VLM_BASE_URL in environment variables.")
-    
-    return OpenAI(
-        api_key=settings.vlm_key,
-        base_url=settings.vlm_base_url,
-    )
-
-
-def image_to_base64(image: Image.Image) -> str:
-    """
-    Convert PIL Image to base64-encoded string for API transmission.
-    
-    Args:
-        image: PIL Image object
-        
-    Returns:
-        Base64-encoded string (data URL format)
-    """
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f"data:image/png;base64,{img_str}"
-
-
-def _call_vlm_for_analysis(
-    client: OpenAI,
-    images: List[Image.Image],
-    model: str
-) -> VisualAnalysis:
+def _call_vlm_for_analysis(images: List[Image.Image], model: str) -> VisualAnalysis:
     """
     Shared VLM call logic for visual analysis.
     
     Prepares images, calls the VLM API, and parses the response.
     
     Args:
-        client: OpenAI client instance
         images: List of PIL Image objects to analyze
         model: Model name to use
         
@@ -101,49 +65,26 @@ def _call_vlm_for_analysis(
     # Load prompts on first use (lazy loading)
     system_prompt, analysis_prompt = _load_vlm_prompts()
     
-    # Prepare image content for API
-    image_contents = [
-        {"type": "image_url", "image_url": {"url": image_to_base64(img)}}
-        for img in images
-    ]
-    
-    # Prepare messages for VLM
-    messages = [
-        {
-            "role": "system",
-            "content": system_prompt
-        },
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": analysis_prompt},
-                *image_contents
-            ]
-        }
-    ]
-    
-    # Call VLM API
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=0.2,  # Low temperature for consistent analysis
-    )
-    
-    response_text = response.choices[0].message.content
-    if not response_text:
-        raise ValueError("VLM returned empty response")
-    
-    # Extract JSON from response
-    json_start = response_text.find('{')
-    json_end = response_text.rfind('}') + 1
-    
-    if json_start == -1 or json_end == 0:
-        logger.warning(f"No JSON found in response: {response_text[:500]}")
+    # Use consolidated LLM function with VLM request
+    try:
+        result = call_llm_sync(
+            prompt=analysis_prompt,
+            system_content=system_prompt,
+            temperature=0.2,  # Low temperature for consistent analysis
+            max_tokens=2000,
+            parse_json=True,
+            model=model,
+            vlm_request={"images": images, "use_vlm_client": True}
+        )
+        
+        analysis_data = result["data"]
+        return _parse_visual_analysis(analysis_data)
+    except json.JSONDecodeError as e:
+        logger.exception("Failed to parse VLM response as JSON")
         return _default_visual_analysis("Could not parse model response")
-    
-    json_str = response_text[json_start:json_end]
-    analysis_data = json.loads(json_str)
-    return _parse_visual_analysis(analysis_data)
+    except Exception as e:
+        logger.exception(f"VLM analysis failed: {e}")
+        raise ValueError(f"VLM analysis failed: {e}") from e
 
 
 def analyze_cv_visuals(
@@ -166,7 +107,6 @@ def analyze_cv_visuals(
         ValueError: If analysis fails or returns invalid data
     """
     model = model or settings.vlm_model
-    client = create_vlm_client()
     
     logger.info(f"Starting visual analysis using model: {model}")
     
@@ -179,7 +119,7 @@ def analyze_cv_visuals(
         logger.info(f"Converted CV to {len(images)} image(s) for visual analysis")
         
         # Call VLM for analysis using shared helper
-        visual_analysis = _call_vlm_for_analysis(client, images, model)
+        visual_analysis = _call_vlm_for_analysis(images, model)
         
         logger.info(f"Visual analysis complete: {len(visual_analysis.visual_strengths)} strengths, "
                    f"{len(visual_analysis.visual_weaknesses)} weaknesses, "
@@ -212,13 +152,12 @@ def analyze_cv_visuals_from_images(
         VisualAnalysis: Visual analysis results
     """
     model = model or settings.vlm_model
-    client = create_vlm_client()
     
     logger.info(f"Starting visual analysis from {len(images)} image(s) using model: {model}")
     
     try:
         # Call VLM for analysis using shared helper
-        visual_analysis = _call_vlm_for_analysis(client, images, model)
+        visual_analysis = _call_vlm_for_analysis(images, model)
         
         logger.info("Visual analysis complete from images")
         

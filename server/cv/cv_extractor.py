@@ -8,10 +8,8 @@ Each extracted item includes verbatim evidence quotes from the CV.
 
 import json
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 
-from server.config import settings
-from server.utils.openai_client import create_openai_client
 from server.utils.llm import call_llm_sync
 from server.utils.prompts import load_prompt_template
 from server.cv.cv_schemas import (
@@ -44,13 +42,18 @@ except FileNotFoundError as e:
 # ============================================================================
 
 
-def extract_cv_facts(raw_cv_text: str, model: Optional[str] = None) -> StructuredCV:
+def extract_cv_facts(
+    raw_cv_text: str,
+    model: Optional[str] = None,
+    vlm_request: Optional[Dict[str, Any]] = None
+) -> StructuredCV:
     """
     Extract structured facts from raw CV text using LLM.
 
     Args:
         raw_cv_text: The raw text content of the CV
         model: Optional model override (defaults to settings.openai_model)
+        vlm_request: Optional VLM request (not used in extraction, for API consistency)
 
     Returns:
         StructuredCV: Validated structured CV data

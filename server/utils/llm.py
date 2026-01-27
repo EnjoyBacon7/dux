@@ -7,11 +7,16 @@ handling client initialization, error handling, JSON parsing, and response extra
 
 import json
 import logging
-from typing import Optional, Dict, Any, List, Union
+import base64
+from io import BytesIO
+from typing import Optional, Dict, Any, List, Union, TYPE_CHECKING
 from openai import OpenAI
 
 from server.config import settings
 from server.utils.openai_client import create_openai_client
+
+if TYPE_CHECKING:
+    from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +111,42 @@ def build_usage_dict(response: Any) -> Dict[str, int]:
 
 
 # ============================================================================
+# VLM Helper Functions
+# ============================================================================
+
+
+def create_vlm_client() -> OpenAI:
+    """Create VLM client with settings from config"""
+    if not settings.vlm_api_key:
+        raise ValueError("VLM API key not configured. Set VLM_API_KEY in environment variables.")
+    if not settings.vlm_base_url:
+        raise ValueError("VLM base URL not configured. Set VLM_BASE_URL in environment variables.")
+    
+    return OpenAI(
+        api_key=settings.vlm_api_key,
+        base_url=settings.vlm_base_url,
+    )
+
+
+def image_to_base64(image: "Image.Image") -> str:
+    """
+    Convert PIL Image to base64-encoded string for API transmission.
+    
+    Args:
+        image: PIL Image object
+        
+    Returns:
+        Base64-encoded string (data URL format)
+    """
+    from PIL import Image as PILImage
+    
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return f"data:image/png;base64,{img_str}"
+
+
+# ============================================================================
 # Core LLM Call Functions
 # ============================================================================
 
@@ -119,6 +160,7 @@ def call_llm_sync(
     json_array: bool = False,
     model: Optional[str] = None,
     response_format: Optional[Dict[str, str]] = None,
+    vlm_request: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Synchronous LLM call (blocking operation for thread pool).
@@ -135,6 +177,9 @@ def call_llm_sync(
         json_array: Whether to extract JSON array vs object (default: False)
         model: Optional model override (defaults to settings.openai_model)
         response_format: Optional response format spec (e.g., {"type": "json_object"})
+        vlm_request: Optional VLM request dict with keys:
+            - images: List of PIL Image objects
+            - use_vlm_client: Whether to use VLM client (default: True)
 
     Returns:
         dict: Response data with keys:
@@ -145,16 +190,49 @@ def call_llm_sync(
     Raises:
         ValueError: If LLM call fails or response is invalid
     """
-    model = model or settings.openai_model
-    client = create_openai_client()
+    # Handle VLM requests
+    if vlm_request and vlm_request.get("images"):
+        use_vlm_client = vlm_request.get("use_vlm_client", True)
+        images = vlm_request["images"]
+        
+        # Use VLM client and model if specified
+        if use_vlm_client:
+            model = model or settings.vlm_model
+            client = create_vlm_client()
+        else:
+            model = model or settings.openai_model
+            client = create_openai_client()
+        
+        # Prepare image content for API
+        image_contents = [
+            {"type": "image_url", "image_url": {"url": image_to_base64(img)}}
+            for img in images
+        ]
+        
+        # Build user message with text and images
+        user_content = [
+            {"type": "text", "text": prompt},
+            *image_contents
+        ]
+        
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content}
+        ]
+    else:
+        # Standard text-only LLM request
+        model = model or settings.openai_model
+        client = create_openai_client()
+        
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": prompt}
+        ]
 
     try:
         kwargs = {
             "model": model,
-            "messages": [
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": prompt}
-            ],
+            "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
@@ -195,6 +273,7 @@ async def call_llm_async(
     json_array: bool = False,
     model: Optional[str] = None,
     response_format: Optional[Dict[str, str]] = None,
+    vlm_request: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Asynchronous LLM call (runs sync function in thread pool).
@@ -211,6 +290,9 @@ async def call_llm_async(
         json_array: Whether to extract JSON array vs object (default: False)
         model: Optional model override (defaults to settings.openai_model)
         response_format: Optional response format spec (e.g., {"type": "json_object"})
+        vlm_request: Optional VLM request dict with keys:
+            - images: List of PIL Image objects
+            - use_vlm_client: Whether to use VLM client (default: True)
 
     Returns:
         dict: Response data with keys:
@@ -233,4 +315,5 @@ async def call_llm_async(
         json_array,
         model,
         response_format,
+        vlm_request,
     )

@@ -10,10 +10,8 @@ It does NOT re-interpret the raw CV text.
 
 import json
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 
-from server.config import settings
-from server.utils.openai_client import create_openai_client
 from server.utils.llm import call_llm_sync
 from server.utils.prompts import load_prompt_template
 from server.cv.cv_schemas import (
@@ -39,7 +37,8 @@ SCORING_PROMPT_TEMPLATE = load_prompt_template("cv_scorer_template")
 def score_cv(
     structured_cv: StructuredCV,
     derived_features: DerivedFeatures,
-    model: Optional[str] = None
+    model: Optional[str] = None,
+    vlm_request: Optional[Dict[str, Any]] = None
 ) -> CVScores:
     """
     Score a CV based on structured data and derived features.
@@ -48,6 +47,7 @@ def score_cv(
         structured_cv: The structured CV from Step 1
         derived_features: The computed features from Step 2
         model: Optional model override (defaults to settings.openai_model)
+        vlm_request: Optional VLM request (not used in scoring, for API consistency)
     
     Returns:
         CVScores: Complete evaluation scores with justifications
