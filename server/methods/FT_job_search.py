@@ -7,6 +7,7 @@ job offers using OAuth2 authentication and search parameters.
 
 import logging
 import re
+import unicodedata
 import requests
 from typing import Dict, Any, List
 
@@ -59,6 +60,38 @@ VALID_PARAMETERS = {
         "N11", "N12", "N13", "N21", "N22", "N31", "N32", "N41", "N42", "N43", "N44"
     },
 }
+
+# Region names to INSEE codes (normalized without accents or punctuation)
+REGION_NAME_TO_CODE = {
+    "guadeloupe": "01",
+    "martinique": "02",
+    "guyane": "03",
+    "lareunion": "04",
+    "mayotte": "06",
+    "iledefrance": "11",
+    "idf": "11",
+    "centrevaldeloire": "24",
+    "centrevaldeloir": "24",
+    "bourgognefranchecomte": "27",
+    "normandie": "28",
+    "hautsdefrance": "32",
+    "grandest": "44",
+    "paysdelaloire": "52",
+    "bretagne": "53",
+    "nouvelleaquitaine": "75",
+    "occitanie": "76",
+    "auvergnerhonealpes": "84",
+    "provencealpescotedazur": "93",
+    "paca": "93",
+    "corse": "94",
+}
+
+
+def _normalize_region_value(value: str) -> str:
+    """Strip accents/punctuation for region matching."""
+    normalized = unicodedata.normalize("NFD", value)
+    normalized = normalized.encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-zA-Z0-9]", "", normalized).lower()
 
 
 def _validate_and_clean_parameters(parameters: Dict[str, Any]) -> Dict[str, Any]:
@@ -118,6 +151,22 @@ def _validate_and_clean_parameters(parameters: Dict[str, Any]) -> Dict[str, Any]
                 continue
             cleaned[key] = ",".join(filtered)
             continue
+
+        if key == "region":
+            if isinstance(value, str):
+                region_value = value.strip()
+                if region_value.isdigit():
+                    cleaned[key] = region_value
+                    continue
+
+                normalized_region = _normalize_region_value(region_value)
+                mapped_region = REGION_NAME_TO_CODE.get(normalized_region)
+                if mapped_region:
+                    cleaned[key] = mapped_region
+                    continue
+
+                logger.warning("Unrecognized region value '%s'; removing to avoid empty results", value)
+                continue
 
         # Check if this parameter has validation rules
         if key in VALID_PARAMETERS:

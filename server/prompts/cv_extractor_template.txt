@@ -1,0 +1,83 @@
+Extract structured information from this CV text. Follow the schema exactly.
+
+CV TEXT:
+---
+{cv_text}
+---
+
+Extract and return a JSON object with the following structure:
+{{
+    "personal_info": {{
+        "name": "Full name or null",
+        "email": "Email or null",
+        "phone": "Phone or null",
+        "location": "Location or null",
+        "linkedin_url": "LinkedIn URL or null",
+        "portfolio_url": "Portfolio URL or null",
+        "evidence_quote": "Verbatim text containing contact info"
+    }},
+    "professional_summary": {{
+        "text": "Summary/objective text or null",
+        "evidence_quote": "Verbatim text"
+    }} or null if not present,
+    "work_experience": [
+        {{
+            "role": "Job title",
+            "company": "Company name",
+            "start_date": "Start date as written",
+            "end_date": "End date as written or 'Present'",
+            "is_current": true/false,
+            "location": "Location or null",
+            "responsibilities": ["List of responsibilities/achievements"],
+            "evidence_quote": "Verbatim text for this job entry"
+        }}
+    ],
+    "education": [
+        {{
+            "degree": "Degree type",
+            "field_of_study": "Field or null",
+            "institution": "School name",
+            "start_date": "Start date or null",
+            "end_date": "End date or null",
+            "gpa": "GPA or null",
+            "honors": "Honors or null",
+            "evidence_quote": "Verbatim text"
+        }}
+    ],
+    "skills": [
+        {{
+            "category": "Category name or null",
+            "skills": ["skill1", "skill2"],
+            "evidence_quote": "Verbatim text"
+        }}
+    ],
+    "projects": [
+        {{
+            "name": "Project name",
+            "description": "Description or null",
+            "technologies": ["tech1", "tech2"],
+            "url": "URL or null",
+            "date": "Date or null",
+            "evidence_quote": "Verbatim text"
+        }}
+    ],
+    "certifications": [
+        {{
+            "name": "Certification name",
+            "issuer": "Issuer or null",
+            "date": "Date or null",
+            "credential_id": "ID or null",
+            "evidence_quote": "Verbatim text"
+        }}
+    ],
+    "languages": [
+        {{
+            "language": "Language name",
+            "proficiency": "Level or null",
+            "evidence_quote": "Verbatim text or null"
+        }}
+    ],
+    "extraction_warnings": ["Any warnings about unclear or ambiguous content"]
+}}
+
+Return ONLY the JSON object, no additional text.

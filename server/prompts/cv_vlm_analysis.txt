@@ -1,0 +1,20 @@
+Analyze the visual presentation of this CV document. Focus exclusively on visual and structural aspects.
+
+Provide your analysis as a JSON object with this structure:
+{
+    "visual_strengths": ["List 3-5 visual strengths (e.g., 'Clear section separation', 'Consistent typography')"],
+    "visual_weaknesses": ["List 3-5 visual weaknesses (e.g., 'Crowded layout', 'Inconsistent spacing')"],
+    "visual_recommendations": ["List 3-5 actionable visual improvement suggestions (e.g., 'Increase white space between sections', 'Use consistent font sizes for headings')"],
+    "layout_assessment": "Brief description of overall layout quality and structure",
+    "typography_assessment": "Brief description of typography consistency and readability",
+    "readability_assessment": "Brief description of how easy the document is to scan and read",
+    "image_quality_notes": ["Any notes about image quality issues, or empty array if none"]
+}
+
+IMPORTANT:
+- Recommendations must be actionable and related strictly to visual design, structure, or readability
+- Do NOT provide content-related recommendations
+- Do NOT evaluate candidate quality or skills
+- If image quality prevents clear analysis, note this in image_quality_notes
+
+Return ONLY the JSON object, no additional text.

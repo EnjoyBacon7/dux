@@ -877,12 +877,12 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         la: 'Regio'
     },
     'jobs.region_placeholder': {
-        en: 'e.g., Île-de-France',
-        es: 'Ej: Île-de-France',
-        fr: 'Ex: Île-de-France',
-        de: 'z.B. Île-de-France',
-        pt: 'Ex: Île-de-France',
-        la: 'Exempli gratia: Île-de-France'
+        en: 'e.g., 11 (Île-de-France)',
+        es: 'Ej: 11 (Île-de-France)',
+        fr: 'Ex: 11 (Île-de-France)',
+        de: 'z.B. 11 (Île-de-France)',
+        pt: 'Ex: 11 (Île-de-France)',
+        la: 'Exempli gratia: 11 (Île-de-France)'
     },
     'jobs.distance': {
         en: 'Distance (km)',
@@ -2831,6 +2831,576 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Analyse fehlgeschlagen.',
         pt: 'Não foi possível recuperar a análise.',
         la: 'Analysis recuperari non potuit.'
+    },
+
+    // Detailed Analysis Page
+    'detailed_analysis.title': {
+        en: 'Detailed CV Analysis',
+        es: 'Análisis Detallado del CV',
+        fr: 'Analyse Détaillée du CV',
+        de: 'Detaillierte Lebenslauf-Analyse',
+        pt: 'Análise Detalhada do CV',
+        la: 'Analysis Accurata Curriculi'
+    },
+    'detailed_analysis.loading': {
+        en: 'Loading analysis...',
+        es: 'Cargando análisis...',
+        fr: 'Chargement de l\'analyse...',
+        de: 'Analyse wird geladen...',
+        pt: 'Carregando análise...',
+        la: 'Analysim onerans...'
+    },
+    'detailed_analysis.error': {
+        en: 'Failed to load analysis',
+        es: 'Error al cargar el análisis',
+        fr: 'Échec du chargement de l\'analyse',
+        de: 'Fehler beim Laden der Analyse',
+        pt: 'Falha ao carregar análise',
+        la: 'Defecit onerans analysim'
+    },
+    'detailed_analysis.no_evaluation': {
+        en: 'No evaluation found. Please evaluate your CV first.',
+        es: 'No se encontró evaluación. Por favor, evalúa tu CV primero.',
+        fr: 'Aucune évaluation trouvée. Veuillez d\'abord évaluer votre CV.',
+        de: 'Keine Bewertung gefunden. Bitte bewerten Sie zuerst Ihren Lebenslauf.',
+        pt: 'Nenhuma avaliação encontrada. Por favor, avalie seu CV primeiro.',
+        la: 'Nulla aestimatio inventa. Curriculum tuum primum aestima.'
+    },
+    'detailed_analysis.back': {
+        en: 'Back to Profile Hub',
+        es: 'Volver al Centro de Perfil',
+        fr: 'Retour au Hub Profil',
+        de: 'Zurück zum Profil-Hub',
+        pt: 'Voltar ao Hub do Perfil',
+        la: 'Redire ad Centrum Profili'
+    },
+    'detailed_analysis.content_analysis': {
+        en: 'Content Analysis',
+        es: 'Análisis de Contenido',
+        fr: 'Analyse du Contenu',
+        de: 'Inhaltsanalyse',
+        pt: 'Análise de Conteúdo',
+        la: 'Analysis Contentus'
+    },
+    'detailed_analysis.visual_analysis': {
+        en: 'Visual Analysis',
+        es: 'Análisis Visual',
+        fr: 'Analyse Visuelle',
+        de: 'Visuelle Analyse',
+        pt: 'Análise Visual',
+        la: 'Analysis Visualis'
+    },
+    'detailed_analysis.overall_score': {
+        en: 'Overall Score',
+        es: 'Puntuación General',
+        fr: 'Score Global',
+        de: 'Gesamtbewertung',
+        pt: 'Pontuação Geral',
+        la: 'Punctum Generale'
+    },
+    'detailed_analysis.dimensions': {
+        en: 'Score Dimensions',
+        es: 'Dimensiones de Puntuación',
+        fr: 'Dimensions du Score',
+        de: 'Bewertungsdimensionen',
+        pt: 'Dimensões da Pontuação',
+        la: 'Dimensiones Puncti'
+    },
+    'detailed_analysis.evidence': {
+        en: 'Evidence',
+        es: 'Evidencia',
+        fr: 'Preuves',
+        de: 'Nachweise',
+        pt: 'Evidência',
+        la: 'Testimonium'
+    },
+    'detailed_analysis.content_strengths': {
+        en: 'Content Strengths',
+        es: 'Fortalezas del Contenido',
+        fr: 'Points Forts du Contenu',
+        de: 'Inhaltliche Stärken',
+        pt: 'Pontos Fortes do Conteúdo',
+        la: 'Virtutes Contentus'
+    },
+    'detailed_analysis.content_weaknesses': {
+        en: 'Content Weaknesses',
+        es: 'Debilidades del Contenido',
+        fr: 'Points Faibles du Contenu',
+        de: 'Inhaltliche Schwächen',
+        pt: 'Pontos Fracos do Conteúdo',
+        la: 'Infirmitates Contentus'
+    },
+    'detailed_analysis.content_recommendations': {
+        en: 'Content Recommendations',
+        es: 'Recomendaciones de Contenido',
+        fr: 'Recommandations de Contenu',
+        de: 'Inhaltsempfehlungen',
+        pt: 'Recomendações de Conteúdo',
+        la: 'Commendationes Contentus'
+    },
+    'detailed_analysis.visual_strengths': {
+        en: 'Visual Strengths',
+        es: 'Fortalezas Visuales',
+        fr: 'Points Forts Visuels',
+        de: 'Visuelle Stärken',
+        pt: 'Pontos Fortes Visuais',
+        la: 'Virtutes Visuales'
+    },
+    'detailed_analysis.visual_weaknesses': {
+        en: 'Visual Weaknesses',
+        es: 'Debilidades Visuales',
+        fr: 'Points Faibles Visuels',
+        de: 'Visuelle Schwächen',
+        pt: 'Pontos Fracos Visuais',
+        la: 'Infirmitates Visuales'
+    },
+    'detailed_analysis.visual_recommendations': {
+        en: 'Visual Recommendations',
+        es: 'Recomendaciones Visuales',
+        fr: 'Recommandations Visuelles',
+        de: 'Visuelle Empfehlungen',
+        pt: 'Recomendações Visuais',
+        la: 'Commendationes Visuales'
+    },
+    'detailed_analysis.red_flags': {
+        en: 'Red Flags',
+        es: 'Señales de Alerta',
+        fr: 'Signaux d\'Alerte',
+        de: 'Warnzeichen',
+        pt: 'Sinais de Alerta',
+        la: 'Signa Periculi'
+    },
+    'detailed_analysis.missing_info': {
+        en: 'Missing Information',
+        es: 'Información Faltante',
+        fr: 'Informations Manquantes',
+        de: 'Fehlende Informationen',
+        pt: 'Informações Ausentes',
+        la: 'Informationes Deesse'
+    },
+    'detailed_analysis.structured_cv': {
+        en: 'Structured CV Data',
+        es: 'Datos Estructurados del CV',
+        fr: 'Données Structurées du CV',
+        de: 'Strukturierte Lebenslaufdaten',
+        pt: 'Dados Estruturados do CV',
+        la: 'Data Structurata Curriculi'
+    },
+    'detailed_analysis.personal_info': {
+        en: 'Personal Information',
+        es: 'Información Personal',
+        fr: 'Informations Personnelles',
+        de: 'Persönliche Informationen',
+        pt: 'Informações Pessoais',
+        la: 'Informationes Personales'
+    },
+    'detailed_analysis.name': {
+        en: 'Name',
+        es: 'Nombre',
+        fr: 'Nom',
+        de: 'Name',
+        pt: 'Nome',
+        la: 'Nomen'
+    },
+    'detailed_analysis.email': {
+        en: 'Email',
+        es: 'Correo Electrónico',
+        fr: 'Email',
+        de: 'E-Mail',
+        pt: 'E-mail',
+        la: 'Inscriptio Electronica'
+    },
+    'detailed_analysis.phone': {
+        en: 'Phone',
+        es: 'Teléfono',
+        fr: 'Téléphone',
+        de: 'Telefon',
+        pt: 'Telefone',
+        la: 'Telephonum'
+    },
+    'detailed_analysis.location': {
+        en: 'Location',
+        es: 'Ubicación',
+        fr: 'Emplacement',
+        de: 'Standort',
+        pt: 'Localização',
+        la: 'Locus'
+    },
+    'detailed_analysis.portfolio': {
+        en: 'Portfolio',
+        es: 'Portafolio',
+        fr: 'Portfolio',
+        de: 'Portfolio',
+        pt: 'Portfólio',
+        la: 'Theca Operum'
+    },
+    'detailed_analysis.professional_summary': {
+        en: 'Professional Summary',
+        es: 'Resumen Profesional',
+        fr: 'Résumé Professionnel',
+        de: 'Berufliche Zusammenfassung',
+        pt: 'Resumo Profissional',
+        la: 'Summarium Professionale'
+    },
+    'detailed_analysis.work_experience': {
+        en: 'Work Experience',
+        es: 'Experiencia Laboral',
+        fr: 'Expérience Professionnelle',
+        de: 'Berufserfahrung',
+        pt: 'Experiência Profissional',
+        la: 'Experientia Laboris'
+    },
+    'detailed_analysis.present': {
+        en: 'Present',
+        es: 'Presente',
+        fr: 'Présent',
+        de: 'Aktuell',
+        pt: 'Presente',
+        la: 'Praesens'
+    },
+    'detailed_analysis.education': {
+        en: 'Education',
+        es: 'Educación',
+        fr: 'Formation',
+        de: 'Ausbildung',
+        pt: 'Educação',
+        la: 'Educatio'
+    },
+    'detailed_analysis.skills': {
+        en: 'Skills',
+        es: 'Habilidades',
+        fr: 'Compétences',
+        de: 'Fähigkeiten',
+        pt: 'Habilidades',
+        la: 'Artes'
+    },
+    'detailed_analysis.projects': {
+        en: 'Projects',
+        es: 'Proyectos',
+        fr: 'Projets',
+        de: 'Projekte',
+        pt: 'Projetos',
+        la: 'Opera'
+    },
+    'detailed_analysis.certifications': {
+        en: 'Certifications',
+        es: 'Certificaciones',
+        fr: 'Certifications',
+        de: 'Zertifizierungen',
+        pt: 'Certificações',
+        la: 'Certificationes'
+    },
+    'detailed_analysis.languages': {
+        en: 'Languages',
+        es: 'Idiomas',
+        fr: 'Langues',
+        de: 'Sprachen',
+        pt: 'Idiomas',
+        la: 'Linguae'
+    },
+    'detailed_analysis.derived_features': {
+        en: 'Derived Insights',
+        es: 'Perspectivas Derivadas',
+        fr: 'Insights Dérivés',
+        de: 'Abgeleitete Erkenntnisse',
+        pt: 'Insights Derivados',
+        la: 'Perspectiones Derivatae'
+    },
+    'detailed_analysis.experience_metrics': {
+        en: 'Experience Metrics',
+        es: 'Métricas de Experiencia',
+        fr: 'Métriques d\'Expérience',
+        de: 'Erfahrungskennzahlen',
+        pt: 'Métricas de Experiência',
+        la: 'Metricae Experientiae'
+    },
+    'detailed_analysis.years_experience': {
+        en: 'Years Experience',
+        es: 'Años de Experiencia',
+        fr: 'Années d\'Expérience',
+        de: 'Jahre Erfahrung',
+        pt: 'Anos de Experiência',
+        la: 'Anni Experientiae'
+    },
+    'detailed_analysis.positions': {
+        en: 'Positions',
+        es: 'Puestos',
+        fr: 'Postes',
+        de: 'Positionen',
+        pt: 'Posições',
+        la: 'Officia'
+    },
+    'detailed_analysis.education_entries': {
+        en: 'Education Entries',
+        es: 'Entradas de Educación',
+        fr: 'Entrées d\'Éducation',
+        de: 'Bildungseinträge',
+        pt: 'Entradas de Educação',
+        la: 'Introitus Educationis'
+    },
+    'detailed_analysis.skills_count': {
+        en: 'Skills',
+        es: 'Habilidades',
+        fr: 'Compétences',
+        de: 'Fähigkeiten',
+        pt: 'Habilidades',
+        la: 'Artes'
+    },
+    'detailed_analysis.quantified_results': {
+        en: 'Quantified Results',
+        es: 'Resultados Cuantificados',
+        fr: 'Résultats Quantifiés',
+        de: 'Quantifizierte Ergebnisse',
+        pt: 'Resultados Quantificados',
+        la: 'Resultata Quantificata'
+    },
+    'detailed_analysis.quantified_count': {
+        en: 'Quantified achievements found',
+        es: 'Logros cuantificados encontrados',
+        fr: 'Réalisations quantifiées trouvées',
+        de: 'Quantifizierte Erfolge gefunden',
+        pt: 'Conquistas quantificadas encontradas',
+        la: 'Praestantiae quantificatae inventae'
+    },
+    'detailed_analysis.timeline_gaps': {
+        en: 'Timeline Gaps',
+        es: 'Brechas en la Línea de Tiempo',
+        fr: 'Lacunes Chronologiques',
+        de: 'Zeitliche Lücken',
+        pt: 'Lacunas na Linha do Tempo',
+        la: 'Lacunae Temporis'
+    },
+    'detailed_analysis.months': {
+        en: 'months',
+        es: 'meses',
+        fr: 'mois',
+        de: 'Monate',
+        pt: 'meses',
+        la: 'menses'
+    },
+    'detailed_analysis.between': {
+        en: 'Between',
+        es: 'Entre',
+        fr: 'Entre',
+        de: 'Zwischen',
+        pt: 'Entre',
+        la: 'Inter'
+    },
+    'detailed_analysis.tenure_analysis': {
+        en: 'Tenure Analysis',
+        es: 'Análisis de Permanencia',
+        fr: 'Analyse de la Durée',
+        de: 'Beschäftigungsdaueranalyse',
+        pt: 'Análise de Permanência',
+        la: 'Analysis Durationis'
+    },
+    'detailed_analysis.avg_tenure': {
+        en: 'Average Tenure',
+        es: 'Permanencia Promedio',
+        fr: 'Durée Moyenne',
+        de: 'Durchschnittliche Beschäftigungsdauer',
+        pt: 'Permanência Média',
+        la: 'Duratio Media'
+    },
+    'detailed_analysis.shortest_tenure': {
+        en: 'Shortest Tenure',
+        es: 'Permanencia Más Corta',
+        fr: 'Durée la Plus Courte',
+        de: 'Kürzeste Beschäftigungsdauer',
+        pt: 'Menor Permanência',
+        la: 'Duratio Brevissima'
+    },
+    'detailed_analysis.longest_tenure': {
+        en: 'Longest Tenure',
+        es: 'Permanencia Más Larga',
+        fr: 'Durée la Plus Longue',
+        de: 'Längste Beschäftigungsdauer',
+        pt: 'Maior Permanência',
+        la: 'Duratio Longissima'
+    },
+    'detailed_analysis.job_hopping_warning': {
+        en: 'Frequent job changes detected',
+        es: 'Cambios frecuentes de trabajo detectados',
+        fr: 'Changements d\'emploi fréquents détectés',
+        de: 'Häufige Jobwechsel erkannt',
+        pt: 'Mudanças frequentes de emprego detectadas',
+        la: 'Mutationes operis frequentes detectae'
+    },
+    'detailed_analysis.completeness_flags': {
+        en: 'Completeness',
+        es: 'Completitud',
+        fr: 'Complétude',
+        de: 'Vollständigkeit',
+        pt: 'Completude',
+        la: 'Integritas'
+    },
+    'detailed_analysis.contact_info': {
+        en: 'Contact Info',
+        es: 'Información de Contacto',
+        fr: 'Coordonnées',
+        de: 'Kontaktinformationen',
+        pt: 'Informações de Contato',
+        la: 'Informationes Contactus'
+    },
+    'detailed_analysis.summary': {
+        en: 'Summary',
+        es: 'Resumen',
+        fr: 'Résumé',
+        de: 'Zusammenfassung',
+        pt: 'Resumo',
+        la: 'Summarium'
+    },
+    'detailed_analysis.experience': {
+        en: 'Experience',
+        es: 'Experiencia',
+        fr: 'Expérience',
+        de: 'Erfahrung',
+        pt: 'Experiência',
+        la: 'Experientia'
+    },
+    'detailed_analysis.education_flag': {
+        en: 'Education',
+        es: 'Educación',
+        fr: 'Formation',
+        de: 'Ausbildung',
+        pt: 'Educação',
+        la: 'Educatio'
+    },
+    'detailed_analysis.skills_flag': {
+        en: 'Skills',
+        es: 'Habilidades',
+        fr: 'Compétences',
+        de: 'Fähigkeiten',
+        pt: 'Habilidades',
+        la: 'Artes'
+    },
+    'detailed_analysis.assessments': {
+        en: 'Visual Assessments',
+        es: 'Evaluaciones Visuales',
+        fr: 'Évaluations Visuelles',
+        de: 'Visuelle Bewertungen',
+        pt: 'Avaliações Visuais',
+        la: 'Aestimationes Visuales'
+    },
+    'detailed_analysis.layout_assessment': {
+        en: 'Layout',
+        es: 'Diseño',
+        fr: 'Mise en Page',
+        de: 'Layout',
+        pt: 'Layout',
+        la: 'Dispositio'
+    },
+    'detailed_analysis.typography_assessment': {
+        en: 'Typography',
+        es: 'Tipografía',
+        fr: 'Typographie',
+        de: 'Typografie',
+        pt: 'Tipografia',
+        la: 'Typographia'
+    },
+    'detailed_analysis.readability_assessment': {
+        en: 'Readability',
+        es: 'Legibilidad',
+        fr: 'Lisibilité',
+        de: 'Lesbarkeit',
+        pt: 'Legibilidade',
+        la: 'Legibilitas'
+    },
+    'detailed_analysis.image_quality_notes': {
+        en: 'Image Quality Notes',
+        es: 'Notas de Calidad de Imagen',
+        fr: 'Notes sur la Qualité de l\'Image',
+        de: 'Hinweise zur Bildqualität',
+        pt: 'Notas de Qualidade da Imagem',
+        la: 'Notae Qualitatis Imaginis'
+    },
+    'detailed_analysis.no_visual_analysis': {
+        en: 'Visual analysis not available for this CV. This may be because the CV was uploaded as text only or the visual analysis service is unavailable.',
+        es: 'El análisis visual no está disponible para este CV. Esto puede deberse a que el CV se cargó solo como texto o el servicio de análisis visual no está disponible.',
+        fr: 'L\'analyse visuelle n\'est pas disponible pour ce CV. Cela peut être dû au fait que le CV a été téléchargé uniquement en texte ou que le service d\'analyse visuelle est indisponible.',
+        de: 'Visuelle Analyse für diesen Lebenslauf nicht verfügbar. Dies kann daran liegen, dass der Lebenslauf nur als Text hochgeladen wurde oder der visuelle Analysedienst nicht verfügbar ist.',
+        pt: 'Análise visual não disponível para este CV. Isso pode ser porque o CV foi enviado apenas como texto ou o serviço de análise visual está indisponível.',
+        la: 'Analysis visualis pro hoc curriculo non praesto est. Hoc fieri potest quia curriculum solum ut textus sublatum est aut servitium analysis visualis non praesto est.'
+    },
+    'detailed_analysis.first': {
+        en: 'First',
+        es: 'Primera',
+        fr: 'Première',
+        de: 'Erste',
+        pt: 'Primeira',
+        la: 'Prima'
+    },
+    'detailed_analysis.second': {
+        en: 'Second',
+        es: 'Segunda',
+        fr: 'Deuxième',
+        de: 'Zweite',
+        pt: 'Segunda',
+        la: 'Secunda'
+    },
+    'detailed_analysis.third': {
+        en: 'Third',
+        es: 'Tercera',
+        fr: 'Troisième',
+        de: 'Dritte',
+        pt: 'Terceira',
+        la: 'Tertia'
+    },
+    'detailed_analysis.fourth': {
+        en: 'Fourth',
+        es: 'Cuarta',
+        fr: 'Quatrième',
+        de: 'Vierte',
+        pt: 'Quarta',
+        la: 'Quarta'
+    },
+    'detailed_analysis.fifth': {
+        en: 'Fifth',
+        es: 'Quinta',
+        fr: 'Cinquième',
+        de: 'Fünfte',
+        pt: 'Quinta',
+        la: 'Quinta'
+    },
+    'detailed_analysis.ordinal_suffix': {
+        en: 'th',
+        es: 'ª',
+        fr: 'ème',
+        de: 'te',
+        pt: 'ª',
+        la: 'a'
+    },
+    'detailed_analysis.date_issues': {
+        en: 'Date Format Issues',
+        es: 'Problemas de Formato de Fecha',
+        fr: 'Problèmes de Format de Date',
+        de: 'Datumsformatprobleme',
+        pt: 'Problemas de Formato de Data',
+        la: 'Problema Formati Temporis'
+    },
+    'detailed_analysis.validation_warnings': {
+        en: 'Validation Warnings',
+        es: 'Advertencias de Validación',
+        fr: 'Avertissements de Validation',
+        de: 'Validierungswarnungen',
+        pt: 'Avisos de Validação',
+        la: 'Admonitiones Validationis'
+    },
+    'detailed_analysis.timeline_overlaps': {
+        en: 'Timeline Overlaps',
+        es: 'Superposiciones en la Línea de Tiempo',
+        fr: 'Chevauchements Chronologiques',
+        de: 'Zeitliche Überschneidungen',
+        pt: 'Sobreposições na Linha do Tempo',
+        la: 'Superpositiones Temporis'
+    },
+    'profile_hub.view_analysis': {
+        en: 'View Analysis',
+        es: 'Ver Análisis',
+        fr: 'Voir l\'Analyse',
+        de: 'Analyse Anzeigen',
+        pt: 'Ver Análise',
+        la: 'Videre Analysim'
     }
 };
 

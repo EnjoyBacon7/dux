@@ -2,30 +2,27 @@ import logging
 import json
 from typing import Optional, Dict, Any, List
 from pathlib import Path
+from server.config import settings
+from server.utils.llm import call_llm_async, call_llm_sync, extract_response_content, parse_json_response
 from openai import OpenAI, APIError
 from server.config import settings
 from server.thread_pool import run_blocking_in_executor
+from server.utils.prompts import load_prompt_template
 
 logger = logging.getLogger(__name__)
 
 # ============================================================================
-# OpenAI Configuration and Client Management
+# Deprecated: Old functions kept for backwards compatibility
 # ============================================================================
+# These are now delegated to the unified LLM interface in server.utils.llm
+# They are maintained here for backwards compatibility with existing code.
 
 
-def get_openai_client(base_url: Optional[str] = None, api_key: Optional[str] = None) -> OpenAI:
+def get_openai_client(base_url: Optional[str] = None, api_key: Optional[str] = None):
     """
-    Get OpenAI client with configured API key and optional base_url
+    Deprecated: Use server.utils.openai_client.create_openai_client() instead.
 
-    Args:
-        base_url: Optional custom base URL (defaults to settings.openai_base_url)
-        api_key: Optional custom API key (defaults to settings.openai_api_key)
-
-    Returns:
-        OpenAI: Configured OpenAI client instance
-
-    Raises:
-        ValueError: If OPENAI_API_KEY is not configured
+    This function is kept for backwards compatibility only.
     """
     api_key = api_key or settings.openai_api_key
     base_url = base_url or settings.openai_base_url
@@ -117,10 +114,18 @@ def _parse_json_response(content: str, json_array: bool = False) -> Dict[str, An
 
 def _build_usage_dict(response: Any) -> Dict[str, int]:
     """Build usage statistics dictionary from API response."""
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        logger.warning("LLM response missing usage; defaulting token counts to zero.")
+        return {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
     return {
-        "prompt_tokens": response.usage.prompt_tokens,
-        "completion_tokens": response.usage.completion_tokens,
-        "total_tokens": response.usage.total_tokens
+        "prompt_tokens": usage.prompt_tokens,
+        "completion_tokens": usage.completion_tokens,
+        "total_tokens": usage.total_tokens,
     }
 
 
@@ -134,26 +139,6 @@ def _build_usage_dict(response: Any) -> Dict[str, int]:
 # ============================================================================
 
 
-def _load_prompt_template(template_name: str) -> str:
-    """
-    Load a prompt template from the prompts directory.
-
-    Args:
-        template_name: Name of the template file (without .txt extension)
-
-    Returns:
-        Template content as string
-
-    Raises:
-        FileNotFoundError: If template file doesn't exist
-    """
-    prompts_dir = Path(__file__).parent.parent / "prompts"
-    template_path = prompts_dir / f"{template_name}.txt"
-
-    if not template_path.exists():
-        raise FileNotFoundError(f"Prompt template not found: {template_path}")
-
-    return template_path.read_text(encoding="utf-8")
 
 
 def _validate_cv_text(cv_text: str) -> None:
@@ -184,121 +169,6 @@ def _validate_job_offers(job_offers: List[Dict[str, Any]]) -> None:
         raise ValueError("No job offers provided to rank.")
 
 
-def _call_openai_sync(
-    prompt: str,
-    system_content: str,
-    temperature: float = 0.7,
-    max_tokens: int = 2000
-) -> Dict[str, Any]:
-    """
-    Synchronous wrapper for OpenAI API call (runs in thread pool).
-
-    This is the blocking operation that needs to run in a thread to avoid
-    blocking the event loop.
-
-    Args:
-        prompt: User message
-        system_content: System message
-        temperature: Model temperature
-        max_tokens: Max tokens for response (capped to avoid context overflows)
-
-    Returns:
-        Response from OpenAI API
-    """
-    model = settings.openai_model
-    client = get_openai_client()
-
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=temperature,
-        max_tokens=max_tokens
-    )
-
-    return response
-
-
-async def _call_llm(
-    prompt: str,
-    system_content: str,
-    temperature: float = 0.7,
-    max_tokens: int = 2000,
-    parse_json: bool = False,
-    json_array: bool = False
-) -> Dict[str, Any]:
-    """
-    Make a call to the LLM with common error handling and response parsing.
-
-    This is the core LLM interaction function used by all higher-level APIs.
-    It handles:
-    - Client initialization
-    - API calls with retry logic
-    - Response validation
-    - Content extraction from reasoning models
-    - Optional JSON parsing
-    - Usage statistics tracking
-
-    Args:
-        prompt: User message content
-        system_content: System message content
-        temperature: Model temperature parameter (default: 0.7)
-        max_tokens: Maximum tokens for response (default: 2000)
-        parse_json: Whether to parse response as JSON (default: False)
-        json_array: Whether to extract JSON array vs object (default: False)
-
-    Returns:
-        Dict with keys:
-        - success: bool (always True on success)
-        - data: Parsed/unparsed response content
-        - model: Model name used
-        - usage: Token usage statistics
-
-    Raises:
-        ValueError: If LLM call fails or response is invalid
-    """
-    model = settings.openai_model
-
-    try:
-        # Run blocking OpenAI API call in thread pool
-        response = await run_blocking_in_executor(
-            _call_openai_sync,
-            prompt,
-            system_content,
-            temperature,
-            max_tokens
-        )
-
-        if not response.choices or len(response.choices) == 0:
-            logger.error("No choices returned from LLM")
-            raise ValueError("No response from LLM")
-
-        choice = response.choices[0]
-        content = _extract_response_content(choice)
-
-        result_data = content
-        if parse_json:
-            result_data = _parse_json_response(content, json_array)
-
-        return {
-            "success": True,
-            "data": result_data,
-            "model": model,
-            "usage": _build_usage_dict(response)
-        }
-
-    except APIError as e:
-        logger.error(f"OpenAI API error: {str(e)}")
-        raise ValueError(f"LLM service error: {str(e)}")
-    except ValueError:
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in LLM call: {str(e)}")
-        raise
-
-
 # ============================================================================
 # France Travail Job Search API
 # ============================================================================
@@ -319,7 +189,7 @@ def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None)
         Formatted prompt for the LLM
     """
     try:
-        base_prompt = _load_prompt_template("FT_search")
+        base_prompt = load_prompt_template("FT_search")
     except FileNotFoundError:
         logger.warning("FT_search template not found, using fallback")
         base_prompt = """You are a job search parameter optimizer for the France Travail API.
@@ -365,7 +235,7 @@ async def identify_ft_parameters(
 
     try:
         prompt = create_ft_parameters_prompt(cv_text, preferences)
-        result = await _call_llm(
+        result = await call_llm_async(
             prompt=prompt,
             system_content="You are an expert job search optimizer specializing in France Travail API parameters. You output only valid JSON objects with no additional text or explanation.",
             temperature=0.5,
@@ -434,7 +304,28 @@ def create_job_ranking_prompt(
     Returns:
         Formatted prompt for the LLM
     """
-    template = _load_prompt_template("job_ranking")
+    try:
+        template = load_prompt_template("job_ranking")
+    except FileNotFoundError:
+        logger.warning("job_ranking template not found, using fallback")
+        template = """You are a job matching and ranking expert.
+
+Analyze the provided job offers and rank them based on how well they match the user's CV and preferences.
+
+## USER'S CV
+
+{cv_text}
+
+{preferences}## JOB OFFERS TO RANK
+
+{offers_text}
+
+## YOUR TASK
+
+Rank and score the top {top_k} job offers that best match the user's profile.
+Return a JSON object with ranked offers, scores, and match reasons.
+Only return the JSON object, no additional text."""
+    
     offers_text = _format_job_offers_for_analysis(job_offers)
 
     preferences_section = ""
@@ -484,7 +375,7 @@ async def rank_job_offers(
 
     try:
         prompt = create_job_ranking_prompt(cv_text, job_offers, preferences, top_k)
-        result = await _call_llm(
+        result = await call_llm_async(
             prompt=prompt,
             system_content="You are an expert job matching analyst. Analyze CVs and job offers to identify the best matches. Return only valid JSON with no additional text.",
             temperature=0.5,
