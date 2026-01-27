@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
-from models import Offres_FT
+from server.models import Offres_FT
 import os
 from dotenv import load_dotenv
 import json

@@ -1,23 +1,54 @@
 import React, { useState } from "react";
 import { useLanguage } from "../contexts/useLanguage";
 import "./jobOffersCard.css";
+import OfferBox from "./OfferBox";
+import JobDetail from "./JobDetail";
+import type { JobOffer, JobMatchMetadata } from "../types/job";
 
-interface JobOffer {
-    position: number;
-    title: string;
-    company: string;
-    location: string;
-    score: number;
-    match_reasons: string[];
-    concerns?: string[];
-}
+// Merged type with both job data and match metadata
+type DisplayOffer = JobOffer & JobMatchMetadata;
 
 const JobOffersCard: React.FC = () => {
     const { t } = useLanguage();
-    const [offers, setOffers] = useState<JobOffer[]>([]);
+    const [offers, setOffers] = useState<DisplayOffer[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedOffer, setSelectedOffer] = useState<DisplayOffer | null>(null);
+
+    // Fetch full job data by job_id
+    const fetchJobData = async (job_id: string): Promise<JobOffer | null> => {
+        try {
+            const response = await fetch(`/api/jobs/offer/${job_id}`, {
+                credentials: "include",
+            });
+            if (!response.ok) {
+                console.error(`Failed to fetch job data for ${job_id}`);
+                return null;
+            }
+            const data = await response.json();
+            return data.offer;
+        } catch (err) {
+            console.error(`Error fetching job data for ${job_id}:`, err);
+            return null;
+        }
+    };
+
+    // Merge optimal offer metadata with full job data
+    const mergeOfferData = async (optimalOffer: any): Promise<DisplayOffer> => {
+        if (!optimalOffer.job_id) {
+            return optimalOffer as DisplayOffer;
+        }
+
+        const jobData = await fetchJobData(optimalOffer.job_id);
+        if (jobData) {
+            return {
+                ...jobData,
+                ...optimalOffer, // Preserve optimal offer metadata
+            } as DisplayOffer;
+        }
+        return optimalOffer as DisplayOffer;
+    };
 
     const generateOffers = async () => {
         setLoading(true);
@@ -37,7 +68,11 @@ const JobOffersCard: React.FC = () => {
 
             const data = await response.json();
             if (data.offers && Array.isArray(data.offers)) {
-                setOffers(data.offers);
+                // Fetch full job data for each offer
+                const mergedOffers = await Promise.all(
+                    data.offers.map((offer: any) => mergeOfferData(offer))
+                );
+                setOffers(mergedOffers);
                 setCurrentIndex(0);
             }
         } catch (err: unknown) {
@@ -92,22 +127,40 @@ const JobOffersCard: React.FC = () => {
                         </button>
 
                         <div className="carousel-content">
-                            <div className="offer-card">
+                            <div className="nb-card" style={{ width: '100%' }}>
                                 {(() => {
                                     const offer = offers[currentIndex];
                                     return (
                                         <>
-                                            <div className="offer-header">
-                                                <h3 className="offer-title">{offer.title}</h3>
-                                                <div className="offer-score">{offer.score}</div>
-                                            </div>
-                                            <p className="offer-company">{offer.company}</p>
-                                            <p className="offer-location">{offer.location}</p>
+                                            {/* Use standard offer box layout - same as JobSearch */}
+                                            <OfferBox
+                                                title={offer.intitule || t('jobs.untitled')}
+                                                company={offer.entreprise_nom ?? undefined}
+                                                location={offer.lieuTravail_libelle ?? undefined}
+                                                contractType={offer.typeContratLibelle ?? undefined}
+                                                date={offer.dateActualisation || offer.dateCreation || undefined}
+                                                salary={offer.salaire_libelle ?? undefined}
+                                                showViewButton={false}
+                                                onClick={() => setSelectedOffer(offer)}
+                                            />
 
+                                            {/* Match score badge */}
+                                            <div className="offer-score-badge" style={{
+                                                marginTop: '0.75rem',
+                                                padding: '0.5rem',
+                                                backgroundColor: 'var(--nb-accent)',
+                                                borderRadius: '4px',
+                                                textAlign: 'center',
+                                                fontWeight: 600
+                                            }}>
+                                                {t('jobs.match_score')}: {offer.score}/100
+                                            </div>
+
+                                            {/* Why match / concerns sections below the standard box */}
                                             <div className="offer-section">
                                                 <h4 className="offer-label">{t('jobs.why_match')}</h4>
                                                 <ul className="offer-list">
-                                                    {offer.match_reasons.map((reason, i) => (
+                                                    {offer.match_reasons.map((reason: string, i: number) => (
                                                         <li key={i}>{reason}</li>
                                                     ))}
                                                 </ul>
@@ -117,7 +170,7 @@ const JobOffersCard: React.FC = () => {
                                                 <div className="offer-section">
                                                     <h4 className="offer-label offer-label--concern">{t('jobs.concerns')}</h4>
                                                     <ul className="offer-list">
-                                                        {offer.concerns.map((concern, i) => (
+                                                        {offer.concerns.map((concern: string, i: number) => (
                                                             <li key={i}>{concern}</li>
                                                         ))}
                                                     </ul>
@@ -154,6 +207,14 @@ const JobOffersCard: React.FC = () => {
                 <button onClick={generateOffers} className="nb-btn nb-btn--ghost nb-mt">
                     {t('jobs.refresh_offers')}
                 </button>
+            )}
+
+            {/* Use JobDetail for the selected offer - same component as JobSearch */}
+            {selectedOffer && (
+                <JobDetail
+                    job={selectedOffer}
+                    onClose={() => setSelectedOffer(null)}
+                />
             )}
         </div>
     );

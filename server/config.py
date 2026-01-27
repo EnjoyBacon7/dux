@@ -77,11 +77,18 @@ class Settings(BaseSettings):
     ft_api_url_offres: str = ""
     ft_api_url_fiche_metier: str = ""
     ft_api_url_code_metier: str = ""
+    ft_api_url_fiche_competence: str = ""
+    ft_api_url_code_competence: str = ""
 
     # LLM Configuration
     openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
-    openai_base_url: str = "https://api.openai.com/v1"
+    openai_model: str = ""
+    openai_base_url: str = ""
+
+    # VLM Configuration (hosted API)
+    vlm_key: str = ""
+    vlm_model: str = "Qwen2.5-VL-7B-Instruct"
+    vlm_base_url: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

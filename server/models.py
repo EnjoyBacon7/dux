@@ -217,42 +217,33 @@ class Offres_FT(Base):
     def __repr__(self):
         return f"<Offres_FT(id={self.id})>"
 
+
 class Metier_ROME(Base):
     __tablename__ = "metier_rome"
-    
+
     code = Column(String, primary_key=True, index=True)
     libelle = Column(String, nullable=True)
-    accesEmploi = Column(Text, nullable=True)
-    appellations = Column(JSON, nullable=True)  # Array of appellations
-    centresInteretsLies = Column(JSON, nullable=True)  # Array of related interests
-    competencesMobilisees = Column(JSON, nullable=True)  # Array of competencies
-    contextesTravail = Column(JSON, nullable=True)  # Array of work contexts
-    definition = Column(Text, nullable=True)
-    domaineProfessionnel = Column(JSON, nullable=True)  # Professional domain
-    metiersEnProximite = Column(JSON, nullable=True)  # Array of related professions
-    secteursActivitesLies = Column(JSON, nullable=True)  # Array of related activity
-    themes = Column(JSON, nullable=True)  # Array of themes
-    transitionEcologique = Column(Boolean, nullable=True)  # Ecological transition info
-    transitionNumerique = Column(Boolean, nullable=True)  # Digital transition info
-    transitionDemographique = Column(Boolean, nullable=True)  # Demographic transition info
-    emploiCadre = Column(Boolean, nullable=True)
-    emploiReglemente = Column(Boolean, nullable=True)
-    nb_offre = Column(Integer, nullable=True)
-    liste_salaire_offre = Column(ARRAY(Float), nullable=True)
 
     def __repr__(self):
         return f"<Metier_ROME(code={self.code})>"
     
-    
+class Competence_ROME(Base):
+    __tablename__ = "competence_rome"
+
+    code = Column(String, primary_key=True, index=True)
+    libelle = Column(String, nullable=True)
+
+    def __repr__(self):
+        return f"<Competence_ROME(code={self.code})>"
+
+
 class OptimalOffer(Base):
     __tablename__ = "optimal_offers"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     position = Column(Integer, nullable=False)
-    title = Column(String, nullable=False)
-    company = Column(String, nullable=True)  # Nullable as France Travail API may not provide company info
-    location = Column(String, nullable=True)  # Nullable as France Travail API may not provide location
+    job_id = Column(String, nullable=False)  # France Travail offer ID (required)
     score = Column(Integer, nullable=False)
     match_reasons = Column(ARRAY(String), nullable=False)
     concerns = Column(ARRAY(String), nullable=True)
@@ -263,7 +254,7 @@ class OptimalOffer(Base):
     user = relationship("User", back_populates="optimal_offers")
 
     def __repr__(self):
-        return f"<OptimalOffer(id={self.id}, user_id={self.user_id}, title={self.title})>"
+        return f"<OptimalOffer(id={self.id}, user_id={self.user_id}, job_id={self.job_id})>"
 
 
 class CVEvaluation(Base):
@@ -296,13 +287,14 @@ class CVEvaluation(Base):
     structured_cv = Column(JSON, nullable=True)
     derived_features = Column(JSON, nullable=True)
     full_scores = Column(JSON, nullable=True)
+    visual_analysis = Column(JSON, nullable=True)  # VLM visual analysis results
 
     # Metadata
     cv_filename = Column(String, nullable=True)  # CV filename at time of evaluation
     evaluation_id = Column(String, nullable=True)  # Pipeline evaluation ID
     processing_time_seconds = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Status tracking
     evaluation_status = Column(String, nullable=True, default="completed")  # "completed", "failed", "pending"
     error_message = Column(Text, nullable=True)  # Error message if evaluation failed

@@ -26,13 +26,45 @@ const WelcomeCard: React.FC = () => {
     return (
         <div className="nb-card home-card welcome-card">
             <h1 className="home-title">{t('home.welcome')}</h1>
-            <p className="nb-text-dim">{t('home.authenticated')}</p>
+            <p className="nb-text-dim" style={{ marginBottom: '1rem' }}>{t('home.welcome_intro')}</p>
+
+            <div style={{
+                display: 'grid',
+                gap: '0.75rem',
+                marginBottom: '1.5rem',
+                fontSize: '0.9rem'
+            }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.2rem', minWidth: '1.5rem' }}>📄</span>
+                    <div>
+                        <strong>{t('home.feature_cv_title')}</strong>
+                        <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8 }}>{t('home.feature_cv_desc')}</p>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.2rem', minWidth: '1.5rem' }}>🎯</span>
+                    <div>
+                        <strong>{t('home.feature_jobs_title')}</strong>
+                        <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8 }}>{t('home.feature_jobs_desc')}</p>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.2rem', minWidth: '1.5rem' }}>⚡</span>
+                    <div>
+                        <strong>{t('home.feature_analysis_title')}</strong>
+                        <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8 }}>{t('home.feature_analysis_desc')}</p>
+                    </div>
+                </div>
+            </div>
+
             <div className="home-actions">
                 <button
                     onClick={() => navigate('/jobs')}
                     className="nb-btn"
                 >
-                    {t('jobs.title')}
+                    {t('home.explore_jobs')}
                 </button>
             </div>
         </div>

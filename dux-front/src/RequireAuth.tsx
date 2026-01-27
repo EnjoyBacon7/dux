@@ -18,11 +18,14 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return <Navigate to="/login" replace />;
     }
 
-    // Redirect to setup if profile is not complete, unless already on setup page
-    if (!user.profile_setup_completed && location.pathname !== '/setup') {
+    // Redirect to setup if CV is missing, unless already on setup page
+    if (!user.cv_filename && location.pathname !== '/setup') {
         return <Navigate to="/setup" replace />;
     }
-
+    // Redirect to home if CV exists and user tries to access setup page
+    if (user.cv_filename && location.pathname === '/setup') {
+        return <Navigate to="/" replace />;
+    }
     return <>{children}</>;
 };
 

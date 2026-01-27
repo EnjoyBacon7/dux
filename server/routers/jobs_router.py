@@ -6,14 +6,15 @@ and managing job-related data.
 """
 
 import logging
+import random
 import requests
 import re
+import time
 
 from fastapi import APIRouter, Query, Depends
 from server.config import settings
-from server.models import Metier_ROME, User, Offres_FT
+from server.models import Metier_ROME, User, Offres_FT, Competence_ROME
 from server.database import get_db_session
-from server.methods.job_search import search_job_offers
 import json
 from typing import Optional, Dict, Any, List, Union, Tuple
 
@@ -39,57 +40,16 @@ def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: s
         "scope": scope
     }
     params = {"realm": "/partenaire"}
-
-    resp = requests.post(AUTH_URL, data=data, params=params, timeout = 30)
+    resp = requests.post(AUTH_URL, data=data, params=params, timeout=30)
     resp.raise_for_status()
     token = resp.json()["access_token"]
 
     return token
 
+
 def get_offers(code_rome: str) -> dict:
-    FT_CLIENT_ID = settings.ft_client_id
-    FT_CLIENT_SECRET = settings.ft_client_secret
-    FT_AUTH_URL = settings.ft_auth_url
-    FT_API_OFFRES_URL = settings.ft_api_url_offres
-
-    # Récupère un token OAuth2 en mode client_credentials.
-
-    token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/json"
-    }
-
-    resultat = []
-    # Getting the list of offers for the given ROME code
-    page = 0
-    while len(resultat) % 150 == 0 and page < 20:
-        try:
-            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers, timeout=30)
-            resp.raise_for_status()
-        except:
-            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_offresdemploiv2 o2dsoffre")
-
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json"
-            }
-            resp = requests.get(FT_API_OFFRES_URL + f"?codeROME={code_rome}&range={page * 150}-{page * 150 + 149}", headers=headers, timeout=30)
-            resp.raise_for_status()
-
-        try:
-            data = resp.json()
-        except:
-            data = {"resultats": []}
-        
-        if len(data.get("resultats", [])) == 0:
-            break
-
-        resultat += data.get("resultats", [])
-        page += 1
-
-    return resultat
+    # Reuse centralized France Travail client with built-in retries/pagination
+    return search_france_travail({"codeROME": code_rome}, nb_offres=300)
 
 
 def _to_float(s: str) -> float:
@@ -215,7 +175,7 @@ def calcul_salaire(texte_salaire: Optional[str], texte_heure: Optional[str]) -> 
     dispatch = {
         "mensuel": lambda: _parse_mensuel(ts),
         "horaire": lambda: _parse_horaire(ts, texte_heure),
-        "annuel":  lambda: _parse_annuel(ts),
+        "annuel": lambda: _parse_annuel(ts),
     }
 
     try:
@@ -311,48 +271,40 @@ def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 logger = logging.getLogger(__name__)
 
+def _get_with_retry(
+    url: str,
+    headers: Dict[str, str],
+    timeout: int,
+    max_retries: int = 5,
+    base_delay: float = 1.0,
+) -> requests.Response:
+    for attempt in range(max_retries + 1):
+        resp = requests.get(url, headers=headers, timeout=timeout)
+        if resp.status_code != 429:
+            return resp
+        if attempt >= max_retries:
+            logger.error("FT API rate limit exceeded after %s retries for %s", max_retries, url)
+            resp.raise_for_status()
+        delay = base_delay * (2 ** attempt) + random.uniform(0, base_delay)
+        logger.warning(
+            "FT API rate limit hit (attempt %s/%s). Retrying in %.2fs for %s",
+            attempt + 1,
+            max_retries,
+            delay,
+            url,
+        )
+        time.sleep(delay)
+
 # ============================================================================
 # Job Search Endpoints
 # ============================================================================
 
 
-@router.get("/search", summary="Search job offers from db")
-def search_jobs(
-    q: str = Query(None, description="Search query"),
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(20, ge=1, le=100, description="Results per page"),
-    db: Session = Depends(get_db_session)
-) -> Dict[str, Any]:
-    """
-    Search job offers from the local database with text search and pagination.
-
-    Performs full-text search across job titles, descriptions, locations,
-    company names, and other relevant fields.
-
-    Args:
-        q: Search query string
-        page: Page number for pagination (default: 1)
-        page_size: Number of results per page (default: 20, max: 100)
-        db: Database session
-
-    Returns:
-        dict: Search results with pagination info and list of matching offers
-
-    Raises:
-        Returns error dict if search fails
-    """
-    try:
-        result = search_job_offers(db, query=q, page=page, page_size=page_size)
-        return result
-    except Exception as e:
-        logger.error(f"Error searching jobs: {e}")
-        return {"error": str(e), "results": [], "page": page, "page_size": page_size, "total": 0}
-
-
 @router.post("/load_offers", summary="Load offers from France Travail API")
 async def load_offers(
     nb_offres: int = Query(150, description="Nombre d'offres à récupérer"),
-    accesTravailleurHandicape: bool = Query(None, description="Offres ouvertes aux Bénéficiaires de l'Obligation d'Emploi"),
+    accesTravailleurHandicape: bool = Query(
+        None, description="Offres ouvertes aux Bénéficiaires de l'Obligation d'Emploi"),
     appellation: str = Query(None, description="Code appellation ROME de l'offre"),
     codeNAF: str = Query(None, description="Code NAF (Code APE) de l'offre"),
     codeROME: str = Query(None, description="Code ROME de l'offre"),
@@ -365,8 +317,10 @@ async def load_offers(
     dureeHebdo: str = Query(None, description="Type de durée du contrat de l'offre"),
     dureeHebdoMax: str = Query(None, description="Durée hebdomadaire maximale (format HHMM)"),
     dureeHebdoMin: str = Query(None, description="Durée hebdomadaire minimale (format HHMM)"),
-    employeursHandiEngages: bool = Query(None, description="Filtre les offres dont l'employeur est reconnu pour ses actions en faveur du handicap"),
-    entreprisesAdaptees: bool = Query(None, description="Filtre les offres dont l'entreprise permet des conditions adaptées au handicap"),
+    employeursHandiEngages: bool = Query(
+        None, description="Filtre les offres dont l'employeur est reconnu pour ses actions en faveur du handicap"),
+    entreprisesAdaptees: bool = Query(
+        None, description="Filtre les offres dont l'entreprise permet des conditions adaptées au handicap"),
     experience: str = Query(None, description="Niveau d'expérience demandé"),
     experienceExigence: str = Query(None, description="Exigence d'expérience"),
     grandDomaine: str = Query(None, description="Code du grand domaine de l'offre"),
@@ -461,10 +415,92 @@ async def load_offers(
     except Exception as e:
         logger.error(f"Error loading offers: {e}")
         return {"error": str(e)}
-
-
+    
 @router.post("/load_fiche_metier", summary="Load fiche metier from France Travail API (ROME)")
-def load_fiche_metier():
+def load_fiche_metier(
+        codeROME: str = Query("A1413", description="Code ROME Offre à récupérer")
+    ):
+
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
+    try:
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL_METIER = settings.ft_api_url_fiche_metier
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+        
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobiliseesprincipales(libelle,@macrosavoiretreprofessionnel(riasecmineur,riasecmajeur),@competencedetaillee(riasecmineur,riasecmajeur),code,@macrosavoirfaire(riasecmineur,riasecmajeur),codeogr),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+
+        try:
+            resp = _get_with_retry(
+                FT_API_URL_METIER + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            # Getting offers info from france travail API
+            liste_offres = get_offers(codeROME)
+            salaire = []
+            for offre in liste_offres:
+                salaire_obj = offre.get('salaire') or {}
+                salaire.append(calcul_salaire(
+                    salaire_obj.get('libelle'),
+                    offre.get('dureeTravailLibelle')
+                ))
+        except (requests.RequestException, KeyError) as e:
+            logger.warning("Initial fiche metier request failed, retrying with new token: %s", e)
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = _get_with_retry(
+                FT_API_URL_METIER + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+            # Getting offers info from france travail API
+            liste_offres = get_offers(codeROME)
+            salaire = []
+            for offre in liste_offres:
+                salaire_obj = offre.get('salaire') or {}
+                salaire.append(calcul_salaire(
+                    salaire_obj.get('libelle'),
+                    offre.get('dureeTravailLibelle')
+                ))
+
+        if len(liste_offres) == 0:
+            data['nb_offre'] = 0
+            data['liste_salaire_offre'] = []
+        else:
+            data['nb_offre'] = len(liste_offres)
+            data['liste_salaire_offre'] = salaire
+
+        return data
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/load_code_metier", summary="Load code metier from France Travail API (ROME)")
+def load_code_metier():
     """
     Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
     """
@@ -474,7 +510,6 @@ def load_fiche_metier():
         FT_CLIENT_SECRET = settings.ft_client_secret
         FT_AUTH_URL = settings.ft_auth_url
         FT_API_URL_CODE_METIER = settings.ft_api_url_code_metier
-        FT_API_URL_METIER = settings.ft_api_url_fiche_metier
         DATABASE_URL = settings.database_url
 
         """
@@ -496,7 +531,8 @@ def load_fiche_metier():
             resp = requests.get(FT_API_URL_CODE_METIER, headers=headers, timeout=30)
             resp.raise_for_status()
             data = resp.json()
-        except:
+        except (requests.RequestException, KeyError) as e:
+            logger.warning("Initial code metier request failed, retrying with new token: %s", e)
             token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
             headers = {
                 "Authorization": f"Bearer {token}",
@@ -508,104 +544,28 @@ def load_fiche_metier():
 
         code_metier += data
 
-        print(f"Nombre de codes ROME récupérés : {len(code_metier)}")
 
-        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/json"
-        }
-
-        fiche_metier = []
-        
-        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobilisees(libelle,code),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
-
-        for code in tqdm(code_metier):
-            try:
-                while True:
-                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
-                    if resp.status_code != 429:
-                        break
-                
-                resp.raise_for_status()
-                data = resp.json()
-                # Getting offers info from france travail API
-                liste_offres = get_offers(code.get("code"))
-                salaire = []
-                for offre in liste_offres:
-                    salaire.append(calcul_salaire(str(offre.get('salaire').get('libelle')), str(offre.get('dureeTravailLibelle'))))
-                
-            except:
-                token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-                headers = {
-                    "Authorization": f"Bearer {token}",
-                    "Accept": "application/json"
-                }
-                while True:
-                    resp = requests.get(FT_API_URL_METIER + f"/{code.get("code")}" + champs, headers=headers, timeout=30)
-                    if resp.status_code != 429:
-                        break
-                
-                resp.raise_for_status()
-                data = resp.json()
-
-                # Getting offers info from france travail API
-                liste_offres = get_offers(code.get("code"))
-                salaire = []
-                for offre in liste_offres:
-                    salaire.append(calcul_salaire(str(offre.get("salaire").get('libelle')), str(offre.get('dureeTravailLibelle'))))
-
-            if len(liste_offres) == 0:
-                data['nb_offre'] = 0
-                data['liste_salaire_offre'] = []
-            else:
-                data['nb_offre'] = len(liste_offres)
-                data['liste_salaire_offre'] = salaire
-
-            fiche_metier.append(data.copy())
-
-
-        logger = logging.getLogger("uvicorn.info")
-        logger.info(f"Récupération des fiches métiers : {len(fiche_metier)} obtenues.")
+        logger.info(f"Enregistrement des codes métiers : {len(code_metier)} obtenues.")
         engine = create_engine(DATABASE_URL)
         Session = sessionmaker(bind=engine)
 
-        if not fiche_metier:
-            print("Aucune fiche métier reçue, rien à sauvegarder.")
-            return
+        if not code_metier:
+            logger.warning("Aucun code métier reçu, rien à sauvegarder.")  
+            return {"message": "Aucun code métier reçue"} 
 
         session = Session()
         session.execute(text("TRUNCATE TABLE Metier_ROME RESTART IDENTITY CASCADE;"))
-        session.commit()
 
         try:
-            for fiche in fiche_metier:
+            for fiche in code_metier:
                 fiche_insert = Metier_ROME(
                     code = fiche.get("code"),
                     libelle = fiche.get("libelle"),
-                    accesEmploi = fiche.get("accesEmploi"),
-                    appellations = fiche.get("appellations"),  # Array of appellations
-                    centresInteretsLies = fiche.get("centresInteretsLies"),  # Array of related interest centers
-                    competencesMobilisees = fiche.get("competencesMobilisees"),  # Array of skills
-                    contextesTravail = fiche.get("contextesTravail"),  # Array of work contexts
-                    definition = fiche.get("definition"),
-                    domaineProfessionnel = fiche.get("domaineProfessionnel"),
-                    metiersEnProximite = fiche.get("metiersEnProximite"),
-                    secteursActivitesLies = fiche.get("secteursActivitesLies"),
-                    themes = fiche.get("themes"),  # Array of themes
-                    transitionEcologique = fiche.get("transitionEcologique"),  # Ecological transition info
-                    transitionNumerique = fiche.get("transitionNumerique"),  # Digital transition info
-                    transitionDemographique = fiche.get("transitionDemographique"),  # Demographic transition info
-                    emploiCadre = fiche.get("emploiCadre"),
-                    emploiReglemente = fiche.get("emploiReglemente"),
-                    nb_offre = fiche.get("nb_offre"),
-                    liste_salaire_offre = fiche.get("liste_salaire_offre")
                                 )
                 try:
                     session.add(fiche_insert)
                 except Exception as e:
-                    logger.exception(f"Erreur lors de l'ajout de la fiche {fiche.get('code')}: {e}")
+                    logger.exception(f"Erreur lors de l'ajout du métier {fiche.get('code')}: {e}")
                     continue
 
             session.commit()
@@ -615,7 +575,146 @@ def load_fiche_metier():
         finally:
             session.close()
 
-        return {"message": f"{len(fiche_metier)} métiers ROME chargées et sauvegardées avec succès"}
+        return {"message": f"{len(code_metier)} métiers ROME chargées et sauvegardées avec succès"}
+
+    except Exception as e:
+        return {"error": str(e)}
+    
+
+@router.post("/load_fiche_competence", summary="Load fiche competence from France Travail API (ROME)")
+def load_fiche_competence(
+        codeROME : str = Query("100253", description="Code ROME Compétence à récupérer")
+    ):
+
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
+    try:
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL_COMPETENCE = settings.ft_api_url_fiche_competence
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+        
+        champs = ""
+        
+        try:
+            resp = _get_with_retry(
+                FT_API_URL_COMPETENCE + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        except (requests.RequestException, KeyError) as e:
+            logger.warning("Initial fiche metier request failed, retrying with new token: %s", e)
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = _get_with_retry(
+                FT_API_URL_COMPETENCE + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        return data
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/load_code_competences", summary="Load code competences from France Travail API (ROME)")
+def load_code_competences():
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
+    try:
+        FT_CLIENT_ID = settings.ft_client_id
+        FT_CLIENT_SECRET = settings.ft_client_secret
+        FT_AUTH_URL = settings.ft_auth_url
+        FT_API_URL_CODE_COMPETENCE = settings.ft_api_url_code_competence
+        DATABASE_URL = settings.database_url
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
+        token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        # Récupérer les codes compétence ROME
+        code_competence = []
+
+        # Getting the list of ROME codes
+        try:
+            resp = requests.get(FT_API_URL_CODE_COMPETENCE, headers=headers, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+        except (requests.RequestException, KeyError) as e:
+            logger.warning("Initial code metier request failed, retrying with new token: %s", e)
+            token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = requests.get(FT_API_URL_CODE_COMPETENCE, headers=headers, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+
+        code_competence += data
+
+
+        logger.info(f"Enregistrement des codes compétences : {len(code_competence)} obtenues.")
+        engine = create_engine(DATABASE_URL)
+        Session = sessionmaker(bind=engine)
+
+        if not code_competence:
+            logger.warning("Aucun code competence reçu, rien à sauvegarder.")  
+            return {"message": "Aucun code competence reçue"} 
+
+        session = Session()
+        session.execute(text("TRUNCATE TABLE Competence_ROME RESTART IDENTITY CASCADE;"))
+
+        try:
+            for fiche in code_competence:
+                fiche_insert = Competence_ROME(
+                    code = fiche.get("code"),
+                    libelle = fiche.get("libelle"),
+                                )
+                try:
+                    session.add(fiche_insert)
+                except Exception as e:
+                    logger.exception(f"Erreur lors de l'ajout du métier {fiche.get('code')}: {e}")
+                    continue
+
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Erreur lors de la sauvegarde des compétences ROME : {str(e)}", exc_info=True)
+        finally:
+            session.close()
+
+        return {"message": f"{len(code_competence)} compétences ROME chargées et sauvegardées avec succès"}
 
     except Exception as e:
         return {"error": str(e)}
@@ -623,6 +722,7 @@ def load_fiche_metier():
 # ============================================================================
 #  Analyse IA (Helpers & Routes)
 # ============================================================================
+
 
 def _run_analysis_in_thread(
     user_id: int,
@@ -645,7 +745,7 @@ def _run_analysis_in_thread(
             comps = job_payload.get('competences')
             if isinstance(comps, (list, dict)):
                 comps = json.dumps(comps)
-            
+
             job = Offres_FT(
                 id=job_payload.get('id'),
                 intitule=job_payload.get('intitule'),
@@ -660,7 +760,7 @@ def _run_analysis_in_thread(
 
 @router.get("/analyze/{job_id}")
 async def analyze_specific_job(
-    job_id: str, 
+    job_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
@@ -677,12 +777,12 @@ async def analyze_specific_job(
             bind,
             "fr"
         )
-        
+
         offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
         return {
             "status": "success",
-            "candidat": { "nom": f"{current_user.first_name} {current_user.last_name}" },
-            "job": { "id": job_id, "intitule": offre.intitule if offre else "N/A" },
+            "candidat": {"nom": f"{current_user.first_name} {current_user.last_name}"},
+            "job": {"id": job_id, "intitule": offre.intitule if offre else "N/A"},
             "analysis": evaluation
         }
     except Exception as e:
@@ -698,16 +798,17 @@ class JobDataForAnalysis(BaseModel):
     competences: Optional[Any] = None
     lang: str = "fr"
 
+
 @router.post("/analyze")
 async def analyze_job_direct(
-    job_data: JobDataForAnalysis, 
+    job_data: JobDataForAnalysis,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
     bind = db.get_bind()
     user_id = current_user.id
-    lang = job_data.lang # <--- On récupère la langue
-    
+    lang = job_data.lang  # <--- On récupère la langue
+
     logger.info(f"Analyse directe ({lang}) demandée par : {current_user.username}")
 
     try:
@@ -716,18 +817,65 @@ async def analyze_job_direct(
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
-            None, 
+            None,
             payload,
             bind,
-            lang # <--- On la passe au thread
+            lang  # <--- On la passe au thread
         )
-        
+
         return {
             "status": "success",
-            "candidat": { "nom": f"{current_user.first_name} {current_user.last_name}" },
-            "job": { "id": job_data.id },
+            "candidat": {"nom": f"{current_user.first_name} {current_user.last_name}"},
+            "job": {"id": job_data.id},
             "analysis": evaluation
         }
     except Exception as e:
         logger.error(f"Erreur critique analyse directe : {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/offer/{job_id}", summary="Get job offer details by ID")
+async def get_job_offer(
+    job_id: str,
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Fetch full job offer details from France Travail API by ID.
+    Used by frontend to display full job details when showing optimal offers.
+    """
+    try:
+        from server.methods.FT_job_search import get_offer_by_id
+
+        offer_data = await asyncio.to_thread(get_offer_by_id, job_id)
+
+        # Flatten the offer structure to match frontend expectations
+        flattened_offer = _flatten_offer(offer_data)
+
+        return {
+            "status": "success",
+            "offer": flattened_offer
+        }
+
+    except ValueError as e:
+        error_msg = str(e).lower()
+
+        # Check if it's a "not found" error (404)
+        if "not found" in error_msg:
+            logger.warning(f"Job offer not found: job_id={job_id}, error={str(e)}")
+            raise HTTPException(status_code=404, detail=f"Job offer {job_id} not found")
+
+        # Check if it's a "bad request" error (400)
+        elif "bad request" in error_msg:
+            logger.warning(f"Bad request for job offer: job_id={job_id}, error={str(e)}")
+            raise HTTPException(status_code=400, detail=str(e))
+
+        # Other ValueError cases - log and return 500
+        else:
+            logger.error(f"Error fetching job offer: job_id={job_id}, error={str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error fetching job offer: job_id={job_id}, error={str(e)}, type={type(e).__name__}")
         raise HTTPException(status_code=500, detail=str(e))

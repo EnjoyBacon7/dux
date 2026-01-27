@@ -42,15 +42,15 @@
     grid-column: 1;
 }
 
-/* Job Offers Card: left column */
+/* Job Offers Card: full width at bottom of grid */
 .home-card.job-offers-card {
-    grid-column: 1;
+    grid-column: 1 / -1;
 }
 
 /* CV Preview: right column, spans full height of left cards (rows 2-4) */
 .home-card.cv-preview-card {
     grid-column: 2;
-    grid-row: span 3;
+    grid-row: span 2;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -325,8 +325,13 @@
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .cv-score-empty {
@@ -478,6 +483,19 @@
     margin-bottom: 0;
 }
 
+/* Profile Hub Action Button */
+.cv-score-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: var(--nb-border) solid var(--nb-fg);
+    display: flex;
+    justify-content: center;
+}
+
+.cv-score-actions .nb-btn {
+    width: 100%;
+}
+
 /* Mobile Adjustments for CV Score Card */
 @media (max-width: 767px) {
     .home-card.cv-score-card {
@@ -582,6 +600,32 @@
     border: var(--nb-border) solid var(--nb-fg);
 }
 
+/* Clickable Feature Card */
+.profile-hub-feature-card--clickable {
+    cursor: pointer;
+}
+
+.profile-hub-feature-card--clickable:focus {
+    outline: 2px solid var(--nb-accent);
+    outline-offset: 2px;
+}
+
+.profile-hub-view-btn {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--nb-bg);
+    background: var(--nb-accent);
+    padding: 0.5rem 1rem;
+    border-radius: var(--nb-radius);
+    border: var(--nb-border) solid var(--nb-fg);
+    transition: var(--nb-transition);
+}
+
+.profile-hub-feature-card--clickable:hover .profile-hub-view-btn {
+    transform: translateY(-2px);
+    box-shadow: var(--nb-shadow-xs);
+}
+
 @media (max-width: 767px) {
     .profile-hub-grid {
         grid-template-columns: 1fr;
@@ -589,5 +633,130 @@
 
     .profile-hub-title {
         font-size: 1.5rem;
+    }
+}
+
+/* ===== JOB OFFERS CARD ===== */
+
+/* Carousel Container */
+.job-offers-carousel {
+    margin-top: 1rem;
+}
+
+.carousel-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.carousel-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Remove nested card styling - content should be flat within parent card */
+.carousel-content .nb-card {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+}
+
+/* Carousel Navigation Buttons */
+.carousel-btn {
+    appearance: none;
+    background: var(--nb-accent);
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: var(--nb-transition);
+    font-size: 1.25rem;
+    color: var(--nb-fg);
+    box-shadow: var(--nb-shadow-xs);
+    flex-shrink: 0;
+}
+
+.carousel-btn:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--nb-shadow-sm);
+}
+
+.carousel-btn:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: none;
+}
+
+.carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Carousel Indicators */
+.carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.carousel-indicators .indicator {
+    appearance: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--nb-bg-muted);
+    border: var(--nb-border) solid var(--nb-fg);
+    cursor: pointer;
+    transition: var(--nb-transition);
+    padding: 0;
+}
+
+.carousel-indicators .indicator.active {
+    background: var(--nb-accent);
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* Offer Sections within Carousel */
+.offer-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: var(--nb-border) dashed var(--nb-fg);
+}
+
+.offer-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 0.5rem 0;
+    color: var(--nb-accent);
+}
+
+.offer-label--concern {
+    color: var(--nb-danger);
+}
+
+.offer-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style: disc;
+}
+
+.offer-list li {
+    margin-bottom: 0.375rem;
+    line-height: 1.4;
+}
+
+/* Mobile Adjustments for Carousel */
+@media (max-width: 767px) {
+    .carousel-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+    }
+
+    .carousel-container {
+        gap: 0.5rem;
     }
 }

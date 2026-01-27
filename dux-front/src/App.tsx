@@ -6,11 +6,13 @@ import ProfileSetup from "./ProfileSetup";
 import ProfileHub from "./ProfileHub";
 import LinkedInCallback from "./LinkedInCallback";
 import PrivacyPolicy from "./PrivacyPolicy";
+import { DetailedAnalysis } from "./components";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import RequireAuth from "./RequireAuth";
 import { useEffect } from "react";
+import WikiMetier from "./WikiMetier";
 
 // Initialize theme on app startup
 const applyTheme = (selectedTheme: 'light' | 'dark' | 'auto') => {
@@ -38,7 +40,9 @@ function App() {
                         <Route path="/setup" element={<RequireAuth><ProfileSetup /></RequireAuth>} />
                         <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
                         <Route path="/jobs" element={<RequireAuth><JobSearch /></RequireAuth>} />
+                        <Route path="/wiki-metier" element={<RequireAuth><WikiMetier /></RequireAuth>} />
                         <Route path="/profile-hub" element={<RequireAuth><ProfileHub /></RequireAuth>} />
+                        <Route path="/profile-hub/detailed-analysis" element={<RequireAuth><DetailedAnalysis /></RequireAuth>} />
                         <Route path="/linkedin/callback" element={<LinkedInCallback />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />

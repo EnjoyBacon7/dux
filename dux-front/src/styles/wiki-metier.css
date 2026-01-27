@@ -1,0 +1,439 @@
+.wiki-metier-shell {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    min-height: calc(100vh - var(--header-height, 60px));
+    background: var(--nb-bg);
+}
+
+.wiki-metier-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) 1fr;
+    gap: 0;
+    min-height: calc(100vh - var(--header-height, 60px));
+    width: 100%;
+    background: var(--nb-bg);
+}
+
+.wiki-metier-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-right: var(--nb-border) solid var(--nb-fg);
+    background: var(--nb-bg);
+    position: sticky;
+    top: var(--header-height, 60px);
+    height: calc(100vh - var(--header-height, 60px));
+    overflow-y: auto;
+}
+
+.wiki-metier-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.wiki-metier-sidebar-title {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.wiki-metier-search {
+    margin-bottom: 0.25rem;
+}
+
+.wiki-metier-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wiki-metier-link {
+    appearance: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    display: block;
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: calc(var(--nb-radius) - 4px);
+    padding: 0.75rem 0.85rem;
+    background: var(--nb-card-bg);
+    color: inherit;
+    box-shadow: var(--nb-shadow-xs);
+    transition: var(--nb-transition);
+}
+
+.wiki-metier-link:hover {
+    transform: translate(calc(var(--shadow-offset) * -0.2), calc(var(--shadow-offset) * -0.2));
+    box-shadow: var(--nb-shadow-sm);
+}
+
+.wiki-metier-link--active {
+    background: var(--nb-bg-muted);
+    box-shadow: var(--nb-shadow-sm);
+}
+
+.wiki-metier-code {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.wiki-metier-label {
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.wiki-metier-empty {
+    padding: 0.5rem 0;
+}
+
+.wiki-metier-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    height: calc(100vh - var(--header-height, 60px));
+}
+
+.wiki-metier-detail-header {
+    margin-bottom: 1.25rem;
+}
+
+.wiki-metier-title {
+    margin: 0 0 0.35rem 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.wiki-metier-detail {
+    max-width: 100%;
+    display: grid;
+    gap: 1.5rem;
+    color: var(--wm-text, #e7e4ef);
+}
+
+.wm-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: stretch;
+    min-height: calc(100vh - var(--header-height, 60px) - 3rem);
+}
+
+.wm-main-column,
+.wm-aside-column {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.wm-aside-column {
+    height: 100%;
+}
+
+.wm-aside-column .wm-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.wm-card {
+    background: var(--wm-card-bg, #2f2f34);
+    border: 1px solid var(--wm-card-border, rgba(255, 255, 255, 0.14));
+    border-radius: calc(var(--nb-radius) - 2px);
+    padding: 1.75rem 1.75rem;
+    box-shadow: 0 16px 40px rgba(10, 10, 20, 0.18);
+    position: relative;
+    animation: wmFadeIn 0.3s ease both;
+    animation-delay: var(--delay, 0s);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wm-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 44px rgba(10, 10, 20, 0.28);
+}
+
+.wm-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.wm-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--wm-title, #f8f6ff);
+}
+
+.wm-hero {
+    background: linear-gradient(120deg, rgba(195, 185, 248, 0.18), rgba(47, 47, 52, 0.95));
+}
+
+.wm-hero-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.wm-hero-title {
+    margin: 0;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    color: var(--wm-title, #f8f6ff);
+}
+
+.wm-rome-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(195, 185, 248, 0.25);
+    color: var(--wm-title, #f8f6ff);
+    font-weight: 700;
+    border: 1px solid rgba(195, 185, 248, 0.4);
+    letter-spacing: 0.4px;
+}
+
+.wm-hero-summary {
+    margin: 0.65rem 0 0;
+    max-width: 100%;
+    color: var(--wm-body, #e1deea);
+    line-height: 1.6;
+}
+
+.wm-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+
+.wm-stat {
+    background: rgba(16, 16, 22, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: calc(var(--nb-radius) - 6px);
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.wm-stat-label {
+    font-size: 0.8rem;
+    color: var(--wm-muted, #b8b5c5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.wm-stat-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--wm-title, #f8f6ff);
+}
+
+.wm-stat-sub {
+    font-size: 0.8rem;
+    color: var(--wm-muted, #b8b5c5);
+}
+
+.wm-salary-range {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wm-salary-header {
+    font-size: 0.9rem;
+    color: var(--wm-muted, #b8b5c5);
+    margin-bottom: 0.6rem;
+}
+
+.wm-salary-track {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.wm-salary-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(195, 185, 248, 0.2), rgba(195, 185, 248, 0.85));
+}
+
+.wm-salary-thumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #f8f6ff;
+    border: 2px solid rgba(195, 185, 248, 0.9);
+    box-shadow: 0 0 0 6px rgba(195, 185, 248, 0.15);
+}
+
+.wm-salary-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--wm-title, #f8f6ff);
+}
+
+.wm-salary-mean {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--wm-muted, #b8b5c5);
+}
+
+.wm-body {
+    color: var(--wm-body, #e1deea);
+    line-height: 1.7;
+    margin: 0 0 0.65rem;
+    max-width: 100%;
+}
+
+.wm-body--definition {
+    white-space: pre-line;
+}
+
+.wm-body--tight {
+    margin-top: 0.35rem;
+}
+
+.wm-body--clamp:not(.wm-body--expanded) {
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.wm-link-btn {
+    background: none;
+    border: none;
+    color: var(--nb-accent-alt);
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    margin: 0 0 0.75rem;
+}
+
+.wm-link-btn:hover {
+    text-decoration: underline;
+}
+
+.wm-subsection {
+    margin-top: 1rem;
+}
+
+.wm-subsection h4 {
+    margin: 0 0 0.35rem;
+    font-size: 0.95rem;
+    color: var(--wm-title, #f8f6ff);
+}
+
+.wm-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--wm-body, #e1deea);
+}
+
+.wm-skill-wall {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.wm-aside-column .wm-skill-wall {
+    flex: 1;
+    min-height: 0;
+    align-content: flex-start;
+}
+
+.wm-skill-chip {
+    padding: 0.4rem 0.55rem;
+    border: var(--nb-border) dashed var(--nb-fg);
+    border-radius: calc(var(--nb-radius) - 4px);
+    background: var(--nb-bg-alt);
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    color: var(--wm-title, #f8f6ff);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wm-skill-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(10, 10, 20, 0.25);
+}
+
+.wm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.wm-action-btn {
+    flex: 1 1 200px;
+}
+
+.wm-muted {
+    color: var(--wm-muted, #b8b5c5);
+}
+
+@keyframes wmFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 1024px) {
+    .wiki-metier-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .wiki-metier-sidebar {
+        position: static;
+        height: auto;
+        overflow: visible;
+        border-right: none;
+        border-bottom: var(--nb-border) solid var(--nb-fg);
+    }
+
+    .wiki-metier-content {
+        height: auto;
+    }
+
+    .wiki-metier-detail {
+        max-width: 100%;
+    }
+
+    .wm-detail-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .wm-card {
+        padding: 1.35rem;
+    }
+
+    .wm-hero-title {
+        font-size: 1.8rem;
+    }
+
+    .wm-actions {
+        flex-direction: column;
+    }
+}
