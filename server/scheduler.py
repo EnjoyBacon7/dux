@@ -64,6 +64,7 @@ async def generate_optimal_offers_for_user(user_id: int, db: Session) -> None:
 
     except Exception as e:
         logger.error(f"Error generating optimal offers for user {user_id}: {str(e)}")
+        db.rollback()  # Rollback to keep session active for next user
         # Don't raise - continue processing other users
 
 
