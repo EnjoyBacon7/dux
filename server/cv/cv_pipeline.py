@@ -95,7 +95,7 @@ class CVEvaluationPipeline:
             file_extension = cv_file_path.suffix.lower()
         elif cv_filename:
             # Try to construct path from filename
-            potential_path = settings.upload_dir / cv_filename
+            potential_path = Path(settings.upload_dir) / cv_filename
             if potential_path.exists():
                 file_path_for_vlm = potential_path
                 file_extension = potential_path.suffix.lower()
