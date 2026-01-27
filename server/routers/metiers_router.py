@@ -183,7 +183,7 @@ async def get_current_user_cv_text(
     cv_text = current_user.cv_text
 
     prompt = f"Voici le texte d'un CV : \n{cv_text}\n Renvoie moi le texte des expériences professionnelles avec le maximum de texte, ajoute une description complète de l'experience. REND MOI LA LISTE DES EXPERIENCES PROFESSIONNELLES SEPARE PAR [EMPLOI]. SURTOUT N'AJOUTE PAS DE TEXTE AUTOUR DE LA REPONSE."
-    liste_xp = await _call_llm(prompt,"")
+    liste_xp = await call_llm_async(prompt,"")
     liste_xp = liste_xp['data'].split("[EMPLOI]")
     
     # Extraction of experience
@@ -202,7 +202,7 @@ async def get_current_user_cv_text(
             continue
 
         prompt = f"Donne moi le nom du métier de cette description : {experience}. Ne renvoie que le nom du métier, rien d'autre."
-        experience_simplifiee = await _call_llm(prompt,"")
+        experience_simplifiee = await call_llm_async(prompt,"")
         experience_embedded = model.encode([str(experience_simplifiee['data'])], normalize_embeddings=True)
         for metier_label, metier_code, metier_embedded in metiers:
             if not metier_label:
@@ -217,7 +217,7 @@ async def get_current_user_cv_text(
         score.sort(key=lambda item: item[1], reverse=True)
 
         prompt = f"A quel métier de cette liste : {score[0:2]} cette description correspond le plus : {experience}. Ne renvoie que l'indice du métier correspondant le plus (soit 0, soit 1, soit 2), rien d'autre."
-        data = await _call_llm(prompt,"")
+        data = await call_llm_async(prompt,"")
         indice_meilleur_metier = data['data']
 
         print(indice_meilleur_metier)
@@ -232,7 +232,7 @@ async def get_current_user_cv_text(
 
     for (job_label, rome_code), desc in zip(emploi_occupe["Job_name"], emploi_occupe["Job_description"]):
         prompt = f"Voici la description d'un emploi extraite d'un CV. Rend moi la partie qui parle des dates de prise de poste en la traduisant en français. Rend moi uniquement le morceau du texte en français avec rien autour : {desc}"
-        data = await _call_llm(prompt,"")
+        data = await call_llm_async(prompt,"")
         duree_text = data['data']
         print(duree_text)
 
