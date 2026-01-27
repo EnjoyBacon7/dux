@@ -6,7 +6,7 @@ and recovery of stale pending evaluations.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from server.models import CVEvaluation
 
@@ -65,7 +65,7 @@ def recover_stale_evaluations(db: Session, stale_after_minutes: int = 30) -> int
         Number of stale evaluations recovered
     """
     try:
-        stale_threshold = datetime.utcnow() - timedelta(minutes=stale_after_minutes)
+        stale_threshold = datetime.now(timezone.utc) - timedelta(minutes=stale_after_minutes)
 
         # Find pending evaluations older than threshold
         stale_evaluations = db.query(CVEvaluation).filter(
