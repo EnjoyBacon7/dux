@@ -183,6 +183,15 @@ def convert_pdf_to_images(file_path: Path) -> List[Image.Image]:
         ImportError: If PyMuPDF is not installed
     """
     try:
+        import fitz  # PyMuPDF - import here to make it optional
+    except ImportError:
+        logger.error("PyMuPDF (fitz) not installed.")
+        raise ValueError(
+            "PDF to image conversion requires PyMuPDF (fitz). "
+            "Install with: pip install pymupdf."
+        )
+    
+    try:
         doc = fitz.open(str(file_path))
         images: List[Image.Image] = []
 
@@ -197,12 +206,6 @@ def convert_pdf_to_images(file_path: Path) -> List[Image.Image]:
 
         doc.close()
         return images
-    except ImportError:
-        logger.error("PyMuPDF (fitz) not installed.")
-        raise ValueError(
-            "PDF to image conversion requires PyMuPDF (fitz). "
-            "Install with: pip install pymupdf."
-        )
     except Exception as e:
         logger.error(f"Failed to convert PDF to images: {e}")
         raise ValueError(f"PDF to image conversion failed: {str(e)}")
