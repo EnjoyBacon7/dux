@@ -192,19 +192,18 @@ def convert_pdf_to_images(file_path: Path) -> List[Image.Image]:
         )
     
     try:
-        doc = fitz.open(str(file_path))
-        images: List[Image.Image] = []
+        with fitz.open(str(file_path)) as doc:
+            images: List[Image.Image] = []
 
-        # Use 2x scaling (~200 DPI) for better OCR without huge memory
-        zoom = 2.0
-        matrix = fitz.Matrix(zoom, zoom)
+            # Use 2x scaling (~200 DPI) for better OCR without huge memory
+            zoom = 2.0
+            matrix = fitz.Matrix(zoom, zoom)
 
-        for page in doc:
-            pix = page.get_pixmap(matrix=matrix, alpha=False)
-            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            images.append(img)
+            for page in doc:
+                pix = page.get_pixmap(matrix=matrix, alpha=False)
+                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                images.append(img)
 
-        doc.close()
         return images
     except Exception as e:
         logger.error(f"Failed to convert PDF to images: {e}")
