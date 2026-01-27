@@ -114,10 +114,18 @@ def _parse_json_response(content: str, json_array: bool = False) -> Dict[str, An
 
 def _build_usage_dict(response: Any) -> Dict[str, int]:
     """Build usage statistics dictionary from API response."""
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        logger.warning("LLM response missing usage; defaulting token counts to zero.")
+        return {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
     return {
-        "prompt_tokens": response.usage.prompt_tokens,
-        "completion_tokens": response.usage.completion_tokens,
-        "total_tokens": response.usage.total_tokens
+        "prompt_tokens": usage.prompt_tokens,
+        "completion_tokens": usage.completion_tokens,
+        "total_tokens": usage.total_tokens,
     }
 
 
