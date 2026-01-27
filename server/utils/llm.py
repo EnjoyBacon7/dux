@@ -97,7 +97,14 @@ def parse_json_response(content: str, json_array: bool = False) -> Union[Dict[st
         else:
             return json.loads(content)
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse JSON response: {content}")
+        # Redact content to avoid PII leakage in logs
+        content_preview = content[:200] + "…" if len(content) > 200 else content
+        logger.error(
+            f"Failed to parse JSON response. "
+            f"Content length: {len(content)} chars. "
+            f"Preview: {content_preview}. "
+            f"Error: {str(e)}"
+        )
         raise ValueError(f"Invalid JSON in LLM response: {str(e)}")
 
 
