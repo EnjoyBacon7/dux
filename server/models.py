@@ -223,6 +223,7 @@ class Metier_ROME(Base):
 
     code = Column(String, primary_key=True, index=True)
     libelle = Column(String, nullable=True)
+    libelle_embedded = Column(ARRAY(Float),nullable=True)
 
     def __repr__(self):
         return f"<Metier_ROME(code={self.code})>"
