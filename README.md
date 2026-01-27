@@ -172,7 +172,6 @@ The platform includes automated background tasks that run periodically to ensure
 - **Hourly Job Matching** - Every hour, the system automatically generates optimal job offers for all users who have uploaded a CV
 - **On-Upload Matching** - When a user uploads a new CV, the system immediately generates personalized job recommendations
 - **Smart Caching** - Results are cached for one hour to optimize performance while ensuring freshnesshentication with WebAuthn
-- **Privacy-Focused** - User data ownership and transparency
 
 ## Testing
 

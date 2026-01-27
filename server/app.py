@@ -163,6 +163,9 @@ async def shutdown_event():
     """
     logger.info("Starting application shutdown...")
 
+    # Shutdown scheduler first to ensure background jobs finish
+    shutdown_scheduler(wait=True)
+
     try:
         # Mark any pending CV evaluations as failed
         db = SessionLocal()
@@ -175,7 +178,6 @@ async def shutdown_event():
     except Exception as e:
         logger.error(f"Error during task cleanup on shutdown: {e}")
 
-    shutdown_scheduler()
     shutdown_thread_pool()
     logger.info("Application shutdown complete")
 
