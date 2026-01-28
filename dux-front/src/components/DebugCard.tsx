@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "../contexts/useLanguage";
 
 interface UserDebugInfo {
@@ -48,11 +48,7 @@ const DebugCard: React.FC = () => {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [chatError, setChatError] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchDebugInfo();
-    }, []);
-
-    const fetchDebugInfo = async () => {
+    const fetchDebugInfo = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
@@ -65,12 +61,16 @@ const DebugCard: React.FC = () => {
             } else {
                 setError(t('debug.failed_fetch'));
             }
-        } catch (err) {
+        } catch {
             setError(t('debug.error_fetching'));
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [t]);
+
+    useEffect(() => {
+        fetchDebugInfo();
+    }, [fetchDebugInfo]);
 
     const formatValue = (value: unknown): string => {
         if (value === null || value === undefined) {
@@ -287,7 +287,7 @@ const DebugCard: React.FC = () => {
                                         setChatError(t('errors.failed_model_response'));
                                     }
                                 }
-                            } catch (err: unknown) {
+                            } catch {
                                 setChatError(t('errors.error_sending_request'));
                             } finally {
                                 setIsChatLoading(false);

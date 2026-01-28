@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "../contexts/useLanguage";
 import OfferBox from "./OfferBox";
 import JobDetail from "./JobDetail";
-import type { JobOffer, JobMatchMetadata, OptimalOffer } from "../types/job";
+import type { JobOffer, JobMatchMetadata } from "../types/job";
 
 // Merged type with both job data and match metadata
 type DisplayOffer = JobOffer & JobMatchMetadata;
@@ -21,7 +21,7 @@ const JobOffersCard: React.FC = () => {
     const [selectedOffer, setSelectedOffer] = useState<DisplayOffer | null>(null);
 
     // Fetch full job data by job_id
-    const fetchJobData = async (job_id: string): Promise<JobOffer | null> => {
+    const fetchJobData = useCallback(async (job_id: string): Promise<JobOffer | null> => {
         try {
             const response = await fetch(`/api/jobs/offer/${job_id}`, {
                 credentials: "include",
@@ -36,10 +36,10 @@ const JobOffersCard: React.FC = () => {
             console.error(`Error fetching job data for ${job_id}:`, err);
             return null;
         }
-    };
+    }, []);
 
     // Merge optimal offer metadata with full job data
-    const mergeOfferData = async (optimalOffer: JobMatchMetadata): Promise<DisplayOffer | null> => {
+    const mergeOfferData = useCallback(async (optimalOffer: JobMatchMetadata): Promise<DisplayOffer | null> => {
         if (!optimalOffer.job_id) {
             console.warn("Optimal offer missing job_id, skipping");
             return null;
@@ -53,7 +53,7 @@ const JobOffersCard: React.FC = () => {
             } as DisplayOffer;
         }
         return null;
-    };
+    }, [fetchJobData]);
 
     // Fetch optimal offers on component mount
     useEffect(() => {
@@ -89,7 +89,7 @@ const JobOffersCard: React.FC = () => {
         };
 
         fetchOffers();
-    }, []);
+    }, [mergeOfferData]);
 
     const handlePrev = () => {
         setCurrentIndex((prev) => (prev === 0 ? offers.length - 1 : prev - 1));
