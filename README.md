@@ -2,6 +2,7 @@
 <p align="center">
   <img src="https://github.com/EnjoyBacon7/dux/blob/main/dux-docs/static/img/dux_logo.png">
 </p>
+
 # Dux
 
 Dux is an AI-powered job search and matching platform that helps users search, rank, and apply to jobs faster. The platform analyzes CVs, matches job opportunities to user profiles, and provides intelligent insights to streamline the job application process.
