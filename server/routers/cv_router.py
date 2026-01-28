@@ -488,7 +488,7 @@ def run_cv_evaluation(user_id: int, cv_text: str, cv_filename: str, db_session_f
         
         # Update the pending record with results
         update_evaluation_with_results(db, pending_id, result)
-        
+
         logger.info(f"CV evaluation completed for user {user_id}: score={result.scores.overall_score}")
 
     except Exception as e:

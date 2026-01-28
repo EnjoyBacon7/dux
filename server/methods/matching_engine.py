@@ -1,6 +1,7 @@
 import json
 import logging
-import asyncio
+from typing import Optional, Dict, Any
+
 from server.models import User, Offres_FT
 from server.config import settings
 from server.utils.llm import call_llm_sync
@@ -8,12 +9,11 @@ from server.utils.prompts import load_prompt_template
 
 logger = logging.getLogger(__name__)
 
-
 class MatchingEngine:
     def __init__(self, db_session):
         self.db = db_session
 
-        # Verify required configuration
+        # Vérification de la configuration
         missing_vars = []
         if not settings.openai_api_key:
             missing_vars.append("openai_api_key")
@@ -26,23 +26,41 @@ class MatchingEngine:
             raise ValueError(error_msg)
 
     def _generate_prompt(self, user: User, job: Offres_FT, lang: str = "fr") -> str:
+        """
+        Génère le prompt pour le LLM.
+        Stratégie nettoyée :
+        1. Utilise user.cv_text (Texte brut en BDD) -> Approche principale.
+        2. En dernier recours, utilise les champs structurés legacy (user.experiences, etc.).
+        """
+        
+        # --- ÉTAPE 1 : Extraction des données du Candidat ---
+        
+        # CAS A : Utilisation directe du texte brut en BDD
+        if user.cv_text and len(user.cv_text.strip()) > 10:
+            logger.info(f"MATCHING : Utilisation du cv_text brut pour User ID {user.id}")
+            
+            headline = user.headline or "Candidat"
+            summary = "Voir le contenu complet du CV ci-dessous."
+            skills = "Voir le contenu complet du CV ci-dessous."
+            
+            # On injecte tout le texte brut ici.
+            experiences_txt = f"--- DÉBUT DU CONTENU BRUT DU CV ---\n{user.cv_text}\n--- FIN DU CONTENU BRUT ---"
 
-        # Mapping des langues pour l'IA
-        lang_map = {
-            'fr': 'FRENCH', 'en': 'ENGLISH', 'es': 'SPANISH',
-            'de': 'GERMAN', 'pt': 'PORTUGUESE', 'la': 'LATIN', 'auto': 'FRENCH'
-        }
-        target_lang = lang_map.get(lang.lower(), 'FRENCH')
+        # CAS B : Fallback (Legacy) - Pas de texte brut, on utilise les anciennes colonnes
+        else:
+            logger.warning(f"User ID {user.id} n'a pas de cv_text. Utilisation des champs structurés (plus lent/moins précis).")
+            headline = user.headline or 'Non spécifié'
+            summary = user.summary or 'Non spécifié'
+            skills = ", ".join(user.skills) if user.skills else "Non renseigné"
+            
+            experiences_txt = "Aucune expérience listée."
+            if user.experiences:
+                experiences_txt = "\n".join([
+                    f"- {exp.title} chez {exp.company} ({exp.description or ''})" 
+                    for exp in user.experiences
+                ])
 
-        skills = ", ".join(user.skills) if user.skills else "Non renseigné"
-
-        experiences_txt = "Aucune expérience listée."
-        if user.experiences:
-            experiences_txt = "\n".join([
-                f"- {exp.title} chez {exp.company} ({exp.description or ''})"
-                for exp in user.experiences
-            ])
-
+        # --- ÉTAPE 2 : Traitement de l'Offre (Job) ---
         job_skills = job.competences
         if isinstance(job_skills, str) and job_skills.strip().startswith("["):
             try:
@@ -56,12 +74,19 @@ class MatchingEngine:
         elif job_skills is None:
             job_skills = "Non renseigné"
 
-        # Load prompt template and format it
+        # --- ÉTAPE 3 : Formatage du Prompt ---
+        lang_map = {
+            'fr': 'FRENCH', 'en': 'ENGLISH', 'es': 'SPANISH',
+            'de': 'GERMAN', 'pt': 'PORTUGUESE', 'auto': 'FRENCH'
+        }
+        target_lang = lang_map.get(lang.lower(), 'FRENCH')
+
         template = load_prompt_template("profile_match_template")
+        
         prompt = template.format(
             target_lang=target_lang,
-            headline=user.headline or 'Non spécifié',
-            summary=user.summary or 'Non spécifié',
+            headline=headline,
+            summary=summary,
             skills=skills,
             experiences=experiences_txt,
             job_title=job.intitule,
@@ -72,39 +97,38 @@ class MatchingEngine:
         return prompt
 
     def analyser_match(self, user: User, job: Offres_FT, lang: str = "fr") -> dict:
-        """Exécute l'analyse"""
-        logger.info(f"Analyse IA ({lang}) : {user.username} vs Job {job.id}")
-
-        prompt = self._generate_prompt(user, job, lang)
-
+        """
+        Exécute l'analyse de matching.
+        """
         try:
-            # Use unified LLM interface with JSON parsing
+            prompt = self._generate_prompt(user, job, lang)
+
+            # Appel au LLM via l'interface unifiée
             result = call_llm_sync(
                 prompt=prompt,
                 system_content="Tu es un moteur de matching JSON strict.",
                 temperature=0.2,
-                max_tokens=800,
+                max_tokens=1000,
                 parse_json=True
             )
 
-            # Result is already parsed JSON from unified interface
             return result["data"]
 
         except ValueError as e:
-            logger.error(f"Erreur analyse JSON: {e}")
+            logger.error(f"Erreur de parsing JSON LLM: {e}")
             return {
                 "score_technique": 0,
                 "score_culturel": 0,
-                "match_reasons": ["Erreur lors de l'analyse"],
+                "match_reasons": ["Erreur de formatage de la réponse IA"],
                 "missing_skills": [],
-                "verdict": f"Erreur lors de l'analyse: {str(e)}"
+                "verdict": "Erreur technique lors de l'analyse."
             }
         except Exception as e:
-            logger.error(f"Erreur IA : {e}")
+            logger.error(f"Erreur Générale MatchingEngine : {e}", exc_info=True)
             return {
                 "score_technique": 0,
                 "score_culturel": 0,
-                "match_reasons": ["Erreur IA"],
+                "match_reasons": ["Erreur interne"],
                 "missing_skills": [],
-                "verdict": f"Impossible d'analyser. ({str(e)})"
+                "verdict": f"Impossible d'analyser le profil. ({str(e)})"
             }

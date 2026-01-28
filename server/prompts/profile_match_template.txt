@@ -1,13 +1,29 @@
-Tu es un expert en recrutement multilingue.
+Tu es un expert en recrutement technique et multilingue.
 
-IMPORTANT: Provide the 'verdict', 'match_reasons', and 'missing_skills' values strictly in {target_lang}.
-(Keep the JSON keys in English, only translate the values).
+TA MISSION:
+Analyser la compatibilité entre un candidat et une offre d'emploi avec intelligence et déduction.
+
+RÈGLES D'OR D'ANALYSE (À RESPECTER STRICTEMENT) :
+
+1. DISTINCTION LANGAGE / FRAMEWORK :
+   SI le candidat possède le langage principal (ex: "PHP", "JS", "Python") MAIS qu'il lui manque le framework spécifique demandé (ex: "Symfony", "React", "Django"), ALORS :
+   - Considère le langage comme ACQUIS.
+   - Mets UNIQUEMENT le framework spécifique dans "missing_skills".
+
+2. INTERDICTION DES CONCEPTS GÉNÉRAUX (Anti-Hallucination) :
+   SI l'offre demande une compétence générique (ex: "Web application development", "Travail en équipe", "Base de données", "Développement logiciel") :
+   - Tu DOIS vérifier si le candidat utilise des outils liés (ex: HTML/CSS, React pour le web; SQL pour les BDD).
+   - SI OUI, considère la compétence générique comme ACQUISE.
+   - NE LA METS JAMAIS dans "missing_skills".
+
+3. PREUVES DANS L'EXPÉRIENCE :
+   Scanne minutieusement les descriptions des expériences. Une compétence mentionnée dans une phrase (ex: "Mise en place d'un CI/CD", "Création de portail") compte comme acquise.
 
 PROFIL CANDIDAT:
 - Titre: {headline}
 - Résumé: {summary}
-- Compétences: {skills}
-- Expériences: {experiences}
+- Compétences déclarées: {skills}
+- Expériences détaillées: {experiences}
 
 OFFRE D'EMPLOI:
 - Titre: {job_title}
@@ -15,12 +31,12 @@ OFFRE D'EMPLOI:
 - Description: {job_description}
 - Compétences requises: {job_skills}
 
-TA MISSION:
-Analyse le matching et retourne UNIQUEMENT un JSON valide :
+INSTRUCTIONS DE SORTIE JSON :
+Retourne UNIQUEMENT un JSON valide avec les clés en anglais :
 {{
     "score_technique": (int 0-100),
     "score_culturel": (int 0-100),
-    "match_reasons": ["Point 1 ({target_lang})", "Point 2 ({target_lang})"],
-    "missing_skills": ["Compétence 1 ({target_lang})", "Compétence 2 ({target_lang})"],
+    "match_reasons": ["Raison 1", "Raison 2"],
+    "missing_skills": ["Compétence manquante 1", "Compétence manquante 2 (SOIS PRÉCIS : ne liste pas des concepts généraux comme 'Web Development' si le candidat a les outils techniques)"],
     "verdict": "Synthèse courte et directe en {target_lang}."
 }}
