@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from server.config import settings
 from server.utils.llm import call_llm_async, call_llm_sync, extract_response_content, parse_json_response
 from openai import OpenAI, APIError
-from server.config import settings
 from server.thread_pool import run_blocking_in_executor
 from server.utils.prompts import load_prompt_template
 from server.methods.FT_job_search import search_france_travail
@@ -504,6 +503,11 @@ async def get_optimal_offers_with_cache(
         # Position is 1-indexed, so subtract 1 to get the correct offer from the list
         job_data = offers[position - 1] if 0 < position <= len(offers) else None
         job_id = job_data.get("id") if job_data else None
+
+        # Skip offers with invalid positions or missing job_id to avoid DB constraint violations
+        if not job_id:
+            logger.warning(f"Skipping offer with invalid position {position} or missing job_id")
+            continue
 
         db_offer = OptimalOffer(
             user_id=current_user.id,
