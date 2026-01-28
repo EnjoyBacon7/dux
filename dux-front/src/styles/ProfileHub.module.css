@@ -1,0 +1,110 @@
+/* ===== PROFILE HUB PAGE MODULE ===== */
+
+.profile-hub__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: clamp(1rem, 5vw, 2rem);
+}
+
+.profile-hub__header-card {
+    text-align: center;
+    padding: 2rem;
+}
+
+.profile-hub__title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -1px;
+}
+
+.profile-hub__subtitle {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.profile-hub__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.profile-hub__feature-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 1.5rem;
+    transition: var(--nb-transition);
+}
+
+.profile-hub__feature-card:hover {
+    opacity: 0.9;
+}
+
+.profile-hub__feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.profile-hub__feature-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.profile-hub__feature-desc {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0 0 1rem 0;
+    line-height: 1.4;
+}
+
+.profile-hub__coming-soon {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--nb-accent);
+    background: var(--nb-bg-muted);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--nb-radius);
+    border: var(--nb-border) solid var(--nb-fg);
+}
+
+/* Clickable Feature Card */
+.profile-hub__feature-card--clickable {
+    cursor: pointer;
+}
+
+.profile-hub__feature-card--clickable:focus {
+    outline: 2px solid var(--nb-accent);
+    outline-offset: 2px;
+}
+
+.profile-hub__view-btn {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--nb-bg);
+    background: var(--nb-accent);
+    padding: 0.5rem 1rem;
+    border-radius: var(--nb-radius);
+    border: var(--nb-border) solid var(--nb-fg);
+    transition: var(--nb-transition);
+}
+
+.profile-hub__feature-card--clickable:hover .profile-hub__view-btn {
+    opacity: 0.9;
+}
+
+@media (max-width: 767px) {
+    .profile-hub__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-hub__title {
+        font-size: 1.5rem;
+    }
+}

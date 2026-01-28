@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { Header } from "./components";
 import DetailMetier from "./components/DetailMetier";
 import { useLanguage } from "./contexts/useLanguage";
-import "./styles/home.css";
 import styles from "./styles/wiki-metier.module.css";
 
 type MetierItem = {
@@ -149,12 +148,12 @@ const MetierWikiLayout: React.FC = () => {
                              <h2 className={styles['wiki-metier-sidebar-title']}>{t("metiers.sidebar_title")}</h2>
                          </div>
 
-                         <input
-                             value={q}
-                             onChange={(e) => setQ(e.target.value)}
-                             placeholder={t("metiers.search_placeholder")}
-                             className="nb-input wiki-metier-search"
-                         />
+                    <input
+                        value={q}
+                        onChange={(e) => setQ(e.target.value)}
+                        placeholder={t("metiers.search_placeholder")}
+                        className={`nb-input ${styles['wiki-metier-search']}`}
+                    />
 
                          {loading ? (
                              <div className={`${styles['wiki-metier-empty']} nb-text-dim`}>{t("metiers.loading")}</div>
