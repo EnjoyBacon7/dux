@@ -61,18 +61,15 @@
     padding: 0.75rem 0.85rem;
     background: var(--nb-card-bg);
     color: inherit;
-    box-shadow: var(--nb-shadow-xs);
     transition: var(--nb-transition);
 }
 
 .wiki-metier-link:hover {
-    transform: translate(calc(var(--shadow-offset) * -0.2), calc(var(--shadow-offset) * -0.2));
-    box-shadow: var(--nb-shadow-sm);
+    opacity: 0.9;
 }
 
 .wiki-metier-link--active {
     background: var(--nb-bg-muted);
-    box-shadow: var(--nb-shadow-sm);
 }
 
 .wiki-metier-code {
@@ -140,16 +137,14 @@
     border: 1px solid var(--wm-card-border, rgba(255, 255, 255, 0.14));
     border-radius: calc(var(--nb-radius) - 2px);
     padding: 1.75rem 1.75rem;
-    box-shadow: 0 16px 40px rgba(10, 10, 20, 0.18);
     position: relative;
     animation: wmFadeIn 0.3s ease both;
     animation-delay: var(--delay, 0s);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .wm-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 44px rgba(10, 10, 20, 0.28);
+    opacity: 0.95;
 }
 
 .wm-card-header {
@@ -270,7 +265,6 @@
     border-radius: 50%;
     background: #f8f6ff;
     border: 2px solid rgba(195, 185, 248, 0.9);
-    box-shadow: 0 0 0 6px rgba(195, 185, 248, 0.15);
 }
 
 .wm-salary-labels {
@@ -362,12 +356,11 @@
     display: inline-flex;
     align-items: center;
     color: var(--wm-title, #f8f6ff);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .wm-skill-chip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(10, 10, 20, 0.25);
+    opacity: 0.9;
 }
 
 .wm-actions {

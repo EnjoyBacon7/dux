@@ -1,4 +1,7 @@
-<center>![Dux Logo](dux-docs/static/img/dux_logo.png)</center>
+
+<p align="center">
+  <img src="https://github.com/EnjoyBacon7/dux/blob/main/dux-docs/static/img/dux_logo.png">
+</p>
 
 # Dux
 

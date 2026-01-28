@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "./index";
 import { useLanguage } from "../contexts/useLanguage";
-import "../styles/detailedAnalysis.css";
+import styles from "../styles/detailedAnalysis.module.css";
 
 // ============================================================================
 // Type Definitions
@@ -220,37 +220,37 @@ const DetailedAnalysis: React.FC = () => {
     const circleRadius = 45;
     const circumference = 2 * Math.PI * circleRadius;
 
-    // Render loading state
-    if (isLoading) {
-        return (
-            <>
-                <Header />
-                <main className="nb-page detailed-analysis-container">
-                    <div className="detailed-analysis-loading">
-                        <div className="detailed-analysis-spinner"></div>
-                        <p>{t("detailed_analysis.loading")}</p>
-                    </div>
-                </main>
-            </>
-        );
-    }
+     // Render loading state
+     if (isLoading) {
+         return (
+             <>
+                 <Header />
+                 <main className="nb-page detailed-analysis-container">
+                     <div className={styles['detailed-analysis-loading']}>
+                         <div className={styles['detailed-analysis-spinner']}></div>
+                         <p>{t("detailed_analysis.loading")}</p>
+                     </div>
+                 </main>
+             </>
+         );
+     }
 
-    // Render error state
-    if (error) {
-        return (
-            <>
-                <Header />
-                <main className="nb-page detailed-analysis-container">
-                    <div className="detailed-analysis-error">
-                        <p>{error}</p>
-                        <button className="nb-btn nb-btn--accent" onClick={handleBack}>
-                            {t("detailed_analysis.back")}
-                        </button>
-                    </div>
-                </main>
-            </>
-        );
-    }
+     // Render error state
+     if (error) {
+         return (
+             <>
+                 <Header />
+                 <main className="nb-page detailed-analysis-container">
+                     <div className={styles['detailed-analysis-error']}>
+                         <p>{error}</p>
+                         <button className="nb-btn nb-btn--accent" onClick={handleBack}>
+                             {t("detailed_analysis.back")}
+                         </button>
+                     </div>
+                 </main>
+             </>
+         );
+     }
 
     if (!evaluation) {
         return null;
@@ -338,31 +338,31 @@ const DetailedAnalysis: React.FC = () => {
         { key: "consistency", label: t("cv_score.consistency"), data: full_scores.consistency },
     ] : [];
 
-    return (
-        <>
-            <Header />
-            <main className="nb-page detailed-analysis-container">
-                <div className="detailed-analysis-content">
-                    {/* Back Button & Header */}
-                    <div className="detailed-analysis-header">
-                        <button className="detailed-analysis-back-btn" onClick={handleBack}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M19 12H5M12 19l-7-7 7-7" />
-                            </svg>
-                            {t("detailed_analysis.back")}
-                        </button>
-                        <div className="detailed-analysis-header-info">
-                            <h1 className="detailed-analysis-title">{t("detailed_analysis.title")}</h1>
-                            {evaluation.cv_filename && (
-                                <span className="detailed-analysis-filename">{evaluation.cv_filename}</span>
-                            )}
-                        </div>
-                    </div>
+     return (
+         <>
+             <Header />
+             <main className="nb-page detailed-analysis-container">
+                 <div className={styles['detailed-analysis-content']}>
+                     {/* Back Button & Header */}
+                     <div className={styles['detailed-analysis-header']}>
+                         <button className={styles['detailed-analysis-back-btn']} onClick={handleBack}>
+                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                 <path d="M19 12H5M12 19l-7-7 7-7" />
+                             </svg>
+                             {t("detailed_analysis.back")}
+                         </button>
+                         <div className={styles['detailed-analysis-header-info']}>
+                             <h1 className={styles['detailed-analysis-title']}>{t("detailed_analysis.title")}</h1>
+                             {evaluation.cv_filename && (
+                                 <span className={styles['detailed-analysis-filename']}>{evaluation.cv_filename}</span>
+                             )}
+                         </div>
+                     </div>
 
-                    {/* ============================================== */}
-                    {/* SECTION 1: CONTENT ANALYSIS */}
-                    {/* ============================================== */}
-                    <section className="detailed-analysis-section content-section">
+                     {/* ============================================== */}
+                     {/* SECTION 1: CONTENT ANALYSIS */}
+                     {/* ============================================== */}
+                     <section className={`${styles['detailed-analysis-section']} content-section`}>
                         <h2 
                             className="section-title section-title--clickable"
                             onClick={() => setIsContentExpanded(!isContentExpanded)}
@@ -851,11 +851,11 @@ const DetailedAnalysis: React.FC = () => {
                         )}
                     </section>
 
-                    {/* ============================================== */}
-                    {/* SECTION 2: VISUAL ANALYSIS */}
-                    {/* ============================================== */}
-                    {visual_analysis && (
-                        <section className="detailed-analysis-section visual-section">
+                     {/* ============================================== */}
+                     {/* SECTION 2: VISUAL ANALYSIS */}
+                     {/* ============================================== */}
+                     {visual_analysis && (
+                         <section className={`${styles['detailed-analysis-section']} visual-section`}>
                             <h2 
                                 className="section-title section-title--clickable"
                                 onClick={() => setIsVisualExpanded(!isVisualExpanded)}
@@ -963,9 +963,9 @@ const DetailedAnalysis: React.FC = () => {
                         </section>
                     )}
 
-                    {/* No Visual Analysis Available */}
-                    {!visual_analysis && (
-                        <section className="detailed-analysis-section visual-section">
+                     {/* No Visual Analysis Available */}
+                     {!visual_analysis && (
+                         <section className={`${styles['detailed-analysis-section']} visual-section`}>
                             <h2 
                                 className="section-title section-title--clickable"
                                 onClick={() => setIsVisualExpanded(!isVisualExpanded)}

@@ -853,36 +853,36 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         la: 'Exempli gratia: 75056'
     },
     'jobs.department': {
-        en: 'Department',
-        es: 'Departamento',
-        fr: 'Département',
-        de: 'Departement',
-        pt: 'Departamento',
-        la: 'Departamentum'
+        en: 'Department (Code)',
+        es: 'Departamento (Código)',
+        fr: 'Département (Code)',
+        de: 'Departement (Code)',
+        pt: 'Departamento (Código)',
+        la: 'Departamentum (Codex)'
     },
     'jobs.department_placeholder': {
-        en: 'e.g., 75',
-        es: 'Ej: 75',
-        fr: 'Ex: 75',
-        de: 'z.B. 75',
-        pt: 'Ex: 75',
-        la: 'Exempli gratia: 75'
+        en: 'e.g., 75 (2-digit code)',
+        es: 'Ej: 75 (código de 2 dígitos)',
+        fr: 'Ex: 75 (code 2 chiffres)',
+        de: 'z.B. 75 (2-stelliger Code)',
+        pt: 'Ex: 75 (código de 2 dígitos)',
+        la: 'Exempli gratia: 75 (codex binis digitis)'
     },
     'jobs.region': {
-        en: 'Region',
-        es: 'Región',
-        fr: 'Région',
-        de: 'Region',
-        pt: 'Região',
-        la: 'Regio'
+        en: 'Region (Code)',
+        es: 'Región (Código)',
+        fr: 'Région (Code)',
+        de: 'Region (Code)',
+        pt: 'Região (Código)',
+        la: 'Regio (Codex)'
     },
     'jobs.region_placeholder': {
-        en: 'e.g., 11 (Île-de-France)',
-        es: 'Ej: 11 (Île-de-France)',
-        fr: 'Ex: 11 (Île-de-France)',
-        de: 'z.B. 11 (Île-de-France)',
-        pt: 'Ex: 11 (Île-de-France)',
-        la: 'Exempli gratia: 11 (Île-de-France)'
+        en: 'e.g., 11',
+        es: 'Ej: 11',
+        fr: 'Ex: 11',
+        de: 'z.B. 11',
+        pt: 'Ex: 11',
+        la: 'Exempli gratia: 11'
     },
     'jobs.distance': {
         en: 'Distance (km)',

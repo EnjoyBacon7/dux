@@ -9,10 +9,31 @@ from server.models import Offres_FT
 import os
 from dotenv import load_dotenv
 import json
+import re
 from datetime import datetime, timedelta
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+
+def _extract_url_from_text(text: str) -> str | None:
+    """
+    Extract the first URL from text content.
+    
+    Searches for https:// or http:// URLs in the text and returns the first one found.
+    """
+    if not text:
+        return None
+    
+    url_pattern = r'https?://[^\s]+'
+    match = re.search(url_pattern, text)
+    
+    if match:
+        url = match.group(0)
+        url = url.rstrip('.,;:)')
+        return url
+    
+    return None
 
 
 def get_access_token(CLIENT_ID, CLIENT_SECRET, AUTH_URL) -> str:
@@ -140,6 +161,26 @@ def save_offers_to_db(offers: list[dict]) -> None:
     session = Session()
     try:
         for offer in offers:
+            contact = offer.get("contact") or {}
+            origine = offer.get("origineOffre") or {}
+            agence = offer.get("agence") or {}
+            
+            # Extract application URL from contact info
+            # Priority: explicit urlPostulation > URL in contact fields > URL in agence courriel > URL in origineOffre
+            contact_url_postulation = contact.get("urlPostulation")
+            if not contact_url_postulation:
+                for field in ["coordonnees3", "coordonnees2", "coordonnees1"]:
+                    extracted = _extract_url_from_text(contact.get(field, ""))
+                    if extracted:
+                        contact_url_postulation = extracted
+                        break
+            
+            if not contact_url_postulation:
+                contact_url_postulation = _extract_url_from_text(agence.get("courriel", ""))
+            
+            if not contact_url_postulation:
+                contact_url_postulation = origine.get("urlOrigine")
+            
             offre = Offres_FT(
                 id=offer.get("id"),
                 intitule=offer.get("intitule"),
@@ -178,15 +219,15 @@ def save_offers_to_db(offers: list[dict]) -> None:
                 salaire_libelle=offer.get("salaire", {}).get("libelle"),
                 salaire_complement1=offer.get("salaire", {}).get("complement1"),
                 salaire_listeComplements=json.dumps(offer.get("salaire", {}).get("listeComplements")),
-                contact_nom=offer.get("contact", {}).get("nom"),
-                contact_coordonnees1=offer.get("contact", {}).get("coordonnees1"),
-                contact_coordonnees2=offer.get("contact", {}).get("coordonnees2"),
-                contact_coordonnees3=offer.get("contact", {}).get("coordonnees3"),
-                contact_courriel=offer.get("contact", {}).get("courriel"),
-                contact_urlPostulation=offer.get("contact", {}).get("urlPostulation"),
-                contact_telephone=offer.get("contact", {}).get("telephone"),
-                origineOffre_origine=offer.get("origineOffre", {}).get("origine"),
-                origineOffre_urlOrigine=offer.get("origineOffre", {}).get("urlOrigine"),
+                contact_nom=contact.get("nom"),
+                contact_coordonnees1=contact.get("coordonnees1"),
+                contact_coordonnees2=contact.get("coordonnees2"),
+                contact_coordonnees3=contact.get("coordonnees3"),
+                contact_courriel=contact.get("courriel"),
+                contact_urlPostulation=contact_url_postulation,
+                contact_telephone=contact.get("telephone"),
+                origineOffre_origine=origine.get("origine"),
+                origineOffre_urlOrigine=origine.get("urlOrigine"),
                 contexteTravail_horaires=json.dumps(offer.get("contexteTravail", {}).get("horaires")),
                 contexteTravail_conditionsExercice=offer.get("contexteTravail", {}).get("conditionsExercice"),
                 formations=json.dumps(offer.get("formations")),
@@ -196,7 +237,7 @@ def save_offers_to_db(offers: list[dict]) -> None:
                 entreprise_logo=offer.get("entreprise", {}).get("logo"),
                 entreprise_description=offer.get("entreprise", {}).get("description"),
                 entreprise_url=offer.get("entreprise", {}).get("url"),
-                agence_courriel=offer.get("agence", {}).get("courriel"),
+                agence_courriel=agence.get("courriel"),
                 salaire_commentaire=offer.get("salaire", {}).get("commentaire"),
                 deplacementCode=offer.get("deplacementCode"),
                 deplacementLibelle=offer.get("deplacementLibelle"),

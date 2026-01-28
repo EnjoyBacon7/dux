@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useLanguage } from "../contexts/useLanguage";
-import "./jobOffersCard.css";
 import OfferBox from "./OfferBox";
 import JobDetail from "./JobDetail";
 import type { JobOffer, JobMatchMetadata } from "../types/job";

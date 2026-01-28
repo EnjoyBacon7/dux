@@ -75,7 +75,6 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
                 width: '90%', maxWidth: '700px',
                 maxHeight: '90vh', overflowY: 'auto',
                 borderRadius: '12px', padding: '2rem',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
                 position: 'relative',
                 border: '1px solid var(--nb-border)'
             }} onClick={e => e.stopPropagation()}>
