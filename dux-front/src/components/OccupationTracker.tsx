@@ -40,9 +40,9 @@ const OccupationTracker: React.FC = () => {
       if (!jobRes.ok) {
         throw new Error(`HTTP ${jobRes.status}`);
       }
-      const occData = (await occRes.json()) as FavouriteOccupation[];
+      const occJson = (await occRes.json()) as { favourites?: FavouriteOccupation[] };
       const jobData = (await jobRes.json()) as FavouriteJob[];
-      setOccupations(Array.isArray(occData) ? occData : []);
+      setOccupations(Array.isArray(occJson?.favourites) ? occJson.favourites : []);
       setJobs(Array.isArray(jobData) ? jobData : []);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("common.error"));

@@ -210,7 +210,8 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
           if (!cancelled) setFavouritesLoading(false);
           return;
         }
-        const list = (await res.json()) as Array<{ romeCode: string }>;
+        const data = (await res.json()) as { favourites?: Array<{ romeCode: string }> };
+        const list = Array.isArray(data?.favourites) ? data.favourites : [];
         if (!cancelled) {
           setIsFavourited(list.some((r) => r.romeCode === romeCode));
         }
@@ -219,7 +220,12 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
       }
     }
 
-    loadFavourites();
+    loadFavourites().catch((e) => {
+      if (!cancelled) {
+        setFavouritesLoading(false);
+        console.error("Failed to load favourites:", e);
+      }
+    });
     return () => {
       cancelled = true;
     };

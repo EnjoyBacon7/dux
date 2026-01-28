@@ -77,7 +77,7 @@ def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: s
     return token
 
 
-def get_offers(code_rome: str) -> dict:
+def get_offers(code_rome: str) -> List[Dict[str, Any]]:
     # Reuse centralized France Travail client with built-in retries/pagination
     return search_france_travail({"codeROME": code_rome}, nb_offres=300)
 

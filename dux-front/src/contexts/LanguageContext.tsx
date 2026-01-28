@@ -668,7 +668,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         la: 'Ad gratissima addere'
     },
     'metiers.detail.action_unfavorite': {
-        en: 'Remove from favourites',
+        en: 'Remove from favorites',
         es: 'Quitar de favoritos',
         fr: 'Retirer des favoris',
         de: 'Aus Favoriten entfernen',

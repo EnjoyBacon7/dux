@@ -67,6 +67,10 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                 if (!cancelled) {
                     setIsFavourited(list.some((r) => r.jobId === job.id));
                 }
+            } catch (e) {
+                if (!cancelled) {
+                    console.error("Failed to load favourites:", e);
+                }
             } finally {
                 if (!cancelled) setFavouritesLoading(false);
             }
@@ -99,6 +103,8 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                 });
                 if (res.ok) setIsFavourited(true);
             }
+        } catch (e) {
+            console.error("Favourite toggle error:", e);
         } finally {
             setFavouriteActionLoading(false);
         }

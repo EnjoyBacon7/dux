@@ -28,6 +28,16 @@ class AddFavouritePayload(BaseModel):
     romeLibelle: Optional[str] = None
 
 
+class FavouriteResponse(BaseModel):
+    romeCode: str
+    romeLibelle: Optional[str] = None
+    addedAt: Optional[str] = None
+
+
+class FavouritesListResponse(BaseModel):
+    favourites: List[FavouriteResponse]
+
+
 def _map_competences(competences: Any) -> List[Dict[str, str]]:
     if not competences:
         return []
@@ -67,33 +77,43 @@ def list_metiers(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/favourites", summary="List current user's favourite occupations")
+@router.get(
+    "/favourites",
+    summary="List current user's favourite occupations",
+    response_model=FavouritesListResponse,
+)
 def list_favourites(
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
-) -> List[Dict[str, Any]]:
+) -> FavouritesListResponse:
     rows = (
         db.query(FavouriteMetier)
         .filter(FavouriteMetier.user_id == current_user.id)
         .order_by(FavouriteMetier.created_at.desc())
         .all()
     )
-    return [
-        {
-            "romeCode": r.rome_code,
-            "romeLibelle": r.rome_libelle or r.rome_code,
-            "addedAt": r.created_at.isoformat() if r.created_at else None,
-        }
-        for r in rows
-    ]
+    return FavouritesListResponse(
+        favourites=[
+            FavouriteResponse(
+                romeCode=r.rome_code,
+                romeLibelle=r.rome_libelle or r.rome_code,
+                addedAt=r.created_at.isoformat() if r.created_at else None,
+            )
+            for r in rows
+        ]
+    )
 
 
-@router.post("/favourites", summary="Add occupation to favourites")
+@router.post(
+    "/favourites",
+    summary="Add occupation to favourites",
+    response_model=FavouriteResponse,
+)
 def add_favourite(
     payload: AddFavouritePayload,
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> FavouriteResponse:
     code = (payload.romeCode or "").strip()
     if not code:
         raise HTTPException(status_code=400, detail="romeCode is required")
@@ -106,11 +126,11 @@ def add_favourite(
         .first()
     )
     if existing:
-        return {
-            "romeCode": existing.rome_code,
-            "romeLibelle": existing.rome_libelle or existing.rome_code,
-            "addedAt": existing.created_at.isoformat() if existing.created_at else None,
-        }
+        return FavouriteResponse(
+            romeCode=existing.rome_code,
+            romeLibelle=existing.rome_libelle or existing.rome_code,
+            addedAt=existing.created_at.isoformat() if existing.created_at else None,
+        )
     libelle = (payload.romeLibelle or "").strip() or None
     fm = FavouriteMetier(
         user_id=current_user.id,
@@ -121,11 +141,11 @@ def add_favourite(
         db.add(fm)
         db.commit()
         db.refresh(fm)
-        return {
-            "romeCode": fm.rome_code,
-            "romeLibelle": fm.rome_libelle or fm.rome_code,
-            "addedAt": fm.created_at.isoformat() if fm.created_at else None,
-        }
+        return FavouriteResponse(
+            romeCode=fm.rome_code,
+            romeLibelle=fm.rome_libelle or fm.rome_code,
+            addedAt=fm.created_at.isoformat() if fm.created_at else None,
+        )
     except IntegrityError:
         db.rollback()
         existing = (
@@ -141,11 +161,11 @@ def add_favourite(
                 status_code=409,
                 detail="Duplicate favourite occupation; concurrent insert. Retry to fetch existing.",
             )
-        return {
-            "romeCode": existing.rome_code,
-            "romeLibelle": existing.rome_libelle or existing.rome_code,
-            "addedAt": existing.created_at.isoformat() if existing.created_at else None,
-        }
+        return FavouriteResponse(
+            romeCode=existing.rome_code,
+            romeLibelle=existing.rome_libelle or existing.rome_code,
+            addedAt=existing.created_at.isoformat() if existing.created_at else None,
+        )
 
 
 @router.delete("/favourites/{rome_code}", summary="Remove occupation from favourites")
