@@ -476,13 +476,13 @@ select:focus {
     border-radius: calc(var(--nb-radius) - 4px);
     cursor: pointer;
     font-size: 0.95rem;
-    transition: background-color 0.15s ease;
     font-family: var(--nb-font-stack);
     position: relative;
 }
 
-.nb-nav-btn:hover {
+.nb-nav-btn:hover:not(.nb-nav-btn--active) {
     background: var(--nb-bg-muted);
+    transition: background-color 0.15s ease;
 }
 
 .nb-nav-btn--active {
