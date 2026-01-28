@@ -1,13 +1,17 @@
 import logging
 import json
+import asyncio
 from typing import Optional, Dict, Any, List
 from pathlib import Path
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 from server.config import settings
 from server.utils.llm import call_llm_async, call_llm_sync, extract_response_content, parse_json_response
 from openai import OpenAI, APIError
-from server.config import settings
 from server.thread_pool import run_blocking_in_executor
 from server.utils.prompts import load_prompt_template
+from server.methods.FT_job_search import search_france_travail
+from server.models import User, OptimalOffer
 
 logger = logging.getLogger(__name__)
 
@@ -397,3 +401,159 @@ async def rank_job_offers(
     except Exception as e:
         logger.error(f"Unexpected error in job ranking: {str(e)}")
         raise ValueError(f"Job ranking failed: {str(e)}")
+
+
+# ============================================================================
+# Optimal Offers Cache Management
+# ============================================================================
+
+
+async def get_optimal_offers_with_cache(
+    current_user: User,
+    db: Session,
+    ft_parameters: dict,
+    preferences: Optional[str] = None,
+    top_k: int = 5,
+    cache_hours: int = 24
+) -> Dict[str, Any]:
+    """
+    Get optimal job offers, using cache if available and fresh.
+
+    Checks if cached offers exist and are less than cache_hours old.
+    If cache is valid, returns cached results. Otherwise, fetches new offers
+    from France Travail API, ranks them with LLM, and saves to database.
+
+    Args:
+        current_user: Current authenticated user
+        db: Database session
+        ft_parameters: France Travail search parameters
+        preferences: Optional user preferences for ranking
+        top_k: Number of top offers to return
+        cache_hours: Number of hours before cache is considered stale
+
+    Returns:
+        dict: Ranked job offers with match scores, reasoning, and cache status
+
+    Raises:
+        ValueError: If no offers found
+        Exception: If ranking or database operations fail
+    """
+    # Check cache first
+    try:
+        cached_offers = db.query(OptimalOffer).filter(
+            OptimalOffer.user_id == current_user.id
+        ).order_by(OptimalOffer.position).all()
+
+        if cached_offers:
+            # Check if cache is fresh
+            most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
+            last_updated = most_recent.updated_at or most_recent.created_at
+            cache_age = datetime.now(last_updated.tzinfo) - last_updated
+
+            if cache_age < timedelta(hours=cache_hours):
+                # Cache is fresh, return cached results
+                # Return offers with job_id for frontend to fetch full data
+                offers_data = []
+                for o in cached_offers:
+                    offer_dict = {
+                        "job_id": o.job_id,
+                        "position": o.position,
+                        "score": o.score,
+                        "match_reasons": o.match_reasons,
+                        "concerns": o.concerns,
+                    }
+                    offers_data.append(offer_dict)
+
+                return {
+                    "success": True,
+                    "offers": offers_data,
+                    "count": len(offers_data),
+                    "cached": True,
+                    "cache_age_hours": round(cache_age.total_seconds() / 3600, 1)
+                }
+    except Exception as e:
+        logger.warning(f"Error checking cache: {str(e)}, proceeding with fresh search")
+
+    # Cache is stale or missing, fetch new offers in thread pool
+    # Run France Travail API call in thread pool to avoid blocking other clients
+    # Add timeout to prevent scheduler from hanging
+    try:
+        offers = await asyncio.wait_for(
+            run_blocking_in_executor(
+                search_france_travail,
+                ft_parameters or {},
+                50
+            ),
+            timeout=300  # 5 minute timeout for API search
+        )
+    except asyncio.TimeoutError:
+        logger.error(
+            f"Timeout searching France Travail API for user {current_user.id} - took longer than 5 minutes"
+        )
+        raise ValueError("Timeout searching job offers from France Travail API")
+
+    if not offers:
+        raise ValueError("No job offers found from France Travail API with the provided parameters")
+
+    # Rank the offers using LLM (also in thread pool)
+    # Add timeout for LLM ranking
+    try:
+        result = await asyncio.wait_for(
+            rank_job_offers(
+                current_user.cv_text,
+                offers,
+                preferences=preferences,
+                top_k=top_k
+            ),
+            timeout=300  # 5 minute timeout for LLM ranking
+        )
+    except asyncio.TimeoutError:
+        logger.error(
+            f"Timeout ranking job offers for user {current_user.id} - LLM took longer than 5 minutes"
+        )
+        raise ValueError("Timeout ranking job offers - LLM service took too long")
+
+    # Save optimal offers to database (delete old ones first)
+    db.query(OptimalOffer).filter(OptimalOffer.user_id == current_user.id).delete()
+
+    ranked_offers = result.get("ranked_offers", [])
+    # Map ranked offers to get job IDs from full job data using position (1-indexed)
+    offers_with_data = []
+    for offer in ranked_offers:
+        position = offer.get("position", 0)
+        # Position is 1-indexed, so subtract 1 to get the correct offer from the list
+        job_data = offers[position - 1] if 0 < position <= len(offers) else None
+        job_id = job_data.get("id") if job_data else None
+
+        # Skip offers with invalid positions or missing job_id to avoid DB constraint violations
+        if not job_id:
+            logger.warning(f"Skipping offer with invalid position {position} or missing job_id")
+            continue
+
+        db_offer = OptimalOffer(
+            user_id=current_user.id,
+            position=position,
+            job_id=job_id,
+            score=offer.get("score", 0),
+            match_reasons=offer.get("match_reasons", []),
+            concerns=offer.get("concerns", []),
+        )
+        db.add(db_offer)
+
+        # Build simplified OptimalOffer for response
+        offer_with_data = {
+            "job_id": job_id,
+            "position": position,
+            "score": offer.get("score", 0),
+            "match_reasons": offer.get("match_reasons", []),
+            "concerns": offer.get("concerns", []),
+        }
+        offers_with_data.append(offer_with_data)
+
+    db.commit()
+
+    # Add cache status and offers to result
+    result["cached"] = False
+    result["offers"] = offers_with_data
+
+    return result

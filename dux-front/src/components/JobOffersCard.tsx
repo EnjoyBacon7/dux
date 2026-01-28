@@ -1,22 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "../contexts/useLanguage";
 import OfferBox from "./OfferBox";
 import JobDetail from "./JobDetail";
 import type { JobOffer, JobMatchMetadata } from "../types/job";
+import styles from "../styles/JobOffersCard.module.css";
 
 // Merged type with both job data and match metadata
 type DisplayOffer = JobOffer & JobMatchMetadata;
+
+// Type for API response
+interface OptimalOffersResponse {
+    success: boolean;
+    offers: JobMatchMetadata[];
+    count: number;
+}
 
 const JobOffersCard: React.FC = () => {
     const { t } = useLanguage();
     const [offers, setOffers] = useState<DisplayOffer[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [selectedOffer, setSelectedOffer] = useState<DisplayOffer | null>(null);
 
     // Fetch full job data by job_id
-    const fetchJobData = async (job_id: string): Promise<JobOffer | null> => {
+    const fetchJobData = useCallback(async (job_id: string): Promise<JobOffer | null> => {
         try {
             const response = await fetch(`/api/jobs/offer/${job_id}`, {
                 credentials: "include",
@@ -31,12 +37,13 @@ const JobOffersCard: React.FC = () => {
             console.error(`Error fetching job data for ${job_id}:`, err);
             return null;
         }
-    };
+    }, []);
 
     // Merge optimal offer metadata with full job data
-    const mergeOfferData = async (optimalOffer: any): Promise<DisplayOffer> => {
+    const mergeOfferData = useCallback(async (optimalOffer: JobMatchMetadata): Promise<DisplayOffer | null> => {
         if (!optimalOffer.job_id) {
-            return optimalOffer as DisplayOffer;
+            console.warn("Optimal offer missing job_id, skipping");
+            return null;
         }
 
         const jobData = await fetchJobData(optimalOffer.job_id);
@@ -46,41 +53,44 @@ const JobOffersCard: React.FC = () => {
                 ...optimalOffer, // Preserve optimal offer metadata
             } as DisplayOffer;
         }
-        return optimalOffer as DisplayOffer;
-    };
+        return null;
+    }, [fetchJobData]);
 
-    const generateOffers = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await fetch("/api/chat/match_profile", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({}),
-            });
+    // Fetch optimal offers on component mount
+    useEffect(() => {
+        const fetchOffers = async () => {
+            try {
+                const response = await fetch("/api/chat/optimal_offers", {
+                    credentials: "include",
+                });
+                if (!response.ok) {
+                    console.error("Failed to fetch optimal offers");
+                    return;
+                }
 
-            if (!response.ok) {
-                const err = await response.json().catch(() => ({}));
-                throw new Error(err.detail || t('errors.failed_generate_offers'));
+                const data: OptimalOffersResponse = await response.json();
+                if (data.offers && Array.isArray(data.offers) && data.offers.length > 0) {
+                    // Fetch full job data for each offer
+                    const mergedOffers = await Promise.all(
+                        data.offers.map((offer: JobMatchMetadata) => mergeOfferData(offer))
+                    );
+                    // Filter out null offers (those that failed to merge)
+                    const validOffers = mergedOffers.filter(
+                        (offer): offer is DisplayOffer => offer !== null
+                    );
+                    if (validOffers.length > 0) {
+                        setOffers(validOffers);
+                        setCurrentIndex(0);
+                    }
+                }
+            } catch (err: unknown) {
+                console.error("Error fetching optimal offers:", err);
+                // Silent failure - card simply won't show
             }
+        };
 
-            const data = await response.json();
-            if (data.offers && Array.isArray(data.offers)) {
-                // Fetch full job data for each offer
-                const mergedOffers = await Promise.all(
-                    data.offers.map((offer: any) => mergeOfferData(offer))
-                );
-                setOffers(mergedOffers);
-                setCurrentIndex(0);
-            }
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('errors.error_generating_offers');
-            setError(message);
-        } finally {
-            setLoading(false);
-        }
-    };
+        fetchOffers();
+    }, [mergeOfferData]);
 
     const handlePrev = () => {
         setCurrentIndex((prev) => (prev === 0 ? offers.length - 1 : prev - 1));
@@ -90,43 +100,28 @@ const JobOffersCard: React.FC = () => {
         setCurrentIndex((prev) => (prev === offers.length - 1 ? 0 : prev + 1));
     };
 
-    if (offers.length === 0 && !loading && !error) {
-        return (
-            <div className="nb-card home-card job-offers-card">
-                <h2 className="home-card-title">{t('jobs.optimal_offers')}</h2>
-                <p className="nb-text-dim">{t('jobs.upload_cv_to_match')}</p>
-                <button onClick={generateOffers} className="nb-btn nb-btn--accent">
-                    {t('jobs.find_offers')}
-                </button>
-            </div>
-        );
+    // Don't render component if no offers exist
+    if (offers.length === 0) {
+        return null;
     }
 
     return (
         <div className="nb-card home-card job-offers-card">
-            <h2 className="home-card-title">{t('jobs.optimal_offers')}</h2>
-
-            {loading && <p className="nb-text-dim">{t('jobs.loading_offers')}</p>}
-
-            {error && (
-                <div className="nb-alert nb-alert--danger">
-                    {error}
-                </div>
-            )}
+            <h2 className="home__card-title">{t('jobs.optimal_offers')}</h2>
 
             {offers.length > 0 && (
-                <div className="job-offers-carousel">
-                    <div className="carousel-container">
+                <div className={styles["job-offers__carousel"]}>
+                    <div className={styles["job-offers__carousel-container"]}>
                         <button
                             onClick={handlePrev}
-                            className="carousel-btn carousel-btn--prev"
+                            className={styles["job-offers__carousel-btn"]}
                             disabled={offers.length === 1}
                         >
                             ◀
                         </button>
 
-                        <div className="carousel-content">
-                            <div className="nb-card" style={{ width: '100%' }}>
+                        <div className={styles["job-offers__carousel-content"]}>
+                            <div className="nb-card">
                                 {(() => {
                                     const offer = offers[currentIndex];
                                     return (
@@ -144,21 +139,14 @@ const JobOffersCard: React.FC = () => {
                                             />
 
                                             {/* Match score badge */}
-                                            <div className="offer-score-badge" style={{
-                                                marginTop: '0.75rem',
-                                                padding: '0.5rem',
-                                                backgroundColor: 'var(--nb-accent)',
-                                                borderRadius: '4px',
-                                                textAlign: 'center',
-                                                fontWeight: 600
-                                            }}>
+                                            <div className={styles["job-offers__score-badge"]}>
                                                 {t('jobs.match_score')}: {offer.score}/100
                                             </div>
 
                                             {/* Why match / concerns sections below the standard box */}
-                                            <div className="offer-section">
-                                                <h4 className="offer-label">{t('jobs.why_match')}</h4>
-                                                <ul className="offer-list">
+                                            <div className={styles["job-offers__section"]}>
+                                                <h4 className={styles["job-offers__label"]}>{t('jobs.why_match')}</h4>
+                                                <ul className={styles["job-offers__list"]}>
                                                     {offer.match_reasons.map((reason: string, i: number) => (
                                                         <li key={i}>{reason}</li>
                                                     ))}
@@ -166,9 +154,9 @@ const JobOffersCard: React.FC = () => {
                                             </div>
 
                                             {offer.concerns && offer.concerns.length > 0 && (
-                                                <div className="offer-section">
-                                                    <h4 className="offer-label offer-label--concern">{t('jobs.concerns')}</h4>
-                                                    <ul className="offer-list">
+                                                <div className={styles["job-offers__section"]}>
+                                                    <h4 className={`${styles["job-offers__label"]} ${styles["job-offers__label--concern"]}`}>{t('jobs.concerns')}</h4>
+                                                    <ul className={styles["job-offers__list"]}>
                                                         {offer.concerns.map((concern: string, i: number) => (
                                                             <li key={i}>{concern}</li>
                                                         ))}
@@ -183,14 +171,14 @@ const JobOffersCard: React.FC = () => {
 
                         <button
                             onClick={handleNext}
-                            className="carousel-btn carousel-btn--next"
+                            className={styles["job-offers__carousel-btn"]}
                             disabled={offers.length === 1}
                         >
                             ▶
                         </button>
                     </div>
 
-                    <div className="carousel-indicators">
+                    <div className={styles["job-offers__carousel-indicators"]}>
                         {offers.map((_, index) => (
                             <button
                                 key={index}
@@ -200,12 +188,6 @@ const JobOffersCard: React.FC = () => {
                         ))}
                     </div>
                 </div>
-            )}
-
-            {offers.length > 0 && !loading && (
-                <button onClick={generateOffers} className="nb-btn nb-btn--ghost nb-mt">
-                    {t('jobs.refresh_offers')}
-                </button>
             )}
 
             {/* Use JobDetail for the selected offer - same component as JobSearch */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/useLanguage";
+import styles from "../styles/CVScoreCard.module.css";
 
 interface EvaluationScores {
     overall_score: number | null;
@@ -242,12 +243,12 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
     if (!hasCv) {
         return (
             <div className="nb-card home-card cv-score-card">
-                <div className="cv-score-header">
-                    <h2 className="home-card-title">{t("cv_score.title")}</h2>
+                <div className={styles["cv-score__header"]}>
+                    <h2 className="home__card-title">{t("cv_score.title")}</h2>
                 </div>
-                <div className="cv-score-body">
-                    <div className="cv-score-body-content">
-                        <p className="cv-score-empty">{t("cv_score.no_cv")}</p>
+                <div className={styles["cv-score__body"]}>
+                    <div className={styles["cv-score__body-content"]}>
+                        <p className={styles["cv-score__empty"]}>{t("cv_score.no_cv")}</p>
                     </div>
                 </div>
             </div>
@@ -267,16 +268,16 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
     if (showEvaluating) {
         return (
             <div className="nb-card home-card cv-score-card">
-                <div className="cv-score-header">
-                    <h2 className="home-card-title">{t("cv_score.title")}</h2>
+                <div className={styles["cv-score__header"]}>
+                    <h2 className="home__card-title">{t("cv_score.title")}</h2>
                     <button
-                        className="cv-score-refresh-btn"
+                        className={styles["cv-score__refresh-btn"]}
                         onClick={handleReEvaluate}
                         disabled={true}
                         title={t("cv_score.re_evaluate")}
                     >
                         <svg
-                            className="cv-score-refresh-icon spinning"
+                            className={`${styles["cv-score__refresh-icon"]} ${styles["cv-score__refresh-icon--spinning"]}`}
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -287,10 +288,10 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                         </svg>
                     </button>
                 </div>
-                <div className="cv-score-body">
-                    <div className="cv-score-body-content">
-                        <div className="cv-score-evaluating">
-                            <div className="cv-score-spinner"></div>
+                <div className={styles["cv-score__body"]}>
+                    <div className={styles["cv-score__body-content"]}>
+                        <div className={styles["cv-score__evaluating"]}>
+                            <div className={styles["cv-score__spinner"]}></div>
                             <p>{t("cv_score.evaluating")}</p>
                         </div>
                     </div>
@@ -304,13 +305,13 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
     if (!hasChecked) {
         return (
             <div className="nb-card home-card cv-score-card">
-                <div className="cv-score-header">
-                    <h2 className="home-card-title">{t("cv_score.title")}</h2>
+                <div className={styles["cv-score__header"]}>
+                    <h2 className="home__card-title">{t("cv_score.title")}</h2>
                 </div>
-                <div className="cv-score-body">
-                    <div className="cv-score-body-content">
-                        <div className="cv-score-evaluating">
-                            <div className="cv-score-spinner"></div>
+                <div className={styles["cv-score__body"]}>
+                    <div className={styles["cv-score__body-content"]}>
+                        <div className={styles["cv-score__evaluating"]}>
+                            <div className={styles["cv-score__spinner"]}></div>
                             <p>{t("cv_score.evaluating")}</p>
                         </div>
                     </div>
@@ -324,12 +325,12 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
     if (!evaluation || isFailed || !isCompleted) {
         return (
             <div className="nb-card home-card cv-score-card">
-                <div className="cv-score-header">
-                    <h2 className="home-card-title">{t("cv_score.title")}</h2>
+                <div className={styles["cv-score__header"]}>
+                    <h2 className="home__card-title">{t("cv_score.title")}</h2>
                 </div>
-                <div className="cv-score-body">
-                    <div className="cv-score-body-content">
-                        <div className="cv-score-no-evaluation">
+                <div className={styles["cv-score__body"]}>
+                    <div className={styles["cv-score__body-content"]}>
+                        <div className={styles["cv-score__no-evaluation"]}>
                             <p>{isFailed ? t("cv_score.evaluation_failed") : t("cv_score.no_evaluation")}</p>
                             <button 
                                 className="nb-btn nb-btn--accent"
@@ -348,10 +349,10 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
     // Render complete state with scores (only when evaluation_status === "completed")
     return (
         <div className="nb-card home-card cv-score-card">
-            <div className="cv-score-header">
-                <h2 className="home-card-title">{t("cv_score.title")}</h2>
+            <div className={styles["cv-score__header"]}>
+                <h2 className="home__card-title">{t("cv_score.title")}</h2>
                 <button
-                    className="cv-score-refresh-btn"
+                    className={styles["cv-score__refresh-btn"]}
                     onClick={handleReEvaluate}
                     disabled={isReEvaluating}
                     title={t("cv_score.re_evaluate")}
@@ -369,12 +370,12 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                 </button>
             </div>
 
-            <div className="cv-score-body">
-                <div className="cv-score-body-content">
-                    <div className="cv-score-content">
+            <div className={styles["cv-score__body"]}>
+                <div className={styles["cv-score__body-content"]}>
+                    <div className={styles["cv-score__content"]}>
                         {/* Score Circle */}
-                        <div className="cv-score-circle-container">
-                            <svg className="cv-score-circle" viewBox="0 0 100 100">
+                        <div className={styles["cv-score__circle-container"]}>
+                            <svg className={styles["cv-score__circle"]} viewBox="0 0 100 100">
                                 {/* Background circle */}
                                 <circle
                                     cx="50"
@@ -396,7 +397,7 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                                     strokeDasharray={circumference}
                                     strokeDashoffset={strokeDashoffset}
                                     transform="rotate(-90 50 50)"
-                                    className="cv-score-circle-progress"
+                                    className={styles["cv-score__circle-progress"]}
                                 />
                                 {/* Score text */}
                                 <text
@@ -404,7 +405,7 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                                     y="50"
                                     textAnchor="middle"
                                     dy="0.35em"
-                                    className="cv-score-text"
+                                    className={styles["cv-score__text"]}
                                 >
                                     {scorePercent}
                                 </text>
@@ -412,16 +413,16 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                         </div>
 
                         {/* Dimension Scores */}
-                        <div className="cv-score-dimensions">
+                        <div className={styles["cv-score__dimensions"]}>
                             {dimensionScores.map(({ key, label, score }) => (
-                                <div key={key} className="cv-score-dimension">
-                                    <div className="cv-score-dimension-header">
-                                        <span className="cv-score-dimension-label">{label}</span>
-                                        <span className="cv-score-dimension-value">{score ?? "-"}</span>
+                                <div key={key} className={styles["cv-score__dimension"]}>
+                                    <div className={styles["cv-score__dimension-header"]}>
+                                        <span className={styles["cv-score__dimension-label"]}>{label}</span>
+                                        <span className={styles["cv-score__dimension-value"]}>{score ?? "-"}</span>
                                     </div>
-                                    <div className="cv-score-bar-bg">
+                                    <div className={styles["cv-score__bar-bg"]}>
                                         <div
-                                            className="cv-score-bar-fill"
+                                            className={styles["cv-score__bar-fill"]}
                                             style={{
                                                 width: `${score ?? 0}%`,
                                                 backgroundColor: getScoreColor(score ?? 0),
@@ -440,9 +441,9 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                             : (evaluation?.feedback.recommendations || []);
                         
                         return recommendations.length > 0 ? (
-                            <div className="cv-score-recommendations">
-                                <h3 className="cv-score-recommendations-title">{t("cv_score.recommendations")}</h3>
-                                <ul className="cv-score-recommendations-list">
+                            <div className={styles["cv-score__recommendations"]}>
+                                <h3 className={styles["cv-score__recommendations-title"]}>{t("cv_score.recommendations")}</h3>
+                                <ul className={styles["cv-score__recommendations-list"]}>
                                     {recommendations.slice(0, 5).map((rec, idx) => (
                                         <li key={idx}>{rec}</li>
                                     ))}
@@ -452,7 +453,7 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                     })()}
 
                     {/* Profile Hub Button - shown below score */}
-                    <div className="cv-score-actions">
+                    <div className={styles["cv-score__actions"]}>
                         <button className="nb-btn nb-btn--accent" onClick={handleViewProfileHub}>
                             {t("cv_score.view_profile_hub")}
                         </button>

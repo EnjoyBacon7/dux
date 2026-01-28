@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useAuth } from "./contexts/useAuth";
 import { Header, AccountCard, JobOffersCard, WelcomeCard, CVUploadForm, CVPreview, CVScoreCard } from "./components";
-import "./styles/home.css";
+import styles from "./styles/Home.module.css";
 
 const Home: React.FC = () => {
     const { user, checkAuth } = useAuth();
@@ -20,8 +20,8 @@ const Home: React.FC = () => {
     return (
         <>
             <Header />
-            <main className="nb-page home-container">
-                <div className="home-grid">
+            <main className={`nb-page ${styles['home__container']}`}>
+                <div className={styles['home__grid']}>
                     <WelcomeCard />
                     <AccountCard
                         username={user.username}

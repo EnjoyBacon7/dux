@@ -14,8 +14,7 @@ from sqlalchemy.orm import Session
 
 from server.database import SessionLocal
 from server.models import User
-from server.routers.chat_router import _get_optimal_offers_with_cache
-from server.methods.chat import identify_ft_parameters
+from server.methods.chat import get_optimal_offers_with_cache, identify_ft_parameters
 from server.utils.task_cleanup import recover_stale_evaluations
 
 logger = logging.getLogger(__name__)
@@ -51,7 +50,7 @@ async def generate_optimal_offers_for_user(user_id: int, db: Session) -> None:
 
         # Generate optimal offers (will be cached in database)
         # Use a shorter cache time (1 hour) since this runs hourly
-        await _get_optimal_offers_with_cache(
+        await get_optimal_offers_with_cache(
             current_user=user,
             db=db,
             ft_parameters=ft_parameters,
@@ -94,6 +93,29 @@ async def generate_optimal_offers_for_all_users() -> None:
 
     except Exception as e:
         logger.error(f"Error in periodic optimal offers generation: {str(e)}")
+    finally:
+        db.close()
+
+
+async def recover_stale_evaluations_task() -> None:
+    """
+    Periodic task to recover stale CV evaluations.
+
+    Marks any pending evaluations that have been in progress for too long as failed.
+    This prevents the frontend from getting stuck waiting for evaluations that hung or crashed.
+    """
+    db = SessionLocal()
+    try:
+        logger.info("Starting stale evaluation recovery")
+
+        # Check for evaluations stuck in pending state for more than 30 minutes
+        recovered_count = recover_stale_evaluations(db, stale_after_minutes=30)
+
+        if recovered_count > 0:
+            logger.info(f"Recovered {recovered_count} stale evaluations")
+
+    except Exception as e:
+        logger.error(f"Error in stale evaluation recovery task: {e}", exc_info=True)
     finally:
         db.close()
 
@@ -166,25 +188,3 @@ def get_scheduler() -> Optional[AsyncIOScheduler]:
     """
     return scheduler
 
-
-async def recover_stale_evaluations_task() -> None:
-    """
-    Periodic task to recover stale CV evaluations.
-
-    Marks any pending evaluations that have been in progress for too long as failed.
-    This prevents the frontend from getting stuck waiting for evaluations that hung or crashed.
-    """
-    db = SessionLocal()
-    try:
-        logger.info("Starting stale evaluation recovery")
-
-        # Check for evaluations stuck in pending state for more than 30 minutes
-        recovered_count = recover_stale_evaluations(db, stale_after_minutes=30)
-
-        if recovered_count > 0:
-            logger.info(f"Recovered {recovered_count} stale evaluations")
-
-    except Exception as e:
-        logger.error(f"Error in stale evaluation recovery task: {e}")
-    finally:
-        db.close()

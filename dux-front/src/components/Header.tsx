@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { useLanguage } from "../contexts/useLanguage";
+import styles from "../styles/Header.module.css";
 
 const SettingsIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
@@ -114,113 +115,39 @@ const Header: React.FC = () => {
                         </button>
                     )}
                     {user && (
-                        <div style={{ position: 'relative' }} ref={dropdownRef}>
+                        <div className={styles['header__dropdown']} ref={dropdownRef}>
                             <button
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="nb-logout-btn"
-                                style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    padding: 0,
-                                    borderRadius: '6px',
-                                    overflow: 'hidden',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    backgroundColor: 'var(--nb-accent)',
-                                    border: 'var(--nb-border) solid var(--nb-fg)'
-                                }}
+                                className={`nb-logout-btn ${styles['header__avatar-btn']}`}
                                 title={t('header.menu')}
                             >
                                 {user.profile_picture ? (
                                     <img
                                         src={user.profile_picture}
                                         alt={user.username}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover'
-                                        }}
+                                        className={styles['header__avatar-img']}
                                     />
                                 ) : (
-                                    <div style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        backgroundColor: 'var(--accent-color)',
-                                        color: 'white',
-                                        fontWeight: 'bold',
-                                        fontSize: '0.875rem'
-                                    }}>
+                                    <div className={styles['header__avatar-placeholder']}>
                                         {getInitials()}
                                     </div>
                                 )}
                             </button>
                             {dropdownOpen && (
-                                <div className="nb-card" style={{
-                                    position: 'absolute',
-                                    top: 'calc(100% + 0.5rem)',
-                                    right: 0,
-                                    minWidth: '150px',
-                                    zIndex: 1000,
-                                    padding: 0,
-                                    margin: 0
-                                }}>
+                                <div className={`nb-card ${styles['header__dropdown-menu']}`}>
                                     <button
                                         onClick={() => {
                                             setDropdownOpen(false);
                                             navigate('/settings');
                                         }}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem 1rem',
-                                            border: 'none',
-                                            background: 'none',
-                                            textAlign: 'left',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            color: 'var(--nb-fg)',
-                                            fontSize: '0.875rem',
-                                            borderRadius: '4px',
-                                            transition: 'background-color 0.15s ease'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(0, 0, 0, 0.05))';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                        }}
+                                        className={styles['header__dropdown-item']}
                                     >
                                         <SettingsIcon />
                                         {t('header.settings')}
                                     </button>
                                     <button
                                         onClick={handleLogout}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem 1rem',
-                                            border: 'none',
-                                            background: 'none',
-                                            textAlign: 'left',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            color: 'var(--nb-fg)',
-                                            fontSize: '0.875rem',
-                                            borderRadius: '4px',
-                                            transition: 'background-color 0.15s ease'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(0, 0, 0, 0.05))';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                        }}
+                                        className={styles['header__dropdown-item']}
                                     >
                                         <LogoutIcon />
                                         {t('header.logout')}

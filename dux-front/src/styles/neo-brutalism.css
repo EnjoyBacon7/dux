@@ -49,6 +49,21 @@
     --nb-font-stack: 'JetBrains Mono', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
     --nb-transition: .18s cubic-bezier(.25, .8, .25, 1);
 
+    /* ===== RESPONSIVE BREAKPOINTS ===== */
+    --nb-breakpoint-mobile: 480px;
+    --nb-breakpoint-tablet: 768px;
+    --nb-breakpoint-desktop: 900px;
+    --nb-breakpoint-wide: 1200px;
+
+    /* ===== Z-INDEX SCALE ===== */
+    --nb-z-base: 1;
+    --nb-z-dropdown: 100;
+    --nb-z-sticky: 200;
+    --nb-z-header: 300;
+    --nb-z-modal-backdrop: 1000;
+    --nb-z-modal: 1100;
+    --nb-z-toast: 2000;
+
     /* ===== LIGHT MODE SPECIFIC ===== */
     --nb-input-bg: var(--clr-light-a0);
     --nb-input-focus-bg: var(--clr-primary-a40);
@@ -169,7 +184,6 @@ a:hover {
     border: var(--nb-border) solid var(--nb-fg);
     border-radius: var(--nb-radius);
     padding: 1.75rem 1.5rem 1.5rem;
-    position: relative;
 }
 
 
@@ -404,7 +418,7 @@ select:focus {
     border-bottom: var(--nb-border) solid var(--nb-fg);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: var(--nb-z-header);
 }
 
 .nb-header-content {
@@ -450,18 +464,123 @@ select:focus {
     align-items: center;
 }
 
+/* Navigation buttons */
+.nb-nav-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--nb-fg);
+    font-weight: 600;
+    padding: 0.65rem 1rem;
+    border-radius: calc(var(--nb-radius) - 4px);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-family: var(--nb-font-stack);
+    position: relative;
+    transition: background-color 0.15s ease;
+}
+
+.nb-nav-btn:hover {
+    background: var(--nb-bg-muted);
+}
+
+.nb-nav-btn--active {
+    background: var(--nb-accent);
+    color: var(--nb-fg);
+    transition: none;
+}
+
+/* Mobile menu toggle button */
+.nb-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: calc(var(--nb-z-header) + 10);
+}
+
+.nb-menu-toggle span {
+    width: 100%;
+    height: 2px;
+    background: var(--nb-fg);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.nb-menu-toggle.is-open span:nth-child(1) {
+    transform: translateY(10px) rotate(45deg);
+}
+
+.nb-menu-toggle.is-open span:nth-child(2) {
+    opacity: 0;
+}
+
+.nb-menu-toggle.is-open span:nth-child(3) {
+    transform: translateY(-10px) rotate(-45deg);
+}
+
+/* Mobile navigation drawer */
+.nb-nav-drawer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: calc(var(--nb-z-header) + 5);
+}
+
+.nb-nav-drawer__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.nb-nav-drawer.is-open .nb-nav-drawer__overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.nb-nav-drawer__panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(80%, 300px);
+    height: 100%;
+    background: var(--nb-card-bg);
+    border-left: var(--nb-border) solid var(--nb-fg);
+    padding: 5rem 1.5rem 1.5rem;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.nb-nav-drawer.is-open .nb-nav-drawer__panel {
+    transform: translateX(0);
+}
+
 
 
 .nb-actions {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
 }
 
-
-
-
-
+/* Navigation mobile modifier */
 .nb-nav--mobile {
     flex-direction: column;
     align-items: stretch;
@@ -642,4 +761,162 @@ select:focus {
 :root[data-theme="dark"] .nb-input,
 :root[data-theme="dark"] .nb-file {
     color: var(--nb-fg);
+}
+
+/* ===== GLOBAL ANIMATIONS ===== */
+
+/* Spin animation - used for loading spinners */
+@keyframes nb-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Slide down animation - used for expanding sections */
+@keyframes nb-slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade in animation - used for content appearance */
+@keyframes nb-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Pulse animation - used for attention-grabbing elements */
+@keyframes nb-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* ===== LEGACY/SHARED COMPONENT CLASSES ===== */
+/* These provide basic styling for components used across pages */
+/* Component-specific detailed styling should use CSS modules */
+
+.home-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.home__card-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.home-card-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* Legacy grid positioning classes - for backward compatibility */
+.home-card {}
+
+.welcome-card {}
+.account-card {}
+.cv-upload-card {}
+.cv-score-card {}
+.cv-preview-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.job-offers-card {}
+.account-settings-card {}
+.preferences-card {}
+.debug-card {}
+
+/* CV Preview components shared styles */
+.home-cv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.home-cv-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+    transition: var(--nb-transition);
+}
+
+.home-cv-icon:hover {
+    opacity: 0.7;
+}
+
+.home-cv-frame {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    border: none;
+    border-radius: 0 0 var(--nb-radius) var(--nb-radius);
+    background: var(--nb-bg);
+    margin: 0;
+    padding: 0;
+}
+
+.home-cv-empty {
+    padding: 1rem;
+    border: var(--nb-border) dashed var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-card-muted-bg);
+}
+
+.home-cv-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    margin-bottom: -1.5rem;
+    overflow: hidden;
+}
+
+/* Upload form shared styles */
+.home-upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.home-upload-form .nb-file {
+    padding: 1rem;
+}
+
+.home-upload-form .nb-btn {
+    width: 100%;
+}
+
+/* Actions */
+.home-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+.home-actions .nb-btn {
+    flex: 1;
+    min-width: 120px;
 }
