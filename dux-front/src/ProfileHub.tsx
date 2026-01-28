@@ -16,6 +16,10 @@ const ProfileHub: React.FC = () => {
         navigate("/profile-hub/detailed-analysis");
     };
 
+    const handleTracker = () => {
+        navigate("/profile-hub/tracker");
+    };
+
     return (
         <>
             <Header />
@@ -46,6 +50,27 @@ const ProfileHub: React.FC = () => {
                             <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.detailed_analysis")}</h3>
                             <p className={styles['profile-hub__feature-desc']}>{t("profile_hub.detailed_analysis_desc")}</p>
                             <span className={styles['profile-hub__view-btn']}>{t("profile_hub.view_analysis")}</span>
+                        </div>
+
+                        {/* Tracker Card - Clickable */}
+                        <div
+                            className={`nb-card ${styles['profile-hub__feature-card']} ${styles['profile-hub__feature-card--clickable']}`}
+                            onClick={handleTracker}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                    if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
+                                        e.preventDefault();
+                                    }
+                                    handleTracker();
+                                }
+                            }}
+                        >
+                            <div className={styles['profile-hub__feature-icon']}>📌</div>
+                            <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.tracker")}</h3>
+                            <p className={styles['profile-hub__feature-desc']}>{t("profile_hub.tracker_desc")}</p>
+                            <span className={styles['profile-hub__view-btn']}>{t("profile_hub.view_tracker")}</span>
                         </div>
 
                         <div className={`nb-card ${styles['profile-hub__feature-card']}`}>

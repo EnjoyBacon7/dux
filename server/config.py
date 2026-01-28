@@ -2,7 +2,7 @@
 Application configuration settings
 """
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from typing import List, Union
 
 
@@ -86,8 +86,11 @@ class Settings(BaseSettings):
     openai_model: str = ""
     openai_base_url: str = ""
 
-    # VLM Configuration (hosted API)
-    vlm_api_key: str = ""
+    # VLM Configuration (hosted API) — accepts VLM_API_KEY or VLM_KEY from env
+    vlm_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("vlm_api_key", "vlm_key"),
+    )
     vlm_model: str = "Qwen2.5-VL-7B-Instruct"
     vlm_base_url: str = ""
 

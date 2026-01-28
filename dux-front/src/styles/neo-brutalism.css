@@ -2,8 +2,8 @@
 
     /* ===== PALETTE TOKENS ===== */
     --clr-light-a0: #ffffff;
-    --clr-primary-a0: #c3b9f8;
-    --clr-primary-a10: #cac1f9;
+    --clr-primary-a0: #6b5fa8;       /* Darker purple for white text contrast (was #9a90ce) */
+    --clr-primary-a10: #5d5299;      /* Darker purple for dark mode accents (was #9289bf) */
     --clr-primary-a20: #d1c8fa;
     --clr-primary-a30: #d7d0fb;
     --clr-primary-a40: #ded8fb;
@@ -246,6 +246,7 @@ a:hover {
 
 .nb-btn--accent {
     background: var(--nb-accent);
+    color: var(--nb-fg);
 }
 
 /* Inputs */
