@@ -4,6 +4,7 @@ import OfferBox from "./OfferBox";
 import JobDetail from "./JobDetail";
 import type { JobOffer, JobMatchMetadata } from "../types/job";
 import styles from "../styles/JobOffersCard.module.css";
+import homeStyles from "../styles/Home.module.css";
 
 // Merged type with both job data and match metadata
 type DisplayOffer = JobOffer & JobMatchMetadata;
@@ -106,7 +107,7 @@ const JobOffersCard: React.FC = () => {
     }
 
     return (
-        <div className="nb-card home-card job-offers-card">
+        <div className={`nb-card home-card job-offers-card ${homeStyles["home__card--job-offers"]}`}>
             <h2 className="home__card-title">{t('jobs.optimal_offers')}</h2>
 
             {offers.length > 0 && (

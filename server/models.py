@@ -49,6 +49,7 @@ class User(Base):
     educations = relationship("Education", back_populates="user", cascade="all, delete-orphan")
     optimal_offers = relationship("OptimalOffer", back_populates="user", cascade="all, delete-orphan")
     cv_evaluations = relationship("CVEvaluation", back_populates="user", cascade="all, delete-orphan")
+    matchcompetences = relationship("MatchCompetence", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username})>"
@@ -126,6 +127,19 @@ class Experience(Base):
 
     def __repr__(self):
         return f"<Experience(id={self.id}, user_id={self.user_id}, company={self.company}, title={self.title})>"
+
+class MatchCompetence(Base):
+    __tablename__ = "matchcompetence"
+
+    id = Column(Integer, primary_key=True, index=True)
+    emploi = Column(String, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    # Relationship
+    user = relationship("User", back_populates="matchcompetences")
+
+    def __repr__(self):
+        return f"<MatchCompetence(emploi={self.emploi}, user_id={self.user_id})>"
 
 
 class Education(Base):

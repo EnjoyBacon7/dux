@@ -358,7 +358,7 @@ const CVScoreCard: React.FC<CVScoreCardProps> = ({ hasCv, refreshTrigger = 0 }) 
                     title={t("cv_score.re_evaluate")}
                 >
                     <svg
-                        className={`cv-score-refresh-icon ${isReEvaluating ? "spinning" : ""}`}
+                        className={`${styles["cv-score__refresh-icon"]} ${isReEvaluating ? styles["cv-score__refresh-icon--spinning"] : ""}`}
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"

@@ -30,8 +30,9 @@ from server.methods.FT_job_search import search_france_travail, get_offer_by_id
 from server.methods.matching_engine import MatchingEngine
 # ----------------------------------------
 
-router = APIRouter(prefix="/jobs", tags=["Jobs"])
-logger = logging.getLogger(__name__)
+from sentence_transformers import SentenceTransformer
+from pydantic import BaseModel
+from fastapi import HTTPException
 
 # ============================================================================
 # Helpers
@@ -442,6 +443,8 @@ def load_code_metier():
             resp = requests.get(FT_API_URL_CODE_METIER, headers=headers, timeout=30)
             resp.raise_for_status()
             data = resp.json()
+
+
         code_metier += data
         logger.info(f"Enregistrement des codes métiers : {len(code_metier)} obtenues.")
         engine = create_engine(DATABASE_URL)
