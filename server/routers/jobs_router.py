@@ -260,6 +260,9 @@ def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
         "experienceCommentaire": offer.get("experienceCommentaire"),
     }
 
+router = APIRouter(prefix="/jobs", tags=["Jobs"])
+logger = logging.getLogger(__name__)
+
 def _get_with_retry(url: str, headers: Dict[str, str], timeout: int, max_retries: int = 5, base_delay: float = 1.0) -> requests.Response:
     for attempt in range(max_retries + 1):
         resp = requests.get(url, headers=headers, timeout=timeout)
