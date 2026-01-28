@@ -1,9 +1,20 @@
 """
 Application configuration settings
 """
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from typing import List, Union
+
+# #region agent log
+def _debug_log(msg: str, data: dict) -> None:
+    try:
+        with open(r"c:\Users\nicol\OneDrive\Documents\ECE\ING5\PFE\.cursor\debug.log", "a", encoding="utf-8") as f:
+            import json
+            f.write(json.dumps({"location": "config.py", "message": msg, "data": data, "sessionId": "debug-session"}) + "\n")
+    except Exception:
+        pass
+# #endregion
 
 
 class Settings(BaseSettings):
@@ -86,8 +97,11 @@ class Settings(BaseSettings):
     openai_model: str = ""
     openai_base_url: str = ""
 
-    # VLM Configuration (hosted API)
-    vlm_api_key: str = ""
+    # VLM Configuration (hosted API) — accepts VLM_API_KEY or VLM_KEY from env
+    vlm_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("vlm_api_key", "vlm_key"),
+    )
     vlm_model: str = "Qwen2.5-VL-7B-Instruct"
     vlm_base_url: str = ""
 
@@ -99,4 +113,11 @@ class Settings(BaseSettings):
 
 
 # Global settings instance
+# #region agent log
+try:
+    vlm_env_keys = [k for k in os.environ if "vlm" in k.lower()]
+    _debug_log("Settings init: env keys containing vlm", {"vlm_env_key_names": vlm_env_keys, "hypothesisId": "H1"})
+except Exception as e:
+    _debug_log("Settings init: log env keys failed", {"error": str(e)})
+# #endregion
 settings = Settings()

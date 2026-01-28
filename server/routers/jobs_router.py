@@ -13,10 +13,11 @@ import time
 
 from fastapi import APIRouter, Query, Depends
 from server.config import settings
-from server.models import Metier_ROME, User, Offres_FT, Competence_ROME
+from server.models import Metier_ROME, User, Offres_FT, Competence_ROME, FavouriteJob
 from server.database import get_db_session
 import json
 from typing import Optional, Dict, Any, List, Union, Tuple
+from pydantic import BaseModel
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
@@ -881,6 +882,106 @@ async def analyze_job_direct(
     except Exception as e:
         logger.error(f"Erreur critique analyse directe : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Job Favourites (Tracker) – must be defined before /offer/{job_id}
+# ============================================================================
+
+
+class AddFavouriteJobPayload(BaseModel):
+    job_id: str
+    intitule: Optional[str] = None
+    entreprise_nom: Optional[str] = None
+    rome_code: Optional[str] = None
+
+
+@router.get("/favourites", summary="List current user's favourite jobs")
+def list_favourite_jobs(
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> List[Dict[str, Any]]:
+    rows = (
+        db.query(FavouriteJob)
+        .filter(FavouriteJob.user_id == current_user.id)
+        .order_by(FavouriteJob.created_at.desc())
+        .all()
+    )
+    return [
+        {
+            "jobId": r.job_id,
+            "intitule": r.intitule or r.job_id,
+            "entreprise_nom": r.entreprise_nom,
+            "romeCode": r.rome_code,
+            "addedAt": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+
+
+@router.post("/favourites", summary="Add job to favourites")
+def add_favourite_job(
+    payload: AddFavouriteJobPayload,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    job_id = (payload.job_id or "").strip()
+    if not job_id:
+        raise HTTPException(status_code=400, detail="job_id is required")
+    existing = (
+        db.query(FavouriteJob)
+        .filter(
+            FavouriteJob.user_id == current_user.id,
+            FavouriteJob.job_id == job_id,
+        )
+        .first()
+    )
+    if existing:
+        return {
+            "jobId": existing.job_id,
+            "intitule": existing.intitule or existing.job_id,
+            "entreprise_nom": existing.entreprise_nom,
+            "romeCode": existing.rome_code,
+            "addedAt": existing.created_at.isoformat() if existing.created_at else None,
+        }
+    fj = FavouriteJob(
+        user_id=current_user.id,
+        job_id=job_id,
+        intitule=(payload.intitule or "").strip() or None,
+        entreprise_nom=(payload.entreprise_nom or "").strip() or None,
+        rome_code=(payload.rome_code or "").strip() or None,
+    )
+    db.add(fj)
+    db.commit()
+    db.refresh(fj)
+    return {
+        "jobId": fj.job_id,
+        "intitule": fj.intitule or fj.job_id,
+        "entreprise_nom": fj.entreprise_nom,
+        "romeCode": fj.rome_code,
+        "addedAt": fj.created_at.isoformat() if fj.created_at else None,
+    }
+
+
+@router.delete("/favourites/{job_id}", summary="Remove job from favourites")
+def remove_favourite_job(
+    job_id: str,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    row = (
+        db.query(FavouriteJob)
+        .filter(
+            FavouriteJob.user_id == current_user.id,
+            FavouriteJob.job_id == job_id,
+        )
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Favourite job not found")
+    db.delete(row)
+    db.commit()
+    return None
 
 
 @router.get("/offer/{job_id}", summary="Get job offer details by ID")

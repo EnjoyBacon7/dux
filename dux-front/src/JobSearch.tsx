@@ -44,6 +44,28 @@ const JobSearch: React.FC = () => {
         ));
     }, [searchParams]);
 
+    // Open a specific job by ID from URL (e.g. /jobs?open=JOB_ID) – used by Tracker "View job"
+    useEffect(() => {
+        const openId = searchParams.get("open");
+        if (!openId || !openId.trim()) return;
+        const fetchAndOpen = async () => {
+            try {
+                const res = await fetch(`/api/jobs/offer/${encodeURIComponent(openId.trim())}`, {
+                    credentials: "include",
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                const offer = data?.offer;
+                if (offer && typeof offer.id === "string") {
+                    setSelectedJob(offer as JobOffer);
+                }
+            } catch {
+                /* ignore */
+            }
+        };
+        fetchAndOpen();
+    }, [searchParams]);
+
     // Fetch jobs from France Travail API
     useEffect(() => {
         const fetchJobs = async () => {

@@ -667,6 +667,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Adicionar aos favoritos',
         la: 'Ad gratissima addere'
     },
+    'metiers.detail.action_unfavorite': {
+        en: 'Remove from favourites',
+        es: 'Quitar de favoritos',
+        fr: 'Retirer des favoris',
+        de: 'Aus Favoriten entfernen',
+        pt: 'Remover dos favoritos',
+        la: 'E gratissimis removere'
+    },
     'metiers.detail.error_unknown': {
         en: 'Unknown error',
         es: 'Error desconocido',
@@ -2774,6 +2782,40 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Em Breve',
         la: 'Mox Venturum'
     },
+    'profile_hub.tracker': {
+        en: 'Tracker',
+        es: 'Seguimiento',
+        fr: 'Suivi',
+        de: 'Tracker',
+        pt: 'Rastreador',
+        la: 'Segmentator'
+    },
+    'profile_hub.tracker_desc': {
+        en: 'View and manage your favourited occupations, then open the fiche or related job offers',
+        es: 'Ve y gestiona tus ocupaciones favoritas, luego abre la ficha o las ofertas relacionadas',
+        fr: 'Consultez et gérez vos métiers favoris, puis ouvrez la fiche ou les offres associées',
+        de: 'Verwalten Sie Ihre favorisierten Berufe und öffnen Sie die Fiche oder zugehörige Stellenangebote',
+        pt: 'Visualize e gerencie suas ocupações favoritas, depois abra a ficha ou ofertas relacionadas',
+        la: 'Videre et tractare occupationes gratissimas, deinde fiche vel offertas coniunctas aperire'
+    },
+    'profile_hub.view_tracker': {
+        en: 'View',
+        es: 'Ver',
+        fr: 'Voir',
+        de: 'Anzeigen',
+        pt: 'Ver',
+        la: 'Videre'
+    },
+
+    // Job detail: AI match analysis button
+    'analyze_match_ai': {
+        en: 'Match Analysis',
+        es: 'Análisis de compatibilidad',
+        fr: 'Analyse de compatibilité',
+        de: 'Matching-Analyse',
+        pt: 'Análise de compatibilidade',
+        la: 'Analysis congruentiae'
+    },
 
     // Match Analysis Card
     'analysis.title': {
@@ -3401,6 +3443,112 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Analyse Anzeigen',
         pt: 'Ver Análise',
         la: 'Videre Analysim'
+    },
+
+    // Tracker (Favourite Occupations) page
+    'tracker.title': {
+        en: 'Tracker',
+        es: 'Seguimiento',
+        fr: 'Suivi',
+        de: 'Tracker',
+        pt: 'Rastreador',
+        la: 'Segmentator'
+    },
+    'tracker.loading': {
+        en: 'Loading...',
+        es: 'Cargando...',
+        fr: 'Chargement...',
+        de: 'Laden...',
+        pt: 'Carregando...',
+        la: 'Loading...'
+    },
+    'tracker.back': {
+        en: 'Back to Profile Hub',
+        es: 'Volver al Centro de Perfil',
+        fr: 'Retour au Hub Profil',
+        de: 'Zurück zum Profil-Hub',
+        pt: 'Voltar ao Hub do Perfil',
+        la: 'Redire ad Centrum Profili'
+    },
+    'tracker.empty': {
+        en: 'No tracked occupations yet. Add some from the Occupations tab.',
+        es: 'Aún no hay ocupaciones seguidas. Añade algunas desde la pestaña Ocupaciones.',
+        fr: 'Aucun métier suivi pour l\'instant. Ajoutez-en depuis l\'onglet Métiers.',
+        de: 'Noch keine verfolgten Berufe. Fügen Sie welche im Bereich Berufe hinzu.',
+        pt: 'Nenhuma ocupação rastreada ainda. Adicione algumas na aba Ocupações.',
+        la: 'Nondum occupationes tractatae. Adde ex tab Occupationum.'
+    },
+    'tracker.occupations_section': {
+        en: 'Occupations',
+        es: 'Ocupaciones',
+        fr: 'Métiers',
+        de: 'Berufe',
+        pt: 'Ocupações',
+        la: 'Occupationes'
+    },
+    'tracker.jobs_section': {
+        en: 'Jobs',
+        es: 'Empleos',
+        fr: 'Offres d\'emploi',
+        de: 'Stellenangebote',
+        pt: 'Vagas',
+        la: 'Officia'
+    },
+    'tracker.empty_occupations': {
+        en: 'No tracked occupations yet. Add some from the Occupations tab.',
+        es: 'Aún no hay ocupaciones seguidas. Añade algunas desde la pestaña Ocupaciones.',
+        fr: 'Aucun métier suivi pour l\'instant. Ajoutez-en depuis l\'onglet Métiers.',
+        de: 'Noch keine verfolgten Berufe. Fügen Sie welche im Bereich Berufe hinzu.',
+        pt: 'Nenhuma ocupação rastreada ainda. Adicione algumas na aba Ocupações.',
+        la: 'Nondum occupationes tractatae. Adde ex tab Occupationum.'
+    },
+    'tracker.empty_jobs': {
+        en: 'No tracked jobs yet. Add some from the Jobs page when viewing an offer.',
+        es: 'Aún no hay empleos seguidos. Añade algunos desde la página Empleos al ver una oferta.',
+        fr: 'Aucune offre suivie pour l\'instant. Ajoutez-en depuis la page Emploi en consultant une offre.',
+        de: 'Noch keine verfolgten Stellen. Fügen Sie welche auf der Stellen-Seite beim Ansehen einer Anzeige hinzu.',
+        pt: 'Nenhuma vaga rastreada ainda. Adicione algumas na página Vagas ao ver uma oferta.',
+        la: 'Nondum officia tractata. Adde ex pagina Officiorum offerta visa.'
+    },
+    'tracker.view_job': {
+        en: 'View job',
+        es: 'Ver empleo',
+        fr: 'Voir l\'offre',
+        de: 'Stelle anzeigen',
+        pt: 'Ver vaga',
+        la: 'Officium videre'
+    },
+    'tracker.browse_jobs': {
+        en: 'Browse Jobs',
+        es: 'Explorar Empleos',
+        fr: 'Parcourir les offres',
+        de: 'Stellen durchsuchen',
+        pt: 'Explorar Vagas',
+        la: 'Officia Perlegere'
+    },
+    'tracker.browse_occupations': {
+        en: 'Browse Occupations',
+        es: 'Explorar Ocupaciones',
+        fr: 'Parcourir les Métiers',
+        de: 'Berufe durchsuchen',
+        pt: 'Explorar Ocupações',
+        la: 'Occupationes Perlegere'
+    },
+    'tracker.view_fiche': {
+        en: 'View fiche',
+        es: 'Ver ficha',
+        fr: 'Voir la fiche',
+        de: 'Fiche anzeigen',
+        pt: 'Ver ficha',
+        la: 'Fiche videre'
+    },
+    'tracker.remove': {
+        en: 'Remove from favourites',
+        es: 'Quitar de favoritos',
+        fr: 'Retirer des favoris',
+        de: 'Aus Favoriten entfernen',
+        pt: 'Remover dos favoritos',
+        la: 'E gratissimis removere'
     }
 };
 

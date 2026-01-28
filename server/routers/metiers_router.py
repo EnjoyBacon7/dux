@@ -1,23 +1,30 @@
 """
 Metiers API router.
 
-Provides endpoints for fetching metier fiche data from the database.
+Provides endpoints for fetching metier fiche data from the database
+and for user favourite occupations (Tracker feature).
 """
 
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from server.database import get_db_session
-from server.models import Metier_ROME, User
-
+from server.models import FavouriteMetier, Metier_ROME, User
+from server.utils.dependencies import get_current_user
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/metiers", tags=["Metiers"])
+
+
+class AddFavouritePayload(BaseModel):
+    romeCode: str
+    romeLibelle: Optional[str] = None
 
 
 def _map_competences(competences: Any) -> List[Dict[str, str]]:
@@ -52,6 +59,92 @@ def list_metiers(
         )
     rows = query.order_by(Metier_ROME.libelle.asc(), Metier_ROME.code.asc()).all()
     return [{"romeCode": row.code, "romeLibelle": row.libelle or ""} for row in rows]
+
+
+# ---------------------------------------------------------------------------
+# Favourites (Tracker) – must be defined before /{rome_code}
+# ---------------------------------------------------------------------------
+
+
+@router.get("/favourites", summary="List current user's favourite occupations")
+def list_favourites(
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> List[Dict[str, Any]]:
+    rows = (
+        db.query(FavouriteMetier)
+        .filter(FavouriteMetier.user_id == current_user.id)
+        .order_by(FavouriteMetier.created_at.desc())
+        .all()
+    )
+    return [
+        {
+            "romeCode": r.rome_code,
+            "romeLibelle": r.rome_libelle or r.rome_code,
+            "addedAt": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+
+
+@router.post("/favourites", summary="Add occupation to favourites")
+def add_favourite(
+    payload: AddFavouritePayload,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    code = (payload.romeCode or "").strip()
+    if not code:
+        raise HTTPException(status_code=400, detail="romeCode is required")
+    existing = (
+        db.query(FavouriteMetier)
+        .filter(
+            FavouriteMetier.user_id == current_user.id,
+            FavouriteMetier.rome_code == code,
+        )
+        .first()
+    )
+    if existing:
+        return {
+            "romeCode": existing.rome_code,
+            "romeLibelle": existing.rome_libelle or existing.rome_code,
+            "addedAt": existing.created_at.isoformat() if existing.created_at else None,
+        }
+    libelle = (payload.romeLibelle or "").strip() or None
+    fm = FavouriteMetier(
+        user_id=current_user.id,
+        rome_code=code,
+        rome_libelle=libelle,
+    )
+    db.add(fm)
+    db.commit()
+    db.refresh(fm)
+    return {
+        "romeCode": fm.rome_code,
+        "romeLibelle": fm.rome_libelle or fm.rome_code,
+        "addedAt": fm.created_at.isoformat() if fm.created_at else None,
+    }
+
+
+@router.delete("/favourites/{rome_code}", summary="Remove occupation from favourites")
+def remove_favourite(
+    rome_code: str,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    row = (
+        db.query(FavouriteMetier)
+        .filter(
+            FavouriteMetier.user_id == current_user.id,
+            FavouriteMetier.rome_code == rome_code,
+        )
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Favourite not found")
+    db.delete(row)
+    db.commit()
+    return None
 
 
 @router.get("/{rome_code}", summary="Get fiche metier from database")

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "../styles/job-detail.module.css";
 import { useNavigate } from "react-router-dom";
@@ -46,7 +46,62 @@ const pickAnalysisFields = (job: JobOffer): JobOffer => {
 const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
     const { t } = useLanguage(); // Utilisation du hook de traduction
     const [showAnalysis, setShowAnalysis] = useState(false);
+    const [isFavourited, setIsFavourited] = useState(false);
+    const [favouritesLoading, setFavouritesLoading] = useState(false);
+    const [favouriteActionLoading, setFavouriteActionLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        let cancelled = false;
+        async function loadFavourites() {
+            setFavouritesLoading(true);
+            setIsFavourited(false);
+            try {
+                const res = await fetch("/api/jobs/favourites", { credentials: "include" });
+                if (!res.ok) {
+                    if (!cancelled) setFavouritesLoading(false);
+                    return;
+                }
+                const list = (await res.json()) as Array<{ jobId: string }>;
+                if (!cancelled) {
+                    setIsFavourited(list.some((r) => r.jobId === job.id));
+                }
+            } finally {
+                if (!cancelled) setFavouritesLoading(false);
+            }
+        }
+        loadFavourites();
+        return () => { cancelled = true; };
+    }, [job.id]);
+
+    const handleToggleFavourite = useCallback(async () => {
+        if (favouriteActionLoading || favouritesLoading) return;
+        setFavouriteActionLoading(true);
+        try {
+            if (isFavourited) {
+                const res = await fetch(
+                    `/api/jobs/favourites/${encodeURIComponent(job.id)}`,
+                    { method: "DELETE", credentials: "include" }
+                );
+                if (res.ok) setIsFavourited(false);
+            } else {
+                const res = await fetch("/api/jobs/favourites", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        job_id: job.id,
+                        intitule: job.intitule ?? null,
+                        entreprise_nom: job["entreprise_nom"] ?? null,
+                        rome_code: job.romeCode ?? null,
+                    }),
+                });
+                if (res.ok) setIsFavourited(true);
+            }
+        } finally {
+            setFavouriteActionLoading(false);
+        }
+    }, [job.id, job.intitule, job.entreprise_nom, job.romeCode, isFavourited, favouriteActionLoading, favouritesLoading]);
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'N/A';
@@ -149,6 +204,22 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                                         }}
                                     >
                                         <span>🧾</span> Détail Métier
+                                    </button>
+
+                                    <button
+                                        onClick={handleToggleFavourite}
+                                        disabled={favouritesLoading || favouriteActionLoading}
+                                        className="nb-btn nb-btn--secondary"
+                                        title={isFavourited ? t("tracker.remove") : t("metiers.detail.action_favorite")}
+                                        style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 1rem'
+                                        }}
+                                    >
+                                        <span>{isFavourited ? "📌" : "☆"}</span>{" "}
+                                        {isFavourited ? t("metiers.detail.action_unfavorite") : t("metiers.detail.action_favorite")}
                                     </button>
                                     </div>
                             </div>
