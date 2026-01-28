@@ -68,13 +68,21 @@ async def get_optimal_offers(
 
     offers_data = []
     for offer in optimal_offers:
-        offers_data.append({
+        # Validate offer has required fields before adding to response
+        if not offer.job_id:
+            logger.warning(
+                f"Skipping offer {offer.id} for user {current_user.id} - missing job_id"
+            )
+            continue
+
+        offer_dict = {
             "job_id": offer.job_id,
             "position": offer.position,
             "score": offer.score,
-            "match_reasons": offer.match_reasons,
-            "concerns": offer.concerns,
-        })
+            "match_reasons": offer.match_reasons or [],
+            "concerns": offer.concerns or [],
+        }
+        offers_data.append(offer_dict)
 
     return {
         "success": True,

@@ -279,10 +279,15 @@ const DebugCard: React.FC = () => {
                                     const data = await response.json();
                                     setChatResponse(JSON.stringify(data, null, 2));
                                 } else {
-                                    const error = await response.json();
-                                    setChatError(error.detail || t('errors.failed_model_response'));
+                                    try {
+                                        const error = await response.json();
+                                        setChatError(error?.detail || t('errors.failed_model_response'));
+                                    } catch {
+                                        // Failed to parse error response
+                                        setChatError(t('errors.failed_model_response'));
+                                    }
                                 }
-                            } catch (err) {
+                            } catch (err: unknown) {
                                 setChatError(t('errors.error_sending_request'));
                             } finally {
                                 setIsChatLoading(false);

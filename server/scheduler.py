@@ -97,6 +97,29 @@ async def generate_optimal_offers_for_all_users() -> None:
         db.close()
 
 
+async def recover_stale_evaluations_task() -> None:
+    """
+    Periodic task to recover stale CV evaluations.
+
+    Marks any pending evaluations that have been in progress for too long as failed.
+    This prevents the frontend from getting stuck waiting for evaluations that hung or crashed.
+    """
+    db = SessionLocal()
+    try:
+        logger.info("Starting stale evaluation recovery")
+
+        # Check for evaluations stuck in pending state for more than 30 minutes
+        recovered_count = recover_stale_evaluations(db, stale_after_minutes=30)
+
+        if recovered_count > 0:
+            logger.info(f"Recovered {recovered_count} stale evaluations")
+
+    except Exception as e:
+        logger.error(f"Error in stale evaluation recovery task: {e}", exc_info=True)
+    finally:
+        db.close()
+
+
 def start_scheduler() -> None:
     """
     Initialize and start the background task scheduler.
@@ -165,25 +188,3 @@ def get_scheduler() -> Optional[AsyncIOScheduler]:
     """
     return scheduler
 
-
-async def recover_stale_evaluations_task() -> None:
-    """
-    Periodic task to recover stale CV evaluations.
-
-    Marks any pending evaluations that have been in progress for too long as failed.
-    This prevents the frontend from getting stuck waiting for evaluations that hung or crashed.
-    """
-    db = SessionLocal()
-    try:
-        logger.info("Starting stale evaluation recovery")
-
-        # Check for evaluations stuck in pending state for more than 30 minutes
-        recovered_count = recover_stale_evaluations(db, stale_after_minutes=30)
-
-        if recovered_count > 0:
-            logger.info(f"Recovered {recovered_count} stale evaluations")
-
-    except Exception as e:
-        logger.error(f"Error in stale evaluation recovery task: {e}")
-    finally:
-        db.close()

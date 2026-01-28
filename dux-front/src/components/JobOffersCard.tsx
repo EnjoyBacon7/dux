@@ -2,10 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useLanguage } from "../contexts/useLanguage";
 import OfferBox from "./OfferBox";
 import JobDetail from "./JobDetail";
-import type { JobOffer, JobMatchMetadata } from "../types/job";
+import type { JobOffer, JobMatchMetadata, OptimalOffer } from "../types/job";
 
 // Merged type with both job data and match metadata
 type DisplayOffer = JobOffer & JobMatchMetadata;
+
+// Type for API response
+interface OptimalOffersResponse {
+    success: boolean;
+    offers: JobMatchMetadata[];
+    count: number;
+}
 
 const JobOffersCard: React.FC = () => {
     const { t } = useLanguage();
@@ -32,9 +39,10 @@ const JobOffersCard: React.FC = () => {
     };
 
     // Merge optimal offer metadata with full job data
-    const mergeOfferData = async (optimalOffer: any): Promise<DisplayOffer> => {
+    const mergeOfferData = async (optimalOffer: JobMatchMetadata): Promise<DisplayOffer | null> => {
         if (!optimalOffer.job_id) {
-            return optimalOffer as DisplayOffer;
+            console.warn("Optimal offer missing job_id, skipping");
+            return null;
         }
 
         const jobData = await fetchJobData(optimalOffer.job_id);
@@ -44,7 +52,7 @@ const JobOffersCard: React.FC = () => {
                 ...optimalOffer, // Preserve optimal offer metadata
             } as DisplayOffer;
         }
-        return optimalOffer as DisplayOffer;
+        return null;
     };
 
     // Fetch optimal offers on component mount
@@ -59,16 +67,22 @@ const JobOffersCard: React.FC = () => {
                     return;
                 }
 
-                const data = await response.json();
+                const data: OptimalOffersResponse = await response.json();
                 if (data.offers && Array.isArray(data.offers) && data.offers.length > 0) {
                     // Fetch full job data for each offer
                     const mergedOffers = await Promise.all(
-                        data.offers.map((offer: any) => mergeOfferData(offer))
+                        data.offers.map((offer: JobMatchMetadata) => mergeOfferData(offer))
                     );
-                    setOffers(mergedOffers);
-                    setCurrentIndex(0);
+                    // Filter out null offers (those that failed to merge)
+                    const validOffers = mergedOffers.filter(
+                        (offer): offer is DisplayOffer => offer !== null
+                    );
+                    if (validOffers.length > 0) {
+                        setOffers(validOffers);
+                        setCurrentIndex(0);
+                    }
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 console.error("Error fetching optimal offers:", err);
                 // Silent failure - card simply won't show
             }

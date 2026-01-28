@@ -1,5 +1,6 @@
 import logging
 import json
+import asyncio
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -475,22 +476,42 @@ async def get_optimal_offers_with_cache(
 
     # Cache is stale or missing, fetch new offers in thread pool
     # Run France Travail API call in thread pool to avoid blocking other clients
-    offers = await run_blocking_in_executor(
-        search_france_travail,
-        ft_parameters or {},
-        50
-    )
+    # Add timeout to prevent scheduler from hanging
+    try:
+        offers = await asyncio.wait_for(
+            run_blocking_in_executor(
+                search_france_travail,
+                ft_parameters or {},
+                50
+            ),
+            timeout=300  # 5 minute timeout for API search
+        )
+    except asyncio.TimeoutError:
+        logger.error(
+            f"Timeout searching France Travail API for user {current_user.id} - took longer than 5 minutes"
+        )
+        raise ValueError("Timeout searching job offers from France Travail API")
 
     if not offers:
         raise ValueError("No job offers found from France Travail API with the provided parameters")
 
     # Rank the offers using LLM (also in thread pool)
-    result = await rank_job_offers(
-        current_user.cv_text,
-        offers,
-        preferences=preferences,
-        top_k=top_k
-    )
+    # Add timeout for LLM ranking
+    try:
+        result = await asyncio.wait_for(
+            rank_job_offers(
+                current_user.cv_text,
+                offers,
+                preferences=preferences,
+                top_k=top_k
+            ),
+            timeout=300  # 5 minute timeout for LLM ranking
+        )
+    except asyncio.TimeoutError:
+        logger.error(
+            f"Timeout ranking job offers for user {current_user.id} - LLM took longer than 5 minutes"
+        )
+        raise ValueError("Timeout ranking job offers - LLM service took too long")
 
     # Save optimal offers to database (delete old ones first)
     db.query(OptimalOffer).filter(OptimalOffer.user_id == current_user.id).delete()
