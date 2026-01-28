@@ -21,10 +21,12 @@ from server.api import router as api_router
 from server.auth_api import router as auth_router
 from server.database import init_db
 from server.config import settings
-from server.thread_pool import shutdown_thread_pool
+from server.thread_pool import shutdown_thread_pool, run_blocking_in_executor
 from server.scheduler import start_scheduler, shutdown_scheduler
 from server.database import SessionLocal
 from server.utils.task_cleanup import cleanup_pending_tasks
+from server.models import Metier_ROME
+from server.routers.jobs_router import load_code_metier
 
 # ============================================================================
 # Logging Configuration
@@ -150,6 +152,20 @@ async def startup_event():
     the background task scheduler for periodic job offer generation.
     """
     init_db()
+
+    try:
+        db = SessionLocal()
+        try:
+            has_metier = db.query(Metier_ROME).first() is not None
+        finally:
+            db.close()
+
+        if not has_metier:
+            logger.info("Metier_ROME est vide; chargement des codes metier au demarrage.")
+            await run_blocking_in_executor(load_code_metier)
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement initial des codes metier: {e}", exc_info=True)
+
     start_scheduler()
 
 

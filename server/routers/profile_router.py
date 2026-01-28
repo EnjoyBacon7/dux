@@ -5,7 +5,6 @@ Provides endpoints for user profile setup, CV upload, and experience/education m
 
 import logging
 from typing import Dict, Any
-
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, BackgroundTasks
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -13,7 +12,7 @@ import mimetypes
 
 from server.methods.upload import UPLOAD_DIR, upload_file
 from server.database import get_db_session
-from server.models import User
+from server.models import User, Metier_ROME
 from server.utils.dependencies import get_current_user
 
 # ============================================================================
@@ -134,3 +133,5 @@ async def get_cv_file(
         media_type=media_type or "application/octet-stream",
         headers=headers
     )
+
+

@@ -28,6 +28,7 @@ from server.utils.dependencies import get_current_user
 from server.methods.matching_engine import MatchingEngine
 import asyncio
 
+from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel
 from fastapi import HTTPException
 
@@ -588,6 +589,7 @@ def load_code_metier():
             resp = requests.get(FT_API_URL_CODE_METIER, headers=headers, timeout=30)
             resp.raise_for_status()
             data = resp.json()
+
 
         code_metier += data
 
