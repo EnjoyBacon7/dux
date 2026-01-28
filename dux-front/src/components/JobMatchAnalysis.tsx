@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/useLanguage'; // Import du hook
 import type { JobOffer } from './JobDetail';
+import styles from '../styles/JobMatchAnalysis.module.css';
 
 interface AnalysisResult {
     score_technique: number;
@@ -62,79 +63,55 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
     };
 
     return (
-        <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1100,
-            display: 'flex', justifyContent: 'center', alignItems: 'center',
-            backdropFilter: 'blur(4px)'
-        }} onClick={onClose}>
+        <div className={styles['jma__overlay']} onClick={onClose}>
 
-            <div style={{
-                backgroundColor: 'var(--nb-bg)',
-                color: 'var(--nb-fg)',
-                width: '90%', maxWidth: '700px',
-                maxHeight: '90vh', overflowY: 'auto',
-                borderRadius: '12px', padding: '2rem',
-                position: 'relative',
-                border: '1px solid var(--nb-border)'
-            }} onClick={e => e.stopPropagation()}>
+            <div className={styles['jma__panel']} onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
-                    <h2 style={{ margin: 0, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {/* ICI : On utilise la clé propre définie à l'étape 1 */}
+                <div className={styles['jma__header']}>
+                    <h2 className={styles['jma__title']}>
                         <span>⚡</span> {t('analysis.title')}
                     </h2>
-                    <button onClick={onClose} className="nb-btn-secondary" style={{ padding: '0.5rem', lineHeight: 1, minWidth: 'auto' }}>✕</button>
+                    <button onClick={onClose} className={`nb-btn-secondary ${styles['jma__close-btn']}`}>✕</button>
                 </div>
 
-                <div style={{ marginBottom: '1rem', opacity: 0.8, fontSize: '0.9rem' }}>
+                <div className={styles['jma__job-ref']}>
                     Ref: {job.intitule}
                 </div>
 
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '3rem' }}>
-                        <div className="spinner" style={{
-                            width: '40px', height: '40px', border: '4px solid #f3f3f3',
-                            borderTop: '4px solid var(--nb-accent)', borderRadius: '50%',
-                            margin: '0 auto 1rem', animation: 'spin 1s linear infinite'
-                        }}></div>
+                    <div className={styles['jma__loading']}>
+                        <div className={styles['jma__spinner']}></div>
                         <p>{t('analysis.loading')}</p>
-                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                     </div>
                 ) : error ? (
-                    <div style={{ color: '#EF4444', textAlign: 'center', padding: '2rem', border: '1px dashed #EF4444', borderRadius: '8px' }}>
+                    <div className={styles['jma__error']}>
                         <p>{error}</p>
                     </div>
                 ) : analysis ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                    <div className={styles['jma__content']}>
 
                         {/* Scores : Utilisation des clés analysis.technical et analysis.culture */}
-                        <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div className={styles['jma__scores']}>
                             <ScoreCircle label={t('analysis.technical')} score={analysis.score_technique} color={getScoreColor(analysis.score_technique)} />
                             <ScoreCircle label={t('analysis.culture')} score={analysis.score_culturel} color={getScoreColor(analysis.score_culturel)} />
                         </div>
 
                         {/* Verdict */}
-                        <div style={{
-                            backgroundColor: 'rgba(var(--nb-accent-rgb), 0.1)',
-                            borderLeft: '4px solid var(--nb-accent)',
-                            padding: '1rem', borderRadius: '0 8px 8px 0',
-                            fontStyle: 'italic', fontSize: '1.1rem'
-                        }}>
+                        <div className={styles['jma__verdict']}>
                             "{analysis.verdict}"
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+                        <div className={styles['jma__lists']}>
                             {/* Points Forts */}
                             <div>
-                                <h3 style={{ color: '#10B981', borderBottom: '1px solid #10B981', paddingBottom: '0.5rem', marginTop: 0 }}>
+                                <h3 className={styles['jma__strengths-title']}>
                                     {t('analysis.strengths')}
                                 </h3>
-                                <ul style={{ listStyle: 'none', padding: 0 }}>
+                                <ul className={styles['jma__strengths-list']}>
                                     {analysis.match_reasons.map((reason, idx) => (
-                                        <li key={idx} style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'baseline' }}>
-                                            <span style={{ color: '#10B981' }}>✓</span> <span>{reason}</span>
+                                        <li key={idx}>
+                                            <span className={styles['jma__strengths-icon']}>✓</span> <span>{reason}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -142,13 +119,13 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
 
                             {/* Points à améliorer */}
                             <div>
-                                <h3 style={{ color: '#EF4444', borderBottom: '1px solid #EF4444', paddingBottom: '0.5rem', marginTop: 0 }}>
+                                <h3 className={styles['jma__weaknesses-title']}>
                                     {t('analysis.weaknesses')}
                                 </h3>
-                                <ul style={{ listStyle: 'none', padding: 0 }}>
+                                <ul className={styles['jma__weaknesses-list']}>
                                     {analysis.missing_skills.map((skill, idx) => (
-                                        <li key={idx} style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'baseline' }}>
-                                            <span style={{ color: '#EF4444' }}>•</span> <span>{skill}</span>
+                                        <li key={idx}>
+                                            <span className={styles['jma__weaknesses-icon']}>•</span> <span>{skill}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -163,23 +140,18 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ job, onClose }) => 
 
 // Helper
 const ScoreCircle = ({ label, score, color }: { label: string, score: number, color: string }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-        <div style={{
-            width: '100px', height: '100px', borderRadius: '50%',
-            background: `conic-gradient(${color} ${score * 3.6}deg, #e5e7eb 0deg)`,
-            display: 'flex', justifyContent: 'center', alignItems: 'center',
-            position: 'relative'
-        }}>
-            <div style={{
-                width: '85px', height: '85px', borderRadius: '50%',
-                backgroundColor: 'var(--nb-bg)',
-                display: 'flex', justifyContent: 'center', alignItems: 'center',
-                flexDirection: 'column'
-            }}>
-                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: color }}>{score}%</span>
+    <div className={styles['jma__score-circle']}>
+        <div 
+            className={styles['jma__score-circle-outer']}
+            style={{
+                background: `conic-gradient(${color} ${score * 3.6}deg, #e5e7eb 0deg)`
+            }}
+        >
+            <div className={styles['jma__score-circle-inner']}>
+                <span className={styles['jma__score-value']} style={{ color: color }}>{score}%</span>
             </div>
         </div>
-        <span style={{ fontWeight: 600, textAlign: 'center' }}>{label}</span>
+        <span className={styles['jma__score-label']}>{label}</span>
     </div>
 );
 

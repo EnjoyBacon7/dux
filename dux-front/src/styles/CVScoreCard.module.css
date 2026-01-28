@@ -1,0 +1,275 @@
+/* ===== CV SCORE CARD MODULE ===== */
+
+/* Body container for hover effect */
+.cv-score__body {
+    position: relative;
+    margin-top: 0.5rem;
+}
+
+.cv-score__body-content {
+    transition: filter 0.25s ease;
+}
+
+.cv-score__body-content--blurred {
+    filter: blur(4px);
+}
+
+/* Hover Overlay - now relative to body only */
+.cv-score__hover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    z-index: var(--nb-z-dropdown);
+    border-radius: var(--nb-radius);
+}
+
+.cv-score__hover-overlay--visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.cv-score__hub-btn {
+    transform: translateY(10px);
+    transition: transform 0.25s ease;
+}
+
+.cv-score__hover-overlay--visible .cv-score__hub-btn {
+    transform: translateY(0);
+}
+
+.cv-score__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.cv-score__header .home__card-title {
+    margin: 0;
+}
+
+.cv-score__refresh-btn {
+    appearance: none;
+    background: transparent;
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: var(--nb-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nb-fg);
+}
+
+.cv-score__refresh-btn:hover:not(:disabled) {
+    background: var(--nb-bg-muted);
+}
+
+.cv-score__refresh-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cv-score__refresh-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.cv-score__refresh-icon--spinning {
+    animation: nb-spin 1s linear infinite;
+}
+
+.cv-score__empty {
+    color: var(--nb-fg);
+    opacity: 0.7;
+    margin: 0;
+}
+
+/* Evaluating State */
+.cv-score__evaluating {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    gap: 1rem;
+}
+
+.cv-score__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--nb-bg-muted);
+    border-top-color: var(--nb-accent);
+    border-radius: 50%;
+    animation: nb-spin 1s linear infinite;
+}
+
+.cv-score__evaluating p {
+    margin: 0;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+/* No Evaluation State */
+.cv-score__no-evaluation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    gap: 1rem;
+    text-align: center;
+}
+
+.cv-score__no-evaluation p {
+    margin: 0;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+/* Score Content Layout */
+.cv-score__content {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+/* Score Circle */
+.cv-score__circle-container {
+    flex-shrink: 0;
+    width: 100px;
+    height: 100px;
+}
+
+.cv-score__circle {
+    width: 100%;
+    height: 100%;
+}
+
+.cv-score__circle-progress {
+    transition: stroke-dashoffset 0.6s ease-out;
+}
+
+.cv-score__text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    fill: var(--nb-fg);
+}
+
+/* Dimension Scores */
+.cv-score__dimensions {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cv-score__dimension {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.cv-score__dimension-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cv-score__dimension-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.cv-score__dimension-value {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.cv-score__bar-bg {
+    height: 6px;
+    background: var(--nb-bg-muted);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.cv-score__bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease-out;
+}
+
+/* Recommendations */
+.cv-score__recommendations {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: var(--nb-border) solid var(--nb-fg);
+}
+
+.cv-score__recommendations-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.cv-score__recommendations-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.cv-score__recommendations-list li {
+    margin-bottom: 0.25rem;
+}
+
+.cv-score__recommendations-list li:last-child {
+    margin-bottom: 0;
+}
+
+/* Profile Hub Action Button */
+.cv-score__actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: var(--nb-border) solid var(--nb-fg);
+    display: flex;
+    justify-content: center;
+}
+
+.cv-score__actions .nb-btn {
+    width: 100%;
+}
+
+/* Mobile Adjustments for CV Score Card */
+@media (max-width: 767px) {
+    .cv-score__content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .cv-score__dimensions {
+        width: 100%;
+    }
+}
+
+@media (max-width: 479px) {
+    .cv-score__circle-container {
+        width: 80px;
+        height: 80px;
+    }
+
+    .cv-score__text {
+        font-size: 1.25rem;
+    }
+}

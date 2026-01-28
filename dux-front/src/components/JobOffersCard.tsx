@@ -3,6 +3,7 @@ import { useLanguage } from "../contexts/useLanguage";
 import OfferBox from "./OfferBox";
 import JobDetail from "./JobDetail";
 import type { JobOffer, JobMatchMetadata } from "../types/job";
+import styles from "../styles/JobOffersCard.module.css";
 
 // Merged type with both job data and match metadata
 type DisplayOffer = JobOffer & JobMatchMetadata;
@@ -93,7 +94,7 @@ const JobOffersCard: React.FC = () => {
     if (offers.length === 0 && !loading && !error) {
         return (
             <div className="nb-card home-card job-offers-card">
-                <h2 className="home-card-title">{t('jobs.optimal_offers')}</h2>
+                <h2 className="home__card-title">{t('jobs.optimal_offers')}</h2>
                 <p className="nb-text-dim">{t('jobs.upload_cv_to_match')}</p>
                 <button onClick={generateOffers} className="nb-btn nb-btn--accent">
                     {t('jobs.find_offers')}
@@ -104,7 +105,7 @@ const JobOffersCard: React.FC = () => {
 
     return (
         <div className="nb-card home-card job-offers-card">
-            <h2 className="home-card-title">{t('jobs.optimal_offers')}</h2>
+            <h2 className="home__card-title">{t('jobs.optimal_offers')}</h2>
 
             {loading && <p className="nb-text-dim">{t('jobs.loading_offers')}</p>}
 
@@ -115,18 +116,18 @@ const JobOffersCard: React.FC = () => {
             )}
 
             {offers.length > 0 && (
-                <div className="job-offers-carousel">
-                    <div className="carousel-container">
+                <div className={styles["job-offers__carousel"]}>
+                    <div className={styles["job-offers__carousel-container"]}>
                         <button
                             onClick={handlePrev}
-                            className="carousel-btn carousel-btn--prev"
+                            className={styles["job-offers__carousel-btn"]}
                             disabled={offers.length === 1}
                         >
                             ◀
                         </button>
 
-                        <div className="carousel-content">
-                            <div className="nb-card" style={{ width: '100%' }}>
+                        <div className={styles["job-offers__carousel-content"]}>
+                            <div className="nb-card">
                                 {(() => {
                                     const offer = offers[currentIndex];
                                     return (
@@ -144,21 +145,14 @@ const JobOffersCard: React.FC = () => {
                                             />
 
                                             {/* Match score badge */}
-                                            <div className="offer-score-badge" style={{
-                                                marginTop: '0.75rem',
-                                                padding: '0.5rem',
-                                                backgroundColor: 'var(--nb-accent)',
-                                                borderRadius: '4px',
-                                                textAlign: 'center',
-                                                fontWeight: 600
-                                            }}>
+                                            <div className={styles["job-offers__score-badge"]}>
                                                 {t('jobs.match_score')}: {offer.score}/100
                                             </div>
 
                                             {/* Why match / concerns sections below the standard box */}
-                                            <div className="offer-section">
-                                                <h4 className="offer-label">{t('jobs.why_match')}</h4>
-                                                <ul className="offer-list">
+                                            <div className={styles["job-offers__section"]}>
+                                                <h4 className={styles["job-offers__label"]}>{t('jobs.why_match')}</h4>
+                                                <ul className={styles["job-offers__list"]}>
                                                     {offer.match_reasons.map((reason: string, i: number) => (
                                                         <li key={i}>{reason}</li>
                                                     ))}
@@ -166,9 +160,9 @@ const JobOffersCard: React.FC = () => {
                                             </div>
 
                                             {offer.concerns && offer.concerns.length > 0 && (
-                                                <div className="offer-section">
-                                                    <h4 className="offer-label offer-label--concern">{t('jobs.concerns')}</h4>
-                                                    <ul className="offer-list">
+                                                <div className={styles["job-offers__section"]}>
+                                                    <h4 className={`${styles["job-offers__label"]} ${styles["job-offers__label--concern"]}`}>{t('jobs.concerns')}</h4>
+                                                    <ul className={styles["job-offers__list"]}>
                                                         {offer.concerns.map((concern: string, i: number) => (
                                                             <li key={i}>{concern}</li>
                                                         ))}
@@ -183,14 +177,14 @@ const JobOffersCard: React.FC = () => {
 
                         <button
                             onClick={handleNext}
-                            className="carousel-btn carousel-btn--next"
+                            className={styles["job-offers__carousel-btn"]}
                             disabled={offers.length === 1}
                         >
                             ▶
                         </button>
                     </div>
 
-                    <div className="carousel-indicators">
+                    <div className={styles["job-offers__carousel-indicators"]}>
                         {offers.map((_, index) => (
                             <button
                                 key={index}

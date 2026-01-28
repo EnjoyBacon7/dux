@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { Header } from "./components";
 import DetailMetier from "./components/DetailMetier";
 import { useLanguage } from "./contexts/useLanguage";
-import "./styles/home.css";
 import styles from "./styles/wiki-metier.module.css";
 
 type MetierItem = {
