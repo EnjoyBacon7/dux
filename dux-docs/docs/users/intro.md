@@ -46,7 +46,7 @@ Each job card displays the salary, contract duration, and location. Click **"Voi
 
 ---
 
-##  AI Match Analysis
+## AI Match Analysis
 
 *The core feature of Dux.*
 
