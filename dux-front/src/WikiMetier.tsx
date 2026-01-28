@@ -1,10 +1,10 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Header } from "./components";
 import DetailMetier from "./components/DetailMetier";
 import { useLanguage } from "./contexts/useLanguage";
 import "./styles/home.css";
-import "./styles/wiki-metier.css";
+import "./styles/wiki-metier.module.css";
 
 type MetierItem = {
     romeCode: string;

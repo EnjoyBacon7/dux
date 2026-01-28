@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "./index";
 import { useLanguage } from "../contexts/useLanguage";
-import "../styles/detailedAnalysis.css";
+import "../styles/detailedAnalysis.module.css";
 
 // ============================================================================
 // Type Definitions
