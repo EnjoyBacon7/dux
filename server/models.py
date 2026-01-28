@@ -34,7 +34,6 @@ class User(Base):
     cv_text = Column(Text, nullable=True)  # Extracted text from CV
     skills = Column(ARRAY(String), nullable=True)  # Array of skills
     
-
     # Setup tracking
     profile_setup_completed = Column(Boolean, default=False)
 
