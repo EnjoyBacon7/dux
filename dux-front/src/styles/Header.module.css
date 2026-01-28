@@ -35,6 +35,7 @@
 /* Dropdown menu */
 .header__dropdown {
     position: relative;
+    z-index: var(--nb-z-base);
 }
 
 .header__dropdown-menu {
@@ -45,6 +46,7 @@
     z-index: var(--nb-z-dropdown);
     padding: 0;
     margin: 0;
+    pointer-events: auto;
 }
 
 .header__dropdown-item {

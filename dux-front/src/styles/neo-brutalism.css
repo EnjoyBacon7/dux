@@ -476,8 +476,9 @@ select:focus {
     border-radius: calc(var(--nb-radius) - 4px);
     cursor: pointer;
     font-size: 0.95rem;
-    transition: var(--nb-transition);
+    transition: background-color 0.15s ease;
     font-family: var(--nb-font-stack);
+    position: relative;
 }
 
 .nb-nav-btn:hover {
@@ -576,6 +577,7 @@ select:focus {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
 }
 
 /* Navigation mobile modifier */
@@ -834,7 +836,11 @@ select:focus {
 .account-card {}
 .cv-upload-card {}
 .cv-score-card {}
-.cv-preview-card {}
+.cv-preview-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
 .job-offers-card {}
 .account-settings-card {}
 .preferences-card {}
@@ -880,10 +886,11 @@ select:focus {
     display: flex;
     flex-direction: column;
     flex: 1;
-    height: 100%;
+    min-height: 0;
     margin-left: -1.5rem;
     margin-right: -1.5rem;
     margin-bottom: -1.5rem;
+    overflow: hidden;
 }
 
 /* Upload form shared styles */
