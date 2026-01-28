@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/useAuth";
 import { useLanguage } from "./contexts/useLanguage";
 import { Header } from "./components";
-import "./styles/profileSetup.css";
 
 const ProfileSetup: React.FC = () => {
     const navigate = useNavigate();

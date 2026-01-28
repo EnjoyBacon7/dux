@@ -33,6 +33,34 @@ from pydantic import BaseModel
 from fastapi import HTTPException
 
 
+def _extract_url_from_text(text: str) -> Optional[str]:
+    """
+    Extract the first URL from text content.
+    
+    Searches for https:// or http:// URLs in the text and returns the first one found.
+    
+    Args:
+        text: Text to search for URLs
+        
+    Returns:
+        First URL found, or None if no URL is present
+    """
+    if not text:
+        return None
+    
+    # Match URLs starting with http:// or https://
+    url_pattern = r'https?://[^\s]+'
+    match = re.search(url_pattern, text)
+    
+    if match:
+        url = match.group(0)
+        # Clean up trailing punctuation that might have been captured
+        url = url.rstrip('.,;:)')
+        return url
+    
+    return None
+
+
 def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: str) -> str:
     data = {
         "grant_type": "client_credentials",
@@ -200,6 +228,25 @@ def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
     contexte = offer.get("contexteTravail") or {}
     agence = offer.get("agence") or {}
 
+    # Extract application URL from contact info
+    # Priority: explicit urlPostulation > URL in contact fields > URL in agence courriel > URL in origineOffre
+    contact_url_postulation = contact.get("urlPostulation")
+    if not contact_url_postulation:
+        # Try extracting from contact fields (coordonnees3 often contains "Pour postuler, utiliser le lien suivant : URL")
+        for field in ["coordonnees3", "coordonnees2", "coordonnees1"]:
+            extracted = _extract_url_from_text(contact.get(field, ""))
+            if extracted:
+                contact_url_postulation = extracted
+                break
+    
+    # If still not found, try agence courriel field
+    if not contact_url_postulation:
+        contact_url_postulation = _extract_url_from_text(agence.get("courriel", ""))
+    
+    # If still not found, use the origineOffre urlOrigine as fallback
+    if not contact_url_postulation:
+        contact_url_postulation = origine.get("urlOrigine")
+
     return {
         "id": offer.get("id"),
         "intitule": offer.get("intitule"),
@@ -243,7 +290,7 @@ def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
         "contact_coordonnees2": contact.get("coordonnees2"),
         "contact_coordonnees3": contact.get("coordonnees3"),
         "contact_courriel": contact.get("courriel"),
-        "contact_urlPostulation": contact.get("urlPostulation"),
+        "contact_urlPostulation": contact_url_postulation,
         "contact_telephone": contact.get("telephone"),
         "origineOffre_origine": origine.get("origine"),
         "origineOffre_urlOrigine": origine.get("urlOrigine"),

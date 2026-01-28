@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/useLanguage";
+import styles from "../styles/wiki-metier.module.css";
+
+// Helper to create CSS custom properties with proper typing
+const delayStyle = (delay: string) => ({ "--delay": delay } as React.CSSProperties);
 
 export type MetierDetailData = {
   romeCode: string;
@@ -288,27 +292,27 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   };
 
   return (
-    <div className="wiki-metier-detail" key={romeCode}>
-      <section className="wm-card wm-hero" style={{ ["--delay" as any]: "0.02s" }}>
-        <div className="wm-hero-title-row">
-          <h2 className="wm-hero-title">{data.romeLibelle ?? t("metiers.detail.title_fallback")}</h2>
-          <span className="wm-rome-badge">{data.romeCode}</span>
+    <div className={styles["wiki-metier-detail"]} key={romeCode}>
+      <section className={`${styles["wm-card"]} ${styles["wm-hero"]}`} style={delayStyle("0.02s")}>
+        <div className={styles["wm-hero-title-row"]}>
+          <h2 className={styles["wm-hero-title"]}>{data.romeLibelle ?? t("metiers.detail.title_fallback")}</h2>
+          <span className={styles["wm-rome-badge"]}>{data.romeCode}</span>
         </div>
-        <p className="wm-hero-summary">{renderDefinition(resume)}</p>
+        <p className={styles["wm-hero-summary"]}>{renderDefinition(resume)}</p>
       </section>
 
-      <section className="wm-card wm-hero" style={{ ["--delay" as any]: "0.02s" }}>
-        <div className="wm-card-header">
+      <section className={`${styles["wm-card"]} ${styles["wm-hero"]}`} style={delayStyle("0.02s")}>
+        <div className={styles["wm-card-header"]}>
           <h3>{t("metiers.detail.title_cv_comparison")}</h3>
         </div>
-        <p className="wm-hero-summary">{cvComparisonText}</p>
+        <p className={styles["wm-hero-summary"]}>{cvComparisonText}</p>
       </section>
 
-      <div className="wm-detail-grid">
-        <div className="wm-main-column">
+      <div className={styles["wm-detail-grid"]}>
+        <div className={styles["wm-main-column"]}>
 
-          <section className="wm-card" style={{ ["--delay" as any]: "0.14s" }}>
-            <div className="wm-card-header">
+          <section className={styles["wm-card"]} style={delayStyle("0.14s")}>
+            <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.role_title")}</h3>
             </div>
             {data.definition ? (
@@ -320,12 +324,12 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
               {renderDefinition(data.definition)}
             </p>
           ) : (
-              <p className="wm-body wm-muted">{t("metiers.detail.description_missing")}</p>
+              <p className={`${styles["wm-body"]} ${styles["wm-muted"]}`}>{t("metiers.detail.description_missing")}</p>
             )}
             {data.definition ? (
               <button
                 type="button"
-                className="wm-link-btn"
+                className={styles["wm-link-btn"]}
                 onClick={() => setIsExpanded((prev) => !prev)}
                 aria-expanded={isExpanded}
               >
@@ -334,103 +338,103 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
             ) : null}
 
         {data.accesEmploi ? (
-          <div className="wm-subsection">
+          <div className={styles["wm-subsection"]}>
             <h4>{t("metiers.detail.training_access_title")}</h4>
-            <p className="wm-body wm-body--tight">{data.accesEmploi}</p>
+            <p className={`${styles["wm-body"]} ${styles["wm-body--tight"]}`}>{data.accesEmploi}</p>
           </div>
         ) : null}
           </section>
 
-          <section className="wm-card" style={{ ["--delay" as any]: "0.08s" }}>
-            <div className="wm-card-header">
+          <section className={styles["wm-card"]} style={delayStyle("0.08s")}>
+            <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.key_metrics")}</h3>
             </div>
-            <div className="wm-stats-grid">
-              <div className="wm-stat">
-                <div className="wm-stat-label">{t("metiers.detail.stats.offers")}</div>
-                <div className="wm-stat-value">{formatNbOffres(data.nbOffre)}</div>
-                <div className="wm-stat-sub">{t("metiers.detail.stats.offers_active")}</div>
+            <div className={styles["wm-stats-grid"]}>
+              <div className={styles["wm-stat"]}>
+                <div className={styles["wm-stat-label"]}>{t("metiers.detail.stats.offers")}</div>
+                <div className={styles["wm-stat-value"]}>{formatNbOffres(data.nbOffre)}</div>
+                <div className={styles["wm-stat-sub"]}>{t("metiers.detail.stats.offers_active")}</div>
               </div>
-              <div className="wm-stat">
-                <div className="wm-stat-label">{t("metiers.detail.stats.avg_salary")}</div>
-                <div className="wm-stat-value">
+              <div className={styles["wm-stat"]}>
+                <div className={styles["wm-stat-label"]}>{t("metiers.detail.stats.avg_salary")}</div>
+                <div className={styles["wm-stat-value"]}>
                   {salaireMoyen !== null ? formatEur(salaireMoyen) : "--"}
                 </div>
-                <div className="wm-stat-sub">{t("metiers.detail.stats.monthly")}</div>
+                <div className={styles["wm-stat-sub"]}>{t("metiers.detail.stats.monthly")}</div>
               </div>
-              <div className="wm-stat">
-                <div className="wm-stat-label">{t("metiers.detail.stats.range")}</div>
-                <div className="wm-stat-value">
+              <div className={styles["wm-stat"]}>
+                <div className={styles["wm-stat-label"]}>{t("metiers.detail.stats.range")}</div>
+                <div className={styles["wm-stat-value"]}>
                   {salaireMin !== null && salaireMax !== null
                     ? `${formatEur(salaireMin)} - ${formatEur(salaireMax)}`
                     : "--"}
                 </div>
-                <div className="wm-stat-sub">{t("metiers.detail.stats.min_max")}</div>
+                <div className={styles["wm-stat-sub"]}>{t("metiers.detail.stats.min_max")}</div>
               </div>
             </div>
 
-            <div className="wm-salary-range">
-              <div className="wm-salary-header">{t("metiers.detail.salary_range_title")}</div>
+            <div className={styles["wm-salary-range"]}>
+              <div className={styles["wm-salary-header"]}>{t("metiers.detail.salary_range_title")}</div>
               {salaireMin !== null && salaireMax !== null ? (
                 <>
-                  <div className="wm-salary-track">
-                    <div className="wm-salary-gradient" />
+                  <div className={styles["wm-salary-track"]}>
+                    <div className={styles["wm-salary-gradient"]} />
                     <div
-                      className="wm-salary-thumb"
+                      className={styles["wm-salary-thumb"]}
                       style={{ left: `${moyennePct}%` }}
                       aria-hidden="true"
                     />
                   </div>
-                  <div className="wm-salary-labels">
+                  <div className={styles["wm-salary-labels"]}>
                     <span>{formatEur(salaireMin)}</span>
                     <span>{formatEur(salaireMax)}</span>
                   </div>
                   {salaireMoyen !== null ? (
-                    <div className="wm-salary-mean">
+                    <div className={styles["wm-salary-mean"]}>
                       {t("metiers.detail.salary_mean")}: {formatEur(salaireMoyen)}
                     </div>
                   ) : null}
                 </>
               ) : (
-                <div className="wm-muted">{t("metiers.detail.salary_no_data")}</div>
+                <div className={styles["wm-muted"]}>{t("metiers.detail.salary_no_data")}</div>
               )}
             </div>
           </section>
 
-          <section className="wm-card wm-actions-card" style={{ ["--delay" as any]: "0.26s" }}>
-            <div className="wm-card-header">
+          <section className={styles["wm-card"]} style={delayStyle("0.26s")}>
+            <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.actions_title")}</h3>
             </div>
-            <div className="wm-actions">
+            <div className={styles["wm-actions"]}>
               <button
                 type="button"
-                className="nb-btn wm-action-btn"
+                className={`nb-btn ${styles["wm-action-btn"]}`}
                 onClick={() => navigate(`/jobs?codeROME=${encodeURIComponent(data.romeCode)}`)}
               >
                 {t("metiers.detail.action_offers")}
               </button>
-              <button type="button" className="nb-btn wm-action-btn">
+              <button type="button" className={`nb-btn ${styles["wm-action-btn"]}`}>
                 {t("metiers.detail.action_favorite")}
               </button>
             </div>
           </section>
         </div>
 
-        <aside className="wm-aside-column">
-          <section className="wm-card" style={{ ["--delay" as any]: "0.2s" }}>
-            <div className="wm-card-header">
+        <aside className={styles["wm-aside-column"]}>
+          <section className={styles["wm-card"]} style={delayStyle("0.2s")}>
+            <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.skills_title")}</h3>
             </div>
             {data.competences?.length ? (
-              <div className="wm-skill-wall">
+              <div className={styles["wm-skill-wall"]}>
                 {data.competences.map((c, idx) => (
-                  <span key={idx} className="wm-skill-chip" title={c.code ?? c.libelle}>
+                  <span key={idx} className={styles["wm-skill-chip"]} title={c.code ?? c.libelle}>
                     {c.libelle}
                   </span>
                 ))}
               </div>
             ) : (
-              <div className="wm-muted">{t("metiers.detail.skills_empty")}</div>
+              <div className={styles["wm-muted"]}>{t("metiers.detail.skills_empty")}</div>
             )}
           </section>
         </aside>

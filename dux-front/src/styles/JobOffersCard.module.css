@@ -1,0 +1,131 @@
+/* ===== JOB OFFERS CARD MODULE ===== */
+
+/* Carousel Container */
+.job-offers__carousel {
+    margin-top: 1rem;
+}
+
+.job-offers__carousel-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.job-offers__carousel-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Remove nested card styling - content should be flat within parent card */
+.job-offers__carousel-content .nb-card {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+}
+
+/* Carousel Navigation Buttons */
+.job-offers__carousel-btn {
+    appearance: none;
+    background: var(--nb-accent);
+    border: var(--nb-border) solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: var(--nb-transition);
+    font-size: 1.25rem;
+    color: var(--nb-fg);
+    flex-shrink: 0;
+}
+
+.job-offers__carousel-btn:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.job-offers__carousel-btn:active:not(:disabled) {
+    opacity: 0.8;
+}
+
+.job-offers__carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Carousel Indicators */
+.job-offers__carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.job-offers__indicator {
+    appearance: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--nb-bg-muted);
+    border: var(--nb-border) solid var(--nb-fg);
+    cursor: pointer;
+    transition: var(--nb-transition);
+    padding: 0;
+}
+
+.job-offers__indicator--active {
+    background: var(--nb-accent);
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* Offer Score Badge */
+.job-offers__score-badge {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background-color: var(--nb-accent);
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Offer Sections within Carousel */
+.job-offers__section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: var(--nb-border) dashed var(--nb-fg);
+}
+
+.job-offers__label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 0.5rem 0;
+    color: var(--nb-accent);
+}
+
+.job-offers__label--concern {
+    color: var(--nb-danger);
+}
+
+.job-offers__list {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style: disc;
+}
+
+.job-offers__list li {
+    margin-bottom: 0.375rem;
+    line-height: 1.4;
+}
+
+/* Mobile Adjustments for Carousel */
+@media (max-width: 767px) {
+    .job-offers__carousel-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+    }
+
+    .job-offers__carousel-container {
+        gap: 0.5rem;
+    }
+}

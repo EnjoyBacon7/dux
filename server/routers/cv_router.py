@@ -928,7 +928,8 @@ def evaluation_to_detailed_response(evaluation: CVEvaluation) -> DetailedEvaluat
 @router.post("/evaluate", summary="Trigger CV evaluation")
 async def evaluate_cv(
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_session)
 ) -> Dict[str, Any]:
     """
     Trigger a CV evaluation for the current user.
@@ -944,10 +945,28 @@ async def evaluate_cv(
     """
     # Validate that CV text exists and is not empty
     if not current_user.cv_text or not current_user.cv_text.strip():
-        raise HTTPException(
-            status_code=400,
-            detail="No CV text found. The CV file may be missing or corrupted. Please upload a CV again."
-        )
+        error_msg = "No CV text found. The CV file may be missing or corrupted. Please upload a CV again."
+        save_failed_evaluation_to_db(db, current_user.id, current_user.cv_filename or "unknown", error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    # Ensure the referenced CV file still exists; if not, fail fast so the frontend sees a clear error
+    if current_user.cv_filename:
+        try:
+            upload_root = UPLOAD_DIR.resolve()
+            resolved_path = (UPLOAD_DIR / current_user.cv_filename).resolve()
+            file_missing = not (
+                resolved_path.is_relative_to(upload_root)
+                and resolved_path.exists()
+                and resolved_path.is_file()
+            )
+        except Exception as e:
+            logger.warning(f"Path resolution error for CV file during evaluation (user {current_user.id}): {e}")
+            file_missing = True
+
+        if file_missing:
+            error_msg = "CV file not found on server. Please re-upload your CV and try again."
+            save_failed_evaluation_to_db(db, current_user.id, current_user.cv_filename or "unknown", error_msg)
+            raise HTTPException(status_code=400, detail=error_msg)
 
     # Import here to avoid circular imports
     from server.database import SessionLocal

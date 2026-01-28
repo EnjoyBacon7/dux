@@ -74,18 +74,15 @@
     padding: 0.75rem 0.85rem;
     background: var(--nb-card-bg);
     color: inherit;
-    box-shadow: var(--nb-shadow-xs);
     transition: var(--nb-transition);
 }
 
 .wiki-metier-link:hover {
-    transform: translate(calc(var(--shadow-offset) * -0.2), calc(var(--shadow-offset) * -0.2));
-    box-shadow: var(--nb-shadow-sm);
+    opacity: 0.9;
 }
 
 .wiki-metier-link--active {
-    background: var(--nb-bg-alt);
-    box-shadow: var(--nb-shadow-sm);
+    background: var(--nb-bg-muted);
 }
 
 .wiki-metier-code {
@@ -149,20 +146,18 @@
 }
 
 .wm-card {
-    background: var(--wm-card-bg, var(--nb-card-bg));
-    border: var(--nb-border) solid var(--wm-card-border, var(--nb-fg));
-    border-radius: var(--nb-radius);
-    padding: 1.5rem 1.5rem;
-    box-shadow: var(--nb-shadow-sm);
+    background: var(--wm-card-bg, #2f2f34);
+    border: 1px solid var(--wm-card-border, rgba(255, 255, 255, 0.14));
+    border-radius: calc(var(--nb-radius) - 2px);
+    padding: 1.75rem 1.75rem;
     position: relative;
     animation: wmFadeIn 0.3s ease both;
     animation-delay: var(--delay, 0s);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .wm-card:hover {
-    transform: translate(calc(var(--shadow-offset) * -0.2), calc(var(--shadow-offset) * -0.2));
-    box-shadow: var(--nb-shadow);
+    opacity: 0.95;
 }
 
 .wm-card-header {
@@ -285,9 +280,8 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: var(--nb-fg);
-    border: 2px solid var(--nb-accent-alt);
-    box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.08);
+    background: #f8f6ff;
+    border: 2px solid rgba(195, 185, 248, 0.9);
 }
 
 .wm-salary-labels {
@@ -379,13 +373,12 @@
     font-size: 0.85rem;
     display: inline-flex;
     align-items: center;
-    color: var(--wm-title, var(--nb-fg));
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    color: var(--wm-title, #f8f6ff);
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .wm-skill-chip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(10, 10, 20, 0.25);
+    opacity: 0.9;
 }
 
 .wm-actions {
