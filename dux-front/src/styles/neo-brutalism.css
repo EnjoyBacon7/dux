@@ -184,7 +184,6 @@ a:hover {
     border: var(--nb-border) solid var(--nb-fg);
     border-radius: var(--nb-radius);
     padding: 1.75rem 1.5rem 1.5rem;
-    position: relative;
 }
 
 
@@ -478,16 +477,17 @@ select:focus {
     font-size: 0.95rem;
     font-family: var(--nb-font-stack);
     position: relative;
+    transition: background-color 0.15s ease;
 }
 
-.nb-nav-btn:hover:not(.nb-nav-btn--active) {
+.nb-nav-btn:hover {
     background: var(--nb-bg-muted);
-    transition: background-color 0.15s ease;
 }
 
 .nb-nav-btn--active {
     background: var(--nb-accent);
     color: var(--nb-fg);
+    transition: none;
 }
 
 /* Mobile menu toggle button */
