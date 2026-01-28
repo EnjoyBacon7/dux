@@ -25,10 +25,9 @@ from server.database import get_db_session
 from server.thread_pool import run_blocking_in_executor
 from server.utils.dependencies import get_current_user
 
-# --- IMPORTS AJOUTÉS POUR LE MATCHING ---
+# --- IMPORTS POUR LE MATCHING
 from server.methods.FT_job_search import search_france_travail, get_offer_by_id
 from server.methods.matching_engine import MatchingEngine
-from server.cv.cv_pipeline import CVEvaluationPipeline
 # ----------------------------------------
 
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
@@ -504,9 +503,12 @@ def _run_analysis_in_thread(
     job_id: Optional[str],
     job_payload: Optional[Dict[str, Any]],
     bind,
-    cv_data: Optional[Dict[str, Any]] = None, # Paramètre cv_data ajouté
     lang: str = "fr"
 ):
+    """
+    Exécute le matching dans un thread séparé.
+    Utilise exclusivement user.cv_text (Raw Text en BDD) via le MatchingEngine.
+    """
     SessionLocal = sessionmaker(bind=bind)
     with SessionLocal() as session:
         user = session.get(User, user_id)
@@ -514,16 +516,18 @@ def _run_analysis_in_thread(
             raise ValueError("Utilisateur introuvable dans le thread")
 
         if job_payload is None:
+            # Cas 1: Analyse par ID d'offre existante en base
             job = session.query(Offres_FT).filter(Offres_FT.id == job_id).first()
             if not job:
                 raise ValueError("Offre introuvable dans le thread")
         else:
+            # Cas 2: Analyse d'une offre passée en JSON
             comps = job_payload.get('competences')
             if isinstance(comps, (list, dict)):
                 comps = json.dumps(comps)
 
             job = Offres_FT(
-                id=job_payload.get('id'),
+                id=job_payload.get('id', 'temp_id'),
                 intitule=job_payload.get('intitule'),
                 description=job_payload.get('description'),
                 entreprise_nom=job_payload.get('entreprise_nom'),
@@ -531,53 +535,8 @@ def _run_analysis_in_thread(
             )
 
         engine = MatchingEngine(session)
-        # On passe cv_data explicitement
-        return engine.analyser_match(user, job, cv_data=cv_data, lang=lang)
-
-
-@router.get("/analyze/{job_id}")
-async def analyze_specific_job(
-    job_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_session)
-):
-    bind = db.get_bind()
-    user_id = current_user.id
-    logger.info(f"Analyse demandée par : {current_user.username} pour l'offre {job_id}")
-
-    # --- EXTRACTION TEMPS RÉEL DU CV ---
-    cv_data_dict = None
-    if current_user.cv_text:
-        try:
-            pipeline = CVEvaluationPipeline(save_results=False)
-            res = pipeline.evaluate(current_user.cv_text, cv_filename=current_user.cv_filename)
-            if res and res.structured_cv:
-                cv_data_dict = res.structured_cv.model_dump()
-        except Exception as e:
-            logger.error(f"Failed to extract CV data: {e}")
-    # ------------------------------------
-
-    try:
-        evaluation = await asyncio.to_thread(
-            _run_analysis_in_thread,
-            user_id,
-            job_id,
-            None,
-            bind,
-            cv_data_dict, # Argument 5 : Les données du CV
-            "fr"          # Argument 6 : La langue
-        )
-
-        offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
-        return {
-            "status": "success",
-            "candidat": {"nom": f"{current_user.first_name} {current_user.last_name}"},
-            "job": {"id": job_id, "intitule": offre.intitule if offre else "N/A"},
-            "analysis": evaluation
-        }
-    except Exception as e:
-        logger.error(f"Erreur critique analyse : {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Signature propre : (User, Job, Lang)
+        return engine.analyser_match(user, job, lang=lang)
 
 
 class JobDataForAnalysis(BaseModel):
@@ -595,23 +554,21 @@ async def analyze_job_direct(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
+    """
+    Analyse basée sur cv_text.
+    """
     bind = db.get_bind()
     user_id = current_user.id
     lang = job_data.lang
 
     logger.info(f"Analyse directe ({lang}) demandée par : {current_user.username}")
 
-    # --- EXTRACTION TEMPS RÉEL DU CV ---
-    cv_data_dict = None
-    if current_user.cv_text:
-        try:
-            pipeline = CVEvaluationPipeline(save_results=False)
-            res = pipeline.evaluate(current_user.cv_text, cv_filename=current_user.cv_filename)
-            if res and res.structured_cv:
-                cv_data_dict = res.structured_cv.model_dump()
-        except Exception as e:
-            logger.error(f"Failed to extract CV data: {e}")
-    # ------------------------------------
+    # 1. Vérification simple : On veut juste du texte
+    if not current_user.cv_text or len(current_user.cv_text) < 10:
+        raise HTTPException(
+            status_code=400, 
+            detail="Votre profil ne contient pas de texte de CV exploitable. Veuillez ré-uploader votre CV."
+        )
 
     try:
         payload = job_data.model_dump()
@@ -619,11 +576,10 @@ async def analyze_job_direct(
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
-            None,
-            payload,
+            None,      # Pas d'ID de job BDD
+            payload,   # Payload JSON
             bind,
-            cv_data_dict, # Argument 5 : Les données du CV
-            lang          # Argument 6 : La langue
+            lang       # Langue
         )
 
         return {
@@ -634,8 +590,7 @@ async def analyze_job_direct(
         }
     except Exception as e:
         logger.error(f"Erreur critique analyse directe : {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+        raise HTTPException(status_code=500, detail="Erreur lors de l'analyse du CV.")
 
 @router.get("/offer/{job_id}", summary="Get job offer details by ID")
 async def get_job_offer(

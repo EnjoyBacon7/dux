@@ -25,67 +25,30 @@ class MatchingEngine:
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-    def _generate_prompt(self, user: User, job: Offres_FT, cv_data: Optional[Dict[str, Any]] = None, lang: str = "fr") -> str:
+    def _generate_prompt(self, user: User, job: Offres_FT, lang: str = "fr") -> str:
         """
         Génère le prompt pour le LLM.
-        Si cv_data est fourni (dict), on l'utilise pour extraire compétences et expériences.
-        Sinon, on utilise les attributs de l'objet User (base de données).
+        Stratégie nettoyée :
+        1. Utilise user.cv_text (Texte brut en BDD) -> Approche principale.
+        2. En dernier recours, utilise les champs structurés legacy (user.experiences, etc.).
         """
         
         # --- ÉTAPE 1 : Extraction des données du Candidat ---
-        if cv_data:
-            # CAS A : Données fraîches du CV (Prioritaire)
-            logger.info("Génération du prompt à partir des données brutes du CV (cv_data).")
+        
+        # CAS A : Utilisation directe du texte brut en BDD
+        if user.cv_text and len(user.cv_text.strip()) > 10:
+            logger.info(f"MATCHING : Utilisation du cv_text brut pour User ID {user.id}")
             
-            # Titre et Résumé
-            personal_info = cv_data.get('personal_info', {}) or {}
-            headline = personal_info.get('title') or "Candidat"
+            headline = user.headline or "Candidat"
+            summary = "Voir le contenu complet du CV ci-dessous."
+            skills = "Voir le contenu complet du CV ci-dessous."
             
-            summary_obj = cv_data.get('professional_summary')
-            if isinstance(summary_obj, dict):
-                summary = summary_obj.get('text', "Non spécifié")
-            elif isinstance(summary_obj, str):
-                summary = summary_obj
-            else:
-                summary = "Non spécifié"
+            # On injecte tout le texte brut ici.
+            experiences_txt = f"--- DÉBUT DU CONTENU BRUT DU CV ---\n{user.cv_text}\n--- FIN DU CONTENU BRUT ---"
 
-            # Compétences (Aplatir la structure par catégories)
-            skills_list = []
-            raw_skills = cv_data.get('skills', [])
-            if raw_skills:
-                for cat in raw_skills:
-                    if isinstance(cat, dict):
-                        # Gérer le cas où 'skills' est une liste de strings dans la catégorie
-                        cat_skills = cat.get('skills', [])
-                        if isinstance(cat_skills, list):
-                            skills_list.extend([str(s) for s in cat_skills])
-            
-            # Dédoublonnage et conversion en string
-            skills = ", ".join(list(set(skills_list))) if skills_list else "Non renseigné"
-
-            # Expériences
-            experiences_list = []
-            raw_exp = cv_data.get('work_experience', [])
-            if raw_exp:
-                for exp in raw_exp:
-                    role = exp.get('role', 'Poste inconnu')
-                    company = exp.get('company', 'Entreprise inconnue')
-                    
-                    # Gestion des responsabilités (liste ou string)
-                    resps = exp.get('responsibilities', [])
-                    desc = ""
-                    if isinstance(resps, list):
-                        desc = "; ".join(resps)
-                    elif isinstance(resps, str):
-                        desc = resps
-                        
-                    experiences_list.append(f"- {role} chez {company} ({desc})")
-            
-            experiences_txt = "\n".join(experiences_list) if experiences_list else "Aucune expérience listée."
-
+        # CAS B : Fallback (Legacy) - Pas de texte brut, on utilise les anciennes colonnes
         else:
-            # CAS B : Données de la Base de Données (Fallback)
-            logger.info("Génération du prompt à partir du profil User en BDD.")
+            logger.warning(f"User ID {user.id} n'a pas de cv_text. Utilisation des champs structurés (plus lent/moins précis).")
             headline = user.headline or 'Non spécifié'
             summary = user.summary or 'Non spécifié'
             skills = ", ".join(user.skills) if user.skills else "Non renseigné"
@@ -99,7 +62,6 @@ class MatchingEngine:
 
         # --- ÉTAPE 2 : Traitement de l'Offre (Job) ---
         job_skills = job.competences
-        # Gestion des différents formats possibles de job.competences (JSON string, list, None)
         if isinstance(job_skills, str) and job_skills.strip().startswith("["):
             try:
                 loaded = json.loads(job_skills)
@@ -119,7 +81,6 @@ class MatchingEngine:
         }
         target_lang = lang_map.get(lang.lower(), 'FRENCH')
 
-        # Chargement du template (assure-toi que "profile_match_template" existe dans prompts.py)
         template = load_prompt_template("profile_match_template")
         
         prompt = template.format(
@@ -135,27 +96,12 @@ class MatchingEngine:
         )
         return prompt
 
-    def analyser_match(self, user: User, job: Offres_FT, cv_data: Optional[Dict[str, Any]] = None, lang: str = "fr") -> dict:
+    def analyser_match(self, user: User, job: Offres_FT, lang: str = "fr") -> dict:
         """
         Exécute l'analyse de matching.
-        
-        Args:
-            user: L'objet User (utilisé pour le logging et fallback si cv_data est None)
-            job: L'objet Offres_FT
-            cv_data: (Optionnel) Dictionnaire contenant les données extraites du CV.
-                     Si fourni, le matching se base sur ces données et ignore la BDD User.
-            lang: Langue de sortie souhaitée
         """
         try:
-            prompt = self._generate_prompt(user, job, cv_data, lang)
-
-            # DEBUG : Pour vérifier que les infos du CV sont bien là
-            print("\n" + "="*50)
-            print(f"MODE MATCHING : {'CV TEMPS RÉEL' if cv_data else 'PROFIL BDD'}")
-            print("----- DÉBUT DU PROMPT ENVOYÉ À L'IA -----")
-            print(prompt)
-            print("----- FIN DU PROMPT -----")
-            print("="*50 + "\n")
+            prompt = self._generate_prompt(user, job, lang)
 
             # Appel au LLM via l'interface unifiée
             result = call_llm_sync(
@@ -166,7 +112,6 @@ class MatchingEngine:
                 parse_json=True
             )
 
-            # result["data"] contient déjà le JSON parsé grâce à parse_json=True
             return result["data"]
 
         except ValueError as e:
