@@ -4,24 +4,13 @@ Metiers API router.
 Provides endpoints for fetching metier fiche data from the database.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
-import re
-import json
-import ast
-import difflib
-import unicodedata
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from server.database import get_db_session
 from server.models import Metier_ROME, User
-
-from server.utils.dependencies import get_current_user
-from server.utils.llm import call_llm_async
-
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 
 
 import logging

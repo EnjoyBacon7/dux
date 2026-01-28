@@ -565,7 +565,6 @@ def load_code_metier():
         """
 
         token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-        model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2",local_files_only=True)
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -591,7 +590,6 @@ def load_code_metier():
             resp.raise_for_status()
             data = resp.json()
 
-        print(data)
 
         code_metier += data
 
@@ -609,11 +607,9 @@ def load_code_metier():
 
         try:
             for fiche in code_metier:
-                libelle_embedded = model.encode([str(fiche.get("libelle"))], normalize_embeddings=True)
                 fiche_insert = Metier_ROME(
                     code = fiche.get("code"),
                     libelle = fiche.get("libelle"),
-                    libelle_embedded = libelle_embedded.tolist()
                                 )
                 try:
                     session.add(fiche_insert)
