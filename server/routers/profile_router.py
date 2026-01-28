@@ -5,7 +5,6 @@ Provides endpoints for user profile setup, CV upload, and experience/education m
 
 import logging
 from typing import Dict, Any
-
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, BackgroundTasks
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -64,72 +63,6 @@ async def upload_endpoint(
     # Update user's CV filename and extracted text in database
     current_user.cv_filename = result["filename"]
     current_user.cv_text = result["extracted_text"]
-
-    model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2",local_files_only=True)
-    
-    # Extracting the experience section from the current user cv
-    cv_text = current_user.cv_text
-
-    prompt = f"Voici le texte d'un CV : \n{cv_text}\n Renvoie moi le texte des expériences professionnelles avec le maximum de texte, ajoute une description complète de l'experience. REND MOI LA LISTE DES EXPERIENCES PROFESSIONNELLES SEPARE PAR [EMPLOI]. SURTOUT N'AJOUTE PAS DE TEXTE AUTOUR DE LA REPONSE."
-    liste_xp = await _call_llm(prompt,"")
-    liste_xp = liste_xp['data'].split("[EMPLOI]")
-    
-    # Extraction of experience
-    rows = (
-        db.query(Metier_ROME)
-        .order_by(Metier_ROME.libelle.asc(), Metier_ROME.code.asc())
-        .all()
-    )
-    metiers = [(row.libelle or "", row.code, row.libelle_embedded) for row in rows]
-
-    emploi_occupe = {"Job_name" : [], "Job_description" : []}
-    for experience in liste_xp:
-        score = []
-        print(experience)
-        if not experience or not experience.strip():
-            continue
-
-        prompt = f"Donne moi le nom du métier de cette description : {experience}. Ne renvoie que le nom du métier, rien d'autre."
-        experience_simplifiee = await _call_llm(prompt,"")
-        experience_embedded = model.encode([str(experience_simplifiee['data'])], normalize_embeddings=True)
-        for metier_label, metier_code, metier_embedded in metiers:
-            if not metier_label:
-                continue
-
-            score.append(((metier_label, metier_code), cosine_similarity(experience_embedded, metier_embedded)[0][0]))
-
-        if not score:
-            logger.warning("No metiers to score for experience: %s", experience)
-            continue
-
-        score.sort(key=lambda item: item[1], reverse=True)
-
-        prompt = f"A quel métier de cette liste : {score[0:2]} cette description correspond le plus : {experience}. Ne renvoie que l'indice du métier correspondant le plus (soit 0, soit 1, soit 2), rien d'autre."
-        data = await _call_llm(prompt,"")
-        indice_meilleur_metier = data['data']
-
-        print(indice_meilleur_metier)
-        print(score[0:3])
-
-        emploi_occupe['Job_name'].append(score[int(indice_meilleur_metier)][0])
-        emploi_occupe['Job_description'].append(experience)
-
-    print(emploi_occupe)
-
-    duree = []
-
-    for (job_label, rome_code), desc in zip(emploi_occupe["Job_name"], emploi_occupe["Job_description"]):
-        prompt = f"Voici la description d'un emploi extraite d'un CV. Rend moi la partie qui parle des dates de prise de poste en la traduisant en français. Rend moi uniquement le morceau du texte en français avec rien autour : {desc}"
-        data = await _call_llm(prompt,"")
-        duree_text = data['data']
-        print(duree_text)
-
-        duree.append(extract_periods_fr(duree_text))
-
-    emploi_occupe['duree'] = duree
-
-
-
 
     db.commit()
 
@@ -200,3 +133,5 @@ async def get_cv_file(
         media_type=media_type or "application/octet-stream",
         headers=headers
     )
+
+
