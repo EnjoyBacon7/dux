@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from server.database import get_db_session
@@ -62,7 +63,7 @@ def list_metiers(
 
 
 # ---------------------------------------------------------------------------
-# Favourites (Tracker) – must be defined before /{rome_code}
+# Favourites (Tracker) - must be defined before /{rome_code}
 # ---------------------------------------------------------------------------
 
 
@@ -116,14 +117,35 @@ def add_favourite(
         rome_code=code,
         rome_libelle=libelle,
     )
-    db.add(fm)
-    db.commit()
-    db.refresh(fm)
-    return {
-        "romeCode": fm.rome_code,
-        "romeLibelle": fm.rome_libelle or fm.rome_code,
-        "addedAt": fm.created_at.isoformat() if fm.created_at else None,
-    }
+    try:
+        db.add(fm)
+        db.commit()
+        db.refresh(fm)
+        return {
+            "romeCode": fm.rome_code,
+            "romeLibelle": fm.rome_libelle or fm.rome_code,
+            "addedAt": fm.created_at.isoformat() if fm.created_at else None,
+        }
+    except IntegrityError:
+        db.rollback()
+        existing = (
+            db.query(FavouriteMetier)
+            .filter(
+                FavouriteMetier.user_id == current_user.id,
+                FavouriteMetier.rome_code == code,
+            )
+            .first()
+        )
+        if not existing:
+            raise HTTPException(
+                status_code=409,
+                detail="Duplicate favourite occupation; concurrent insert. Retry to fetch existing.",
+            )
+        return {
+            "romeCode": existing.rome_code,
+            "romeLibelle": existing.rome_libelle or existing.rome_code,
+            "addedAt": existing.created_at.isoformat() if existing.created_at else None,
+        }
 
 
 @router.delete("/favourites/{rome_code}", summary="Remove occupation from favourites")

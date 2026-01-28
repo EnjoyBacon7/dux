@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import styles from "../styles/job-detail.module.css";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/useLanguage";
-import JobMatchAnalysis from "./JobMatchAnalysis";
-import type { JobOffer } from "../types/job";
+
+import JobMatchAnalysis from "src/components/JobMatchAnalysis";
+import { useLanguage } from "src/contexts/useLanguage";
+import type { JobOffer } from "src/types/job";
+import styles from "src/styles/job-detail.module.css";
 
 // Re-export types for backward compatibility
-export type { JobOffer, OptimalOffer } from "../types/job";
+export type { JobOffer, OptimalOffer } from "src/types/job";
 
 interface JobDetailProps {
     job: JobOffer;
@@ -211,6 +212,8 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                                         disabled={favouritesLoading || favouriteActionLoading}
                                         className="nb-btn nb-btn--secondary"
                                         title={isFavourited ? t("tracker.remove") : t("metiers.detail.action_favorite")}
+                                        aria-pressed={isFavourited}
+                                        aria-busy={favouritesLoading || favouriteActionLoading}
                                         style={{
                                         display: 'flex',
                                         alignItems: 'center',

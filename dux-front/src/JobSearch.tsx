@@ -48,10 +48,12 @@ const JobSearch: React.FC = () => {
     useEffect(() => {
         const openId = searchParams.get("open");
         if (!openId || !openId.trim()) return;
+        const controller = new AbortController();
         const fetchAndOpen = async () => {
             try {
                 const res = await fetch(`/api/jobs/offer/${encodeURIComponent(openId.trim())}`, {
                     credentials: "include",
+                    signal: controller.signal,
                 });
                 if (!res.ok) return;
                 const data = await res.json();
@@ -59,11 +61,14 @@ const JobSearch: React.FC = () => {
                 if (offer && typeof offer.id === "string") {
                     setSelectedJob(offer as JobOffer);
                 }
-            } catch {
-                /* ignore */
+            } catch (err) {
+                if (err instanceof Error && err.name !== "AbortError") {
+                    console.error(`Error fetching job ${openId}:`, err);
+                }
             }
         };
         fetchAndOpen();
+        return () => controller.abort();
     }, [searchParams]);
 
     // Fetch jobs from France Travail API

@@ -3460,7 +3460,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         fr: 'Chargement...',
         de: 'Laden...',
         pt: 'Carregando...',
-        la: 'Loading...'
+        la: 'Onerans...'
     },
     'tracker.back': {
         en: 'Back to Profile Hub',

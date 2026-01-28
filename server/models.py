@@ -241,7 +241,7 @@ class FavouriteMetier(Base):
     __table_args__ = (UniqueConstraint("user_id", "rome_code", name="uq_favourite_metier_user_rome"),)
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     rome_code = Column(String, nullable=False, index=True)
     rome_libelle = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -258,7 +258,7 @@ class FavouriteJob(Base):
     __table_args__ = (UniqueConstraint("user_id", "job_id", name="uq_favourite_job_user_job"),)
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     job_id = Column(String, nullable=False, index=True)
     intitule = Column(String, nullable=True)
     entreprise_nom = Column(String, nullable=True)

@@ -288,7 +288,12 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
           `${apiBaseUrl}/api/metiers/favourites/${encodeURIComponent(data.romeCode)}`,
           { method: "DELETE", credentials: "include" }
         );
-        if (res.ok) setIsFavourited(false);
+        if (res.ok) {
+          setIsFavourited(false);
+        } else {
+          console.error("Failed to remove favourite");
+          // Consider showing user feedback
+        }
       } else {
         const res = await fetch(`${apiBaseUrl}/api/metiers/favourites`, {
           method: "POST",
@@ -299,8 +304,16 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
             romeLibelle: data.romeLibelle ?? null,
           }),
         });
-        if (res.ok) setIsFavourited(true);
+        if (res.ok) {
+          setIsFavourited(true);
+        } else {
+          console.error("Failed to add favourite");
+          // Consider showing user feedback
+        }
       }
+    } catch (e) {
+      console.error("Favourite toggle error:", e);
+      // Consider showing user feedback
     } finally {
       setFavouriteActionLoading(false);
     }

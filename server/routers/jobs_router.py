@@ -20,6 +20,7 @@ from typing import Optional, Dict, Any, List, Union, Tuple
 from pydantic import BaseModel
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, Session
 from tqdm.auto import tqdm
 
@@ -30,7 +31,6 @@ from server.methods.matching_engine import MatchingEngine
 import asyncio
 
 from sentence_transformers import SentenceTransformer
-from pydantic import BaseModel
 from fastapi import HTTPException
 
 
@@ -885,7 +885,7 @@ async def analyze_job_direct(
 
 
 # ============================================================================
-# Job Favourites (Tracker) – must be defined before /offer/{job_id}
+# Job Favourites (Tracker) - must be defined before /offer/{job_id}
 # ============================================================================
 
 
@@ -896,11 +896,23 @@ class AddFavouriteJobPayload(BaseModel):
     rome_code: Optional[str] = None
 
 
-@router.get("/favourites", summary="List current user's favourite jobs")
+class FavouriteJobResponse(BaseModel):
+    jobId: str
+    intitule: str
+    entreprise_nom: Optional[str] = None
+    romeCode: Optional[str] = None
+    addedAt: Optional[str] = None
+
+
+@router.get(
+    "/favourites",
+    summary="List current user's favourite jobs",
+    response_model=List[FavouriteJobResponse],
+)
 def list_favourite_jobs(
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
-) -> List[Dict[str, Any]]:
+) -> List[FavouriteJobResponse]:
     rows = (
         db.query(FavouriteJob)
         .filter(FavouriteJob.user_id == current_user.id)
@@ -919,12 +931,16 @@ def list_favourite_jobs(
     ]
 
 
-@router.post("/favourites", summary="Add job to favourites")
+@router.post(
+    "/favourites",
+    summary="Add job to favourites",
+    response_model=FavouriteJobResponse,
+)
 def add_favourite_job(
     payload: AddFavouriteJobPayload,
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> FavouriteJobResponse:
     job_id = (payload.job_id or "").strip()
     if not job_id:
         raise HTTPException(status_code=400, detail="job_id is required")
@@ -951,16 +967,39 @@ def add_favourite_job(
         entreprise_nom=(payload.entreprise_nom or "").strip() or None,
         rome_code=(payload.rome_code or "").strip() or None,
     )
-    db.add(fj)
-    db.commit()
-    db.refresh(fj)
-    return {
-        "jobId": fj.job_id,
-        "intitule": fj.intitule or fj.job_id,
-        "entreprise_nom": fj.entreprise_nom,
-        "romeCode": fj.rome_code,
-        "addedAt": fj.created_at.isoformat() if fj.created_at else None,
-    }
+    try:
+        db.add(fj)
+        db.commit()
+        db.refresh(fj)
+        return {
+            "jobId": fj.job_id,
+            "intitule": fj.intitule or fj.job_id,
+            "entreprise_nom": fj.entreprise_nom,
+            "romeCode": fj.rome_code,
+            "addedAt": fj.created_at.isoformat() if fj.created_at else None,
+        }
+    except IntegrityError:
+        db.rollback()
+        existing = (
+            db.query(FavouriteJob)
+            .filter(
+                FavouriteJob.user_id == current_user.id,
+                FavouriteJob.job_id == job_id,
+            )
+            .first()
+        )
+        if not existing:
+            raise HTTPException(
+                status_code=409,
+                detail="Duplicate favourite job; concurrent insert. Retry to fetch existing.",
+            )
+        return {
+            "jobId": existing.job_id,
+            "intitule": existing.intitule or existing.job_id,
+            "entreprise_nom": existing.entreprise_nom,
+            "romeCode": existing.rome_code,
+            "addedAt": existing.created_at.isoformat() if existing.created_at else None,
+        }
 
 
 @router.delete("/favourites/{job_id}", summary="Remove job from favourites")

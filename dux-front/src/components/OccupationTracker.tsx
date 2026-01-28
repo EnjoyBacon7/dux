@@ -78,8 +78,8 @@ const OccupationTracker: React.FC = () => {
       if (res.ok) {
         setOccupations((prev) => prev.filter((r) => r.romeCode !== romeCode));
       }
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.error("Failed to remove occupation favourite:", e);
     }
   };
 
@@ -96,8 +96,8 @@ const OccupationTracker: React.FC = () => {
       if (res.ok) {
         setJobs((prev) => prev.filter((j) => j.jobId !== jobId));
       }
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.error("Failed to remove job favourite:", e);
     }
   };
 
