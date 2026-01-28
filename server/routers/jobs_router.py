@@ -31,8 +31,6 @@ from server.methods.matching_engine import MatchingEngine
 # ----------------------------------------
 
 from sentence_transformers import SentenceTransformer
-from pydantic import BaseModel
-from fastapi import HTTPException
 
 # ============================================================================
 # Helpers
