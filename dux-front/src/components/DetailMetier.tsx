@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/useLanguage";
 import styles from "../styles/wiki-metier.module.css";
 
+// Helper to create CSS custom properties with proper typing
+const delayStyle = (delay: string) => ({ "--delay": delay } as React.CSSProperties);
+
 export type MetierDetailData = {
   romeCode: string;
   romeLibelle?: string | null;
@@ -290,7 +293,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
 
   return (
     <div className={styles["wiki-metier-detail"]} key={romeCode}>
-      <section className={`${styles["wm-card"]} ${styles["wm-hero"]}`} style={{ ["--delay" as any]: "0.02s" }}>
+      <section className={`${styles["wm-card"]} ${styles["wm-hero"]}`} style={delayStyle("0.02s")}>
         <div className={styles["wm-hero-title-row"]}>
           <h2 className={styles["wm-hero-title"]}>{data.romeLibelle ?? t("metiers.detail.title_fallback")}</h2>
           <span className={styles["wm-rome-badge"]}>{data.romeCode}</span>
@@ -298,7 +301,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         <p className={styles["wm-hero-summary"]}>{renderDefinition(resume)}</p>
       </section>
 
-      <section className={`${styles["wm-card"]} ${styles["wm-hero"]}`} style={{ ["--delay" as any]: "0.02s" }}>
+      <section className={`${styles["wm-card"]} ${styles["wm-hero"]}`} style={delayStyle("0.02s")}>
         <div className={styles["wm-card-header"]}>
           <h3>{t("metiers.detail.title_cv_comparison")}</h3>
         </div>
@@ -308,7 +311,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
       <div className={styles["wm-detail-grid"]}>
         <div className={styles["wm-main-column"]}>
 
-          <section className={styles["wm-card"]} style={{ ["--delay" as any]: "0.14s" }}>
+          <section className={styles["wm-card"]} style={delayStyle("0.14s")}>
             <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.role_title")}</h3>
             </div>
@@ -342,7 +345,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         ) : null}
           </section>
 
-          <section className={styles["wm-card"]} style={{ ["--delay" as any]: "0.08s" }}>
+          <section className={styles["wm-card"]} style={delayStyle("0.08s")}>
             <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.key_metrics")}</h3>
             </div>
@@ -398,7 +401,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
             </div>
           </section>
 
-          <section className={styles["wm-card"]} style={{ ["--delay" as any]: "0.26s" }}>
+          <section className={styles["wm-card"]} style={delayStyle("0.26s")}>
             <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.actions_title")}</h3>
             </div>
@@ -418,7 +421,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         </div>
 
         <aside className={styles["wm-aside-column"]}>
-          <section className={styles["wm-card"]} style={{ ["--delay" as any]: "0.2s" }}>
+          <section className={styles["wm-card"]} style={delayStyle("0.2s")}>
             <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.skills_title")}</h3>
             </div>
