@@ -398,19 +398,19 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
             </div>
           </section>
 
-          <section className="wm-card wm-actions-card" style={{ ["--delay" as any]: "0.26s" }}>
+          <section className={styles["wm-card"]} style={{ ["--delay" as any]: "0.26s" }}>
             <div className={styles["wm-card-header"]}>
               <h3>{t("metiers.detail.actions_title")}</h3>
             </div>
             <div className={styles["wm-actions"]}>
               <button
                 type="button"
-                className="nb-btn wm-action-btn"
+                className={`nb-btn ${styles["wm-action-btn"]}`}
                 onClick={() => navigate(`/jobs?codeROME=${encodeURIComponent(data.romeCode)}`)}
               >
                 {t("metiers.detail.action_offers")}
               </button>
-              <button type="button" className="nb-btn wm-action-btn">
+              <button type="button" className={`nb-btn ${styles["wm-action-btn"]}`}>
                 {t("metiers.detail.action_favorite")}
               </button>
             </div>
