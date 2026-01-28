@@ -140,7 +140,7 @@
     position: relative;
     animation: wmFadeIn 0.3s ease both;
     animation-delay: var(--delay, 0s);
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .wm-card:hover {
@@ -356,7 +356,7 @@
     display: inline-flex;
     align-items: center;
     color: var(--wm-title, #f8f6ff);
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .wm-skill-chip:hover {

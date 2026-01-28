@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import "../styles/job-detail.module.css";
+import styles from "../styles/job-detail.module.css";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/useLanguage";
 import JobMatchAnalysis from "./JobMatchAnalysis";
@@ -93,28 +93,28 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
         }
 
         return (
-            <div className="jd-field">
-                <span className="jd-field-label">{label}:</span>
+            <div className={styles['jd-field']}>
+                <span className={styles['jd-field-label']}>{label}:</span>
                 <span>{displayValue}</span>
             </div>
         );
     };
 
     return (
-        <div className="jd-overlay">
-            <div className="jd-panel">
-                <div className="jd-header">
-                    <div className="jd-title-row">
+        <div className={styles['jd-overlay']}>
+            <div className={styles['jd-panel']}>
+                <div className={styles['jd-header']}>
+                    <div className={styles['jd-title-row']}>
                         <div style={{ flex: 1 }}>
-                            <h2 className="jd-title">{job.intitule || 'Sans titre'}</h2>
-                            <p className="jd-subtitle">{job["entreprise_nom"] || 'Entreprise non spécifiée'}</p>
+                            <h2 className={styles['jd-title']}>{job.intitule || 'Sans titre'}</h2>
+                            <p className={styles['jd-subtitle']}>{job["entreprise_nom"] || 'Entreprise non spécifiée'}</p>
                             {job["lieuTravail_libelle"] && (
-                                <p className="jd-subtitle" style={{ opacity: 0.7, margin: '0 0 0 0' }}>📍 {job["lieuTravail_libelle"]}</p>
+                                <p className={styles['jd-subtitle']} style={{ opacity: 0.7, margin: '0 0 0 0' }}>📍 {job["lieuTravail_libelle"]}</p>
                             )}
 
-                            <div className="jd-badges">
-                                {(job.typeContratLibelle || job.typeContrat) && <span className="jd-badge">💼 {job.typeContratLibelle || job.typeContrat}</span>}
-                                {job.romeCode && <span className="jd-badge">ROME {job.romeCode}</span>}
+                            <div className={styles['jd-badges']}>
+                                {(job.typeContratLibelle || job.typeContrat) && <span className={styles['jd-badge']}>💼 {job.typeContratLibelle || job.typeContrat}</span>}
+                                {job.romeCode && <span className={styles['jd-badge']}>ROME {job.romeCode}</span>}
                             </div>
 
                             <div style={{ marginTop: '1rem' }}>
@@ -154,7 +154,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                             </div>
                         </div>
 
-                        <div className="jd-actions">
+                        <div className={styles['jd-actions']}>
                             {job["contact_urlPostulation"] && (
                                 <a
                                     className="nb-btn"
@@ -173,16 +173,16 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     </div>
                 </div>
 
-                <div className="jd-body">
+                <div className={styles['jd-body']}>
                     {job.description && (
-                        <div className="jd-section">
+                        <div className={styles['jd-section']}>
                             <h3>Description</h3>
-                            <ReactMarkdown className="jd-markdown">{job.description}</ReactMarkdown>
+                            <ReactMarkdown className={styles['jd-markdown']}>{job.description}</ReactMarkdown>
                         </div>
                     )}
 
                     {(job.typeContratLibelle || job.typeContrat || job.natureContrat || job.dureeTravailLibelle) && (
-                        <div className="jd-section">
+                        <div className={styles['jd-section']}>
                             <h3>Détails du contrat</h3>
                             {renderField('Type de contrat', job.typeContratLibelle || job.typeContrat)}
                             {renderField('Nature du contrat', job.natureContrat)}
@@ -193,25 +193,25 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     )}
 
                     {(job.experienceLibelle || job.experienceExige || job.qualificationLibelle || normalizeArray(job.competences).length > 0 || normalizeArray(job.formations).length > 0) && (
-                        <div className="jd-section">
+                        <div className={styles['jd-section']}>
                             <h3>Expérience et qualifications</h3>
                             {renderField('Expérience exigée', job.experienceLibelle || job.experienceExige)}
                             {renderField('Commentaire', job.experienceCommentaire)}
                             {renderField('Qualification', job.qualificationLibelle || job.qualificationCode)}
                             {normalizeArray(job.competences, 'competences').length > 0 && (
                                 <div style={{ marginTop: '0.4rem' }}>
-                                    <div className="jd-field-label" style={{ marginBottom: '0.4rem' }}>Compétences</div>
-                                    <div className="jd-meta-grid">
+                                    <div className={styles['jd-field-label']} style={{ marginBottom: '0.4rem' }}>Compétences</div>
+                                    <div className={styles['jd-meta-grid']}>
                                         {normalizeArray(job.competences).map((comp, idx) => {
-                                            const c: any = comp || {};
-                                            return (
-                                                <div key={idx} className="jd-chip" style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                                                    <strong>{c.libelle || 'Compétence'}</strong>
-                                                    <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>
-                                                        {c.code ? `Code: ${c.code}` : ''}{c.code && c.exigence ? ' • ' : ''}{c.exigence ? formatExigence(c.exigence) : ''}
-                                                    </span>
-                                                </div>
-                                            );
+                                             const c: any = comp || {};
+                                             return (
+                                                 <div key={idx} className={styles['jd-chip']} style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                                     <strong>{c.libelle || 'Compétence'}</strong>
+                                                     <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+                                                         {c.code ? `Code: ${c.code}` : ''}{c.code && c.exigence ? ' • ' : ''}{c.exigence ? formatExigence(c.exigence) : ''}
+                                                     </span>
+                                                 </div>
+                                             );
                                         })}
                                     </div>
                                 </div>
@@ -220,7 +220,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     )}
 
                     {(job["salaire_libelle"] || job["salaire_commentaire"] || job["salaire_complement1"]) && (
-                        <div className="jd-section">
+                        <div className={styles['jd-section']}>
                             <h3>Rémunération</h3>
                             {renderField('Salaire', job["salaire_libelle"])}
                             {renderField('Commentaire', job["salaire_commentaire"])}
@@ -230,7 +230,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     )}
 
                     {(job["entreprise_nom"] || job.secteurActiviteLibelle || job.codeNAF) && (
-                        <div className="jd-section">
+                        <div className={styles['jd-section']}>
                             <h3>Entreprise</h3>
                             {renderField('Nom', job["entreprise_nom"])}
                             {renderField('Secteur d\'activité', job.secteurActiviteLibelle || job.secteurActivite)}
@@ -253,7 +253,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     )}
 
                     {(job["lieuTravail_libelle"] || job["lieuTravail_commune"] || job.deplacementLibelle) && (
-                        <div className="jd-section">
+                        <div className={styles['jd-section']}>
                             <h3>Lieu de travail</h3>
                             {renderField('Lieu', job["lieuTravail_libelle"])}
                             {renderField('Commune', job["lieuTravail_commune"])}
@@ -262,10 +262,10 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
 
                             {/* OpenStreetMap embed when coordinates are available */}
                             {job["lieuTravail_latitude"] && job["lieuTravail_longitude"] && (() => {
-                                const lat = parseFloat(job["lieuTravail_latitude"]);
-                                const lon = parseFloat(job["lieuTravail_longitude"]);
-                                return !isNaN(lat) && !isNaN(lon) && (
-                                    <div className="jd-map-container" style={{ marginTop: '1rem' }}>
+                                 const lat = parseFloat(job["lieuTravail_latitude"]);
+                                 const lon = parseFloat(job["lieuTravail_longitude"]);
+                                 return !isNaN(lat) && !isNaN(lon) && (
+                                     <div className={styles['jd-map-container']} style={{ marginTop: '1rem' }}>
                                         <iframe
                                             title="Job Location Map"
                                             width="100%"
@@ -293,7 +293,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     )}
 
                     {(job["contact_courriel"] || job["contact_telephone"]) && (
-                        <div className="jd-section">
+                        <div className={styles['jd-section']}>
                             <h3>Contact</h3>
                             {renderField('Nom', job["contact_nom"])}
                             {renderField('Téléphone', job["contact_telephone"] || job["contact_coordonnees1"])}
@@ -302,7 +302,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                     )}
 
                     {(job.romeCode || job.dateCreation) && (
-                        <div className="jd-section">
+                        <div className={styles['jd-section']}>
                             <h3>Informations complémentaires</h3>
                             {renderField('Code ROME', job.romeCode)}
                             {renderField('Libellé ROME', job.romeLibelle)}

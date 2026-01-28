@@ -4,6 +4,27 @@
 
 ---
 
+## ⚠️ PRE-REFACTOR BASELINE
+
+This report captures the CSS state **before CSS Module conversion** (January 27-28, 2026). The analysis identified inefficiencies that were subsequently addressed through CSS module implementation and cleanup.
+
+**Post-Refactor Changes Applied:**
+- ✅ Deleted `profileSetup.css` (75% unused, incomplete feature)
+- ✅ Deleted `jobOffersCard.css` (100% duplicate with home.css)
+- ✅ Removed 18 unused classes from `neo-brutalism.css`
+- ✅ Removed 22 unused CSS variables from `neo-brutalism.css`
+- ✅ Converted 7 CSS files to CSS modules (`.module.css`)
+- ✅ Converted 500+ className references to use scoped CSS module imports
+- ✅ Fixed transition properties in `wiki-metier.module.css` (2 places)
+- ✅ Updated component imports and className references (3 components)
+
+**Current CSS Module Status:**
+- CSS files are now scoped to prevent class name conflicts
+- All components use proper CSS module imports with object notation
+- Reduced overall CSS footprint and improved maintainability
+
+---
+
 ## EXECUTIVE SUMMARY
 
 The Dux frontend uses 7 CSS files organized around a neo-brutalist design system. Analysis reveals:

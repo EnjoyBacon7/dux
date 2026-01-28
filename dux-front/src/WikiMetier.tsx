@@ -4,7 +4,7 @@ import { Header } from "./components";
 import DetailMetier from "./components/DetailMetier";
 import { useLanguage } from "./contexts/useLanguage";
 import "./styles/home.css";
-import "./styles/wiki-metier.module.css";
+import styles from "./styles/wiki-metier.module.css";
 
 type MetierItem = {
     romeCode: string;
@@ -138,63 +138,63 @@ const MetierWikiLayout: React.FC = () => {
         }
     }, [filtered, items, selectedCode]);
 
-    return (
-        <>
-            <Header />
-            <main className="wiki-metier-shell">
-                <div className="wiki-metier-grid">
-                    {/* Sidebar */}
-                    <aside className="wiki-metier-sidebar">
-                        <div className="wiki-metier-sidebar-header">
-                            <h2 className="wiki-metier-sidebar-title">{t("metiers.sidebar_title")}</h2>
-                        </div>
+     return (
+         <>
+             <Header />
+             <main className={styles['wiki-metier-shell']}>
+                 <div className={styles['wiki-metier-grid']}>
+                     {/* Sidebar */}
+                     <aside className={styles['wiki-metier-sidebar']}>
+                         <div className={styles['wiki-metier-sidebar-header']}>
+                             <h2 className={styles['wiki-metier-sidebar-title']}>{t("metiers.sidebar_title")}</h2>
+                         </div>
 
-                        <input
-                            value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            placeholder={t("metiers.search_placeholder")}
-                            className="nb-input wiki-metier-search"
-                        />
+                         <input
+                             value={q}
+                             onChange={(e) => setQ(e.target.value)}
+                             placeholder={t("metiers.search_placeholder")}
+                             className="nb-input wiki-metier-search"
+                         />
 
-                        {loading ? (
-                            <div className="wiki-metier-empty nb-text-dim">{t("metiers.loading")}</div>
-                        ) : error ? (
-                            <div className="wiki-metier-empty nb-text-dim">
-                                {t("common.error")}: {error}
-                            </div>
-                        ) : filtered.length === 0 ? (
-                            <div className="wiki-metier-empty nb-text-dim">{t("metiers.no_results")}</div>
-                        ) : (
-                            <div className="wiki-metier-list">
-                                {filtered.map((m) => (
-                                    <button
-                                        type="button"
-                                        key={m.romeCode}
-                                        className={`wiki-metier-link${selectedCode === m.romeCode ? " wiki-metier-link--active" : ""}`}
-                                        onClick={() => setSelectedCode(m.romeCode)}
-                                    >
-                                        <div className="wiki-metier-code">{m.romeLibelle}</div>
-                                        <div className="wiki-metier-label">{m.romeCode}</div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </aside>
+                         {loading ? (
+                             <div className={`${styles['wiki-metier-empty']} nb-text-dim`}>{t("metiers.loading")}</div>
+                         ) : error ? (
+                             <div className={`${styles['wiki-metier-empty']} nb-text-dim`}>
+                                 {t("common.error")}: {error}
+                             </div>
+                         ) : filtered.length === 0 ? (
+                             <div className={`${styles['wiki-metier-empty']} nb-text-dim`}>{t("metiers.no_results")}</div>
+                         ) : (
+                             <div className={styles['wiki-metier-list']}>
+                                 {filtered.map((m) => (
+                                     <button
+                                         type="button"
+                                         key={m.romeCode}
+                                         className={`${styles['wiki-metier-link']}${selectedCode === m.romeCode ? ` ${styles['wiki-metier-link--active']}` : ""}`}
+                                         onClick={() => setSelectedCode(m.romeCode)}
+                                     >
+                                         <div className={styles['wiki-metier-code']}>{m.romeLibelle}</div>
+                                         <div className={styles['wiki-metier-label']}>{m.romeCode}</div>
+                                     </button>
+                                 ))}
+                             </div>
+                         )}
+                     </aside>
 
-                    {/* Contenu */}
-                    <section className="wiki-metier-content">
-                        {selectedCode ? (
-                            <DetailMetier romeCode={selectedCode} />
-                        ) : (
-                            <div className="wiki-metier-empty nb-text-dim">
-                                {t("metiers.select_prompt")}
-                            </div>
-                        )}
-                    </section>
-                </div>
-            </main>
-        </>
-    );
+                     {/* Contenu */}
+                     <section className={styles['wiki-metier-content']}>
+                         {selectedCode ? (
+                             <DetailMetier romeCode={selectedCode} />
+                         ) : (
+                             <div className={`${styles['wiki-metier-empty']} nb-text-dim`}>
+                                 {t("metiers.select_prompt")}
+                             </div>
+                         )}
+                     </section>
+                 </div>
+             </main>
+         </>
+     );
 };
 
 export default MetierWikiLayout;

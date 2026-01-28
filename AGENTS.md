@@ -149,7 +149,9 @@ alembic downgrade -1
 
 **Component Structure:**
 - Functional components with hooks (no class components)
-- Place component styles in adjacent `.css` modules (e.g., `Component.css`)
+- Place component styles in adjacent CSS Module files (e.g., `Component.module.css`)
+- Import CSS modules as objects: `import styles from './Component.module.css'`
+- Use scoped classNames: `className={styles['component-class']}`
 - Export components at bottom of file
 - Example component path: `dux-front/src/components/JobDetail.tsx`
 
