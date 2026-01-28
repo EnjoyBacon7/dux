@@ -14,8 +14,7 @@ from sqlalchemy.orm import Session
 
 from server.database import SessionLocal
 from server.models import User
-from server.routers.chat_router import _get_optimal_offers_with_cache
-from server.methods.chat import identify_ft_parameters
+from server.methods.chat import get_optimal_offers_with_cache, identify_ft_parameters
 from server.utils.task_cleanup import recover_stale_evaluations
 
 logger = logging.getLogger(__name__)
@@ -51,7 +50,7 @@ async def generate_optimal_offers_for_user(user_id: int, db: Session) -> None:
 
         # Generate optimal offers (will be cached in database)
         # Use a shorter cache time (1 hour) since this runs hourly
-        await _get_optimal_offers_with_cache(
+        await get_optimal_offers_with_cache(
             current_user=user,
             db=db,
             ft_parameters=ft_parameters,

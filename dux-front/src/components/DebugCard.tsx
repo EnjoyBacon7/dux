@@ -302,55 +302,35 @@ const DebugCard: React.FC = () => {
                 <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600' }}>🤖 {t('debug.test_matching')}</h3>
 
                 <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.875rem' }}>
-                        {t('debug.query_label')}
-                    </label>
-                    <input
-                        type="text"
-                        value={chatQuery}
-                        onChange={(e) => setChatQuery(e.target.value)}
-                        placeholder={t('debug.query_placeholder')}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            border: '2px solid var(--nb-border)',
-                            backgroundColor: 'var(--nb-bg)',
-                            color: 'var(--nb-text)',
-                            fontSize: '0.875rem',
-                            boxSizing: 'border-box'
+                    <button
+                        className="nb-btn"
+                        onClick={async () => {
+                            setIsChatLoading(true);
+                            setChatError(null);
+                            setChatResponse(null);
+                            try {
+                                const response = await fetch('/api/chat/optimal_offers', {
+                                    credentials: 'include'
+                                });
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    setChatResponse(JSON.stringify(data, null, 2));
+                                } else {
+                                    const error = await response.json();
+                                    setChatError(error.detail || t('errors.failed_model_response'));
+                                }
+                            } catch (err) {
+                                setChatError(t('errors.error_sending_request'));
+                            } finally {
+                                setIsChatLoading(false);
+                            }
                         }}
-                    />
+                        disabled={isChatLoading}
+                        style={{ width: '100%' }}
+                    >
+                        {isChatLoading ? t('debug.sending') : 'Get Optimal Offers'}
+                    </button>
                 </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.875rem' }}>
-                        {t('debug.model_label')}
-                    </label>
-                    <input
-                        type="text"
-                        value={chatModel}
-                        onChange={(e) => setChatModel(e.target.value)}
-                        placeholder={t('debug.model_placeholder')}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            border: '2px solid var(--nb-border)',
-                            backgroundColor: 'var(--nb-bg)',
-                            color: 'var(--nb-text)',
-                            fontSize: '0.875rem',
-                            boxSizing: 'border-box'
-                        }}
-                    />
-                </div>
-
-                <button
-                    className="nb-btn"
-                    onClick={sendChatRequest}
-                    disabled={isChatLoading}
-                    style={{ marginBottom: '1rem', width: '100%' }}
-                >
-                    {isChatLoading ? t('debug.sending') : t('debug.send_request')}
-                </button>
 
                 {chatError && (
                     <div style={{
