@@ -3470,6 +3470,14 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Voltar ao Hub do Perfil',
         la: 'Redire ad Centrum Profili'
     },
+    'tracker.back_to_list': {
+        en: 'Back to Tracker',
+        es: 'Volver al Seguimiento',
+        fr: 'Retour au Suivi',
+        de: 'Zurück zum Tracker',
+        pt: 'Voltar ao Rastreador',
+        la: 'Redire ad Segmentator'
+    },
     'tracker.empty': {
         en: 'No tracked occupations yet. Add some from the Occupations tab.',
         es: 'Aún no hay ocupaciones seguidas. Añade algunas desde la pestaña Ocupaciones.',

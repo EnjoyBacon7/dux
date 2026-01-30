@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "./index";
+import JobDetail from "./JobDetail";
+import DetailMetier from "./DetailMetier";
 import { useLanguage } from "../contexts/useLanguage";
 import styles from "../styles/Tracker.module.css";
+import type { JobOffer } from "../types/job";
 
 type FavouriteOccupation = {
   romeCode: string;
@@ -25,6 +28,8 @@ const OccupationTracker: React.FC = () => {
   const [jobs, setJobs] = useState<FavouriteJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedOccupation, setSelectedOccupation] = useState<string | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobOffer | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -62,11 +67,16 @@ const OccupationTracker: React.FC = () => {
   };
 
   const handleViewFiche = (romeCode: string) => {
-    navigate(`/wiki-metier?rome=${encodeURIComponent(romeCode)}`);
+    setSelectedOccupation(romeCode);
+    setSelectedJob(null);
   };
 
   const handleSeeOffers = (romeCode: string) => {
     navigate(`/jobs?codeROME=${encodeURIComponent(romeCode)}`);
+  };
+
+  const handleCloseFiche = () => {
+    setSelectedOccupation(null);
   };
 
   const handleRemoveOccupation = async (romeCode: string) => {
@@ -83,8 +93,28 @@ const OccupationTracker: React.FC = () => {
     }
   };
 
-  const handleViewJob = (jobId: string) => {
-    navigate(`/jobs?open=${encodeURIComponent(jobId)}`);
+  const handleViewJob = async (jobId: string) => {
+    setSelectedOccupation(null);
+    try {
+      const res = await fetch(`/api/jobs/offer/${encodeURIComponent(jobId)}`, {
+        credentials: "include",
+      });
+      if (!res.ok) {
+        console.error("Failed to fetch job");
+        return;
+      }
+      const data = await res.json();
+      const offer = data?.offer;
+      if (offer && typeof offer.id === "string") {
+        setSelectedJob(offer as JobOffer);
+      }
+    } catch (e) {
+      console.error("Error fetching job:", e);
+    }
+  };
+
+  const handleCloseJob = () => {
+    setSelectedJob(null);
   };
 
   const handleRemoveJob = async (jobId: string) => {
@@ -125,6 +155,44 @@ const OccupationTracker: React.FC = () => {
             <button className="nb-btn nb-btn--accent" onClick={handleBack}>
               {t("tracker.back")}
             </button>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  // If a job is selected, show its detail
+  if (selectedJob) {
+    return (
+      <>
+        <Header />
+        <main className={`nb-page ${styles["tracker-container"]}`}>
+          <JobDetail job={selectedJob} onClose={handleCloseJob} />
+        </main>
+      </>
+    );
+  }
+
+  // If an occupation is selected, show its fiche
+  if (selectedOccupation) {
+    return (
+      <>
+        <Header />
+        <main className={`nb-page ${styles["tracker-container"]}`}>
+          <div className={styles["tracker-content"]}>
+            <div className={styles["tracker-header"]}>
+              <button
+                type="button"
+                className={styles["tracker-back-btn"]}
+                onClick={handleCloseFiche}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                {t("tracker.back_to_list")}
+              </button>
+            </div>
+            <DetailMetier romeCode={selectedOccupation} />
           </div>
         </main>
       </>

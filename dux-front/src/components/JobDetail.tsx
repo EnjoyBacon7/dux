@@ -2,14 +2,13 @@ import React, { useCallback, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
-import JobMatchAnalysis from "src/components/JobMatchAnalysis";
-import { useLanguage } from "src/contexts/useLanguage";
-import type { JobOffer } from "src/types/job";
-import styles from "src/styles/job-detail.module.css";
+import { useLanguage } from "../contexts/useLanguage";
+import JobMatchAnalysis from "./JobMatchAnalysis";
+import type { JobOffer } from "../types/job";
+import styles from "../styles/job-detail.module.css";
 
 // Re-export types for backward compatibility
-export type { JobOffer, OptimalOffer } from "src/types/job";
-
+export type { JobOffer, OptimalOffer } from "../types/job";
 interface JobDetailProps {
     job: JobOffer;
     onClose: () => void;
