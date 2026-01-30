@@ -920,13 +920,13 @@ def list_favourite_jobs(
         .all()
     )
     return [
-        {
-            "jobId": r.job_id,
-            "intitule": r.intitule or r.job_id,
-            "entreprise_nom": r.entreprise_nom,
-            "romeCode": r.rome_code,
-            "addedAt": r.created_at.isoformat() if r.created_at else None,
-        }
+        FavouriteJobResponse(
+            jobId=r.job_id,
+            intitule=r.intitule or r.job_id,
+            entreprise_nom=r.entreprise_nom,
+            romeCode=r.rome_code,
+            addedAt=r.created_at.isoformat() if r.created_at else None,
+        )
         for r in rows
     ]
 
@@ -953,13 +953,13 @@ def add_favourite_job(
         .first()
     )
     if existing:
-        return {
-            "jobId": existing.job_id,
-            "intitule": existing.intitule or existing.job_id,
-            "entreprise_nom": existing.entreprise_nom,
-            "romeCode": existing.rome_code,
-            "addedAt": existing.created_at.isoformat() if existing.created_at else None,
-        }
+        return FavouriteJobResponse(
+            jobId=existing.job_id,
+            intitule=existing.intitule or existing.job_id,
+            entreprise_nom=existing.entreprise_nom,
+            romeCode=existing.rome_code,
+            addedAt=existing.created_at.isoformat() if existing.created_at else None,
+        )
     fj = FavouriteJob(
         user_id=current_user.id,
         job_id=job_id,
@@ -971,13 +971,13 @@ def add_favourite_job(
         db.add(fj)
         db.commit()
         db.refresh(fj)
-        return {
-            "jobId": fj.job_id,
-            "intitule": fj.intitule or fj.job_id,
-            "entreprise_nom": fj.entreprise_nom,
-            "romeCode": fj.rome_code,
-            "addedAt": fj.created_at.isoformat() if fj.created_at else None,
-        }
+        return FavouriteJobResponse(
+            jobId=fj.job_id,
+            intitule=fj.intitule or fj.job_id,
+            entreprise_nom=fj.entreprise_nom,
+            romeCode=fj.rome_code,
+            addedAt=fj.created_at.isoformat() if fj.created_at else None,
+        )
     except IntegrityError:
         db.rollback()
         existing = (
@@ -993,13 +993,13 @@ def add_favourite_job(
                 status_code=409,
                 detail="Duplicate favourite job; concurrent insert. Retry to fetch existing.",
             )
-        return {
-            "jobId": existing.job_id,
-            "intitule": existing.intitule or existing.job_id,
-            "entreprise_nom": existing.entreprise_nom,
-            "romeCode": existing.rome_code,
-            "addedAt": existing.created_at.isoformat() if existing.created_at else None,
-        }
+        return FavouriteJobResponse(
+            jobId=existing.job_id,
+            intitule=existing.intitule or existing.job_id,
+            entreprise_nom=existing.entreprise_nom,
+            romeCode=existing.rome_code,
+            addedAt=existing.created_at.isoformat() if existing.created_at else None,
+        )
 
 
 @router.delete("/favourites/{job_id}", summary="Remove job from favourites")
