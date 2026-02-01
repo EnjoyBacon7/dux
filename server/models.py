@@ -52,6 +52,7 @@ class User(Base):
     matchcompetences = relationship("MatchCompetence", back_populates="user", cascade="all, delete-orphan")
     favourite_metiers = relationship("FavouriteMetier", back_populates="user", cascade="all, delete-orphan")
     favourite_jobs = relationship("FavouriteJob", back_populates="user", cascade="all, delete-orphan")
+    advisor_conversations = relationship("AdvisorConversation", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username})>"
@@ -356,3 +357,36 @@ class CVEvaluation(Base):
 
     def __repr__(self):
         return f"<CVEvaluation(id={self.id}, user_id={self.user_id}, overall_score={self.overall_score})>"
+
+
+class AdvisorConversation(Base):
+    """User's advisor chat conversation (orientation / cover letter / CV tips)."""
+    __tablename__ = "advisor_conversations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String(500), nullable=True)  # Default "Nouvelle conversation", then first message snippet
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="advisor_conversations")
+    messages = relationship("AdvisorMessage", back_populates="conversation", cascade="all, delete-orphan", order_by="AdvisorMessage.created_at")
+
+    def __repr__(self):
+        return f"<AdvisorConversation(id={self.id}, user_id={self.user_id})>"
+
+
+class AdvisorMessage(Base):
+    """Single message in an advisor conversation."""
+    __tablename__ = "advisor_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    conversation_id = Column(Integer, ForeignKey("advisor_conversations.id"), nullable=False, index=True)
+    role = Column(String(20), nullable=False)  # "user" | "assistant"
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    conversation = relationship("AdvisorConversation", back_populates="messages")
+
+    def __repr__(self):
+        return f"<AdvisorMessage(id={self.id}, conversation_id={self.conversation_id}, role={self.role})>"

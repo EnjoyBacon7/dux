@@ -1,0 +1,513 @@
+/* ===== ORIENTATION ADVISOR PAGE (neo-brutalism) ===== */
+
+/* Applied to main.nb-page - override page margin so layout fills viewport */
+.advisor-container {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - var(--header-height, 60px));
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    overflow: hidden;
+}
+
+.advisor-sidebar {
+    width: 300px;
+    min-width: 300px;
+    min-height: 0;
+    border-right: 2px solid var(--nb-fg);
+    display: flex;
+    flex-direction: column;
+    background: var(--nb-card-bg);
+}
+
+.advisor-sidebar-header {
+    flex-shrink: 0;
+    padding: 1.25rem 1rem;
+    border-bottom: 2px solid var(--nb-fg);
+}
+
+.advisor-new-chat-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-accent-alt);
+    color: #fff;
+    box-shadow: 3px 3px 0 var(--nb-fg);
+    transition: var(--nb-transition);
+}
+
+.advisor-new-chat-btn:hover {
+    opacity: 0.95;
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 var(--nb-fg);
+}
+
+.advisor-conversations-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 1rem 0.75rem;
+}
+
+.advisor-conv-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.5rem;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-bg);
+    cursor: pointer;
+    transition: var(--nb-transition);
+    position: relative;
+    box-shadow: 2px 2px 0 var(--nb-fg);
+}
+
+.advisor-conv-item:hover {
+    background: var(--nb-bg-muted);
+}
+
+.advisor-conv-item--active {
+    border-color: var(--nb-fg);
+    background: var(--nb-accent);
+    color: #fff;
+    box-shadow: 3px 3px 0 var(--nb-fg);
+}
+
+.advisor-conv-item--active .advisor-conv-item-title,
+.advisor-conv-item--active .advisor-conv-item-date {
+    color: #fff;
+}
+
+.advisor-conv-item--active .advisor-conv-item-date {
+    opacity: 0.9;
+}
+
+.advisor-conv-item--active .advisor-conv-item-actions button {
+    color: #fff;
+    opacity: 1;
+}
+
+.advisor-conv-item--active .advisor-conv-item-actions button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.advisor-conv-item-title {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.advisor-conv-item-date {
+    font-size: 0.8rem;
+    opacity: 0.85;
+    color: var(--nb-fg);
+}
+
+.advisor-conv-item-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.advisor-conv-item-actions button {
+    padding: 0.4rem;
+    border: none;
+    background: transparent;
+    color: var(--nb-fg);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: var(--nb-transition);
+    opacity: 0.9;
+}
+
+.advisor-conv-item-actions button:hover {
+    background: var(--nb-bg-muted);
+    opacity: 1;
+}
+
+.advisor-empty-sidebar {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--nb-fg);
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
+
+.advisor-main {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1rem, 5vw, 2rem);
+    overflow: hidden;
+}
+
+.advisor-header {
+    flex-shrink: 0;
+    margin-bottom: 1rem;
+}
+
+.advisor-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--nb-fg);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    transition: var(--nb-transition);
+}
+
+.advisor-back-btn:hover {
+    opacity: 0.8;
+}
+
+.advisor-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.advisor-cv-notice {
+    flex-shrink: 0;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    background: var(--nb-card-muted-bg);
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--nb-fg);
+}
+
+.advisor-intent-tabs {
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.advisor-intent-tab {
+    padding: 0.75rem 1.25rem;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-card-bg);
+    color: var(--nb-fg);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--nb-fg);
+    transition: var(--nb-transition);
+}
+
+.advisor-intent-tab:hover {
+    background: var(--nb-bg-muted);
+}
+
+.advisor-intent-tab--active {
+    background: var(--nb-accent);
+    color: #fff;
+    box-shadow: 3px 3px 0 var(--nb-fg);
+}
+
+.advisor-job-picker {
+    flex-shrink: 0;
+    margin-bottom: 1rem;
+}
+
+.advisor-job-picker label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: var(--nb-fg);
+}
+
+.advisor-job-picker select {
+    width: 100%;
+    max-width: 420px;
+    padding: 0.85rem 2.5rem 0.85rem 1rem;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-input-bg);
+    color: var(--nb-fg);
+    font-family: var(--nb-font-stack);
+    font-size: 0.95rem;
+}
+
+/* Small translucent context pill above first message: intent + job details */
+.advisor-context-pill {
+    align-self: flex-start;
+    max-width: 85%;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--nb-radius);
+    font-size: 0.85rem;
+    color: var(--nb-fg);
+    box-shadow: 2px 2px 0 var(--nb-fg);
+}
+
+.advisor-context-pill-line {
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+.advisor-context-pill-line:last-child {
+    margin-bottom: 0;
+}
+
+.advisor-context-pill-label {
+    font-weight: 700;
+    opacity: 0.95;
+}
+
+/* Messages wrapper: takes remaining space so only this area scrolls; input stays fixed at bottom */
+.advisor-messages-wrapper {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.advisor-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-right: 0.25rem;
+}
+
+.advisor-msg {
+    max-width: 82%;
+    padding: 1.25rem 1.5rem;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    align-self: flex-start;
+    box-shadow: 2px 2px 0 var(--nb-fg);
+}
+
+.advisor-msg--user {
+    align-self: flex-end;
+    background: var(--nb-accent);
+    color: #fff;
+    box-shadow: 3px 3px 0 var(--nb-fg);
+}
+
+.advisor-msg--assistant {
+    background: var(--nb-card-bg);
+}
+
+.advisor-msg-content {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.advisor-msg-content p {
+    margin: 0 0 0.6rem 0;
+}
+
+.advisor-msg-content p:last-child {
+    margin-bottom: 0;
+}
+
+.advisor-msg-content ul,
+.advisor-msg-content ol {
+    margin: 0.5rem 0 0.75rem 1.25rem;
+    padding: 0;
+}
+
+.advisor-msg-content li {
+    margin-bottom: 0.35rem;
+}
+
+.advisor-msg-content strong {
+    font-weight: 700;
+}
+
+.advisor-msg-time {
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.advisor-msg--user .advisor-msg-time {
+    color: rgba(255, 255, 255, 0.9);
+    border-top-color: rgba(255, 255, 255, 0.25);
+}
+
+.advisor-msg--assistant .advisor-msg-time {
+    color: var(--nb-fg);
+    opacity: 0.75;
+}
+
+/* Wrapper for intent overlay + input area so intent options hover over the message box */
+.advisor-input-zone {
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* Intent options overlay: sits over the message box, disappears after first message */
+.advisor-intent-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    margin-bottom: -0.5rem;
+    padding: 1rem 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: auto;
+    z-index: 2;
+    background: linear-gradient(to bottom, transparent, var(--nb-bg) 1rem);
+}
+
+.advisor-intent-overlay .advisor-intent-tabs {
+    margin-bottom: 0;
+}
+
+.advisor-intent-overlay .advisor-job-picker {
+    margin-bottom: 0;
+}
+
+.advisor-input-area {
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+    position: relative;
+    z-index: 1;
+}
+
+.advisor-input-area textarea {
+    flex: 1;
+    min-height: 56px;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-input-bg);
+    color: var(--nb-fg);
+    font-family: var(--nb-font-stack);
+    font-size: 0.95rem;
+    resize: vertical;
+    transition: var(--nb-transition);
+}
+
+.advisor-input-area textarea::placeholder {
+    opacity: 0.7;
+}
+
+.advisor-input-area textarea:focus {
+    outline: none;
+    background: var(--nb-input-focus-bg);
+}
+
+.advisor-send-btn {
+    padding: 0.85rem 1.5rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-accent-alt);
+    color: #fff;
+    box-shadow: 3px 3px 0 var(--nb-fg);
+    transition: var(--nb-transition);
+}
+
+.advisor-send-btn:hover:not(:disabled) {
+    opacity: 0.95;
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 var(--nb-fg);
+}
+
+.advisor-send-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.advisor-loading {
+    padding: 2.5rem 2rem;
+    text-align: center;
+    font-size: 1rem;
+    color: var(--nb-fg);
+}
+
+.advisor-error {
+    flex-shrink: 0;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--nb-fg);
+    background: var(--nb-alert-danger-bg);
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    margin-bottom: 0.5rem;
+}
+
+.advisor-rename-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    font-size: 0.95rem;
+    font-family: var(--nb-font-stack);
+    background: var(--nb-input-bg);
+    color: var(--nb-fg);
+}
+
+.advisor-delete-confirm {
+    flex-basis: 100%;
+    padding: 1.25rem;
+    border: 2px solid var(--nb-fg);
+    border-radius: var(--nb-radius);
+    background: var(--nb-card-bg);
+    margin-top: 0.75rem;
+    box-shadow: 2px 2px 0 var(--nb-fg);
+}
+
+.advisor-delete-confirm p {
+    margin: 0 0 0.75rem 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.advisor-delete-confirm-btns {
+    display: flex;
+    gap: 0.75rem;
+}

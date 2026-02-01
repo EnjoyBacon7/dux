@@ -332,3 +332,50 @@ async def call_llm_async(
         response_format,
         vlm_request,
     )
+
+
+def call_llm_messages_sync(
+    messages: List[Dict[str, str]],
+    temperature: float = 0.7,
+    max_tokens: int = 2000,
+    model: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Synchronous LLM call with a full list of messages (for chat with history).
+    Each message must have "role" ("system" | "user" | "assistant") and "content" (str).
+    """
+    model = model or settings.openai_model
+    client = create_openai_client()
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        content = extract_response_content(response.choices[0])
+        return {
+            "data": content,
+            "usage": build_usage_dict(response),
+            "model": response.model,
+        }
+    except Exception as e:
+        logger.error(f"LLM call failed: {str(e)}")
+        raise ValueError(f"LLM call failed: {str(e)}")
+
+
+async def call_llm_messages_async(
+    messages: List[Dict[str, str]],
+    temperature: float = 0.7,
+    max_tokens: int = 2000,
+    model: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Async wrapper for call_llm_messages_sync (runs in thread pool)."""
+    from server.thread_pool import run_blocking_in_executor
+    return await run_blocking_in_executor(
+        call_llm_messages_sync,
+        messages,
+        temperature,
+        max_tokens,
+        model,
+    )

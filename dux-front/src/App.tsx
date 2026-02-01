@@ -4,6 +4,7 @@ import Settings from "./Settings";
 import JobSearch from "./JobSearch";
 import ProfileSetup from "./ProfileSetup";
 import ProfileHub from "./ProfileHub";
+import OrientationAdvisor from "./OrientationAdvisor";
 import LinkedInCallback from "./LinkedInCallback";
 import PrivacyPolicy from "./PrivacyPolicy";
 import { DetailedAnalysis } from "./components";
@@ -45,6 +46,7 @@ function App() {
                         <Route path="/profile-hub" element={<RequireAuth><ProfileHub /></RequireAuth>} />
                         <Route path="/profile-hub/detailed-analysis" element={<RequireAuth><DetailedAnalysis /></RequireAuth>} />
                         <Route path="/profile-hub/tracker" element={<RequireAuth><OccupationTracker /></RequireAuth>} />
+                        <Route path="/profile-hub/advisor" element={<RequireAuth><OrientationAdvisor /></RequireAuth>} />
                         <Route path="/linkedin/callback" element={<LinkedInCallback />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />

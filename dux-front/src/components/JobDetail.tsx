@@ -234,6 +234,19 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                         </div>
 
                         <div className={styles['jd-actions']}>
+                            <button
+                                type="button"
+                                className="nb-btn nb-btn--secondary"
+                                onClick={() => navigate(`/profile-hub/advisor?jobId=${encodeURIComponent(job.id)}`)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem'
+                                }}
+                            >
+                                <span>✉️</span> {t("advisor.cover_letter_help")}
+                            </button>
                             {job["contact_urlPostulation"] && (
                                 <a
                                     className="nb-btn"
