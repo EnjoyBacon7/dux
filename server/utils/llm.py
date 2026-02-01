@@ -359,9 +359,11 @@ def call_llm_messages_sync(
             "usage": build_usage_dict(response),
             "model": response.model,
         }
+    except ValueError:
+        raise
     except Exception as e:
-        logger.error(f"LLM call failed: {str(e)}")
-        raise ValueError(f"LLM call failed: {str(e)}")
+        logger.exception("LLM call failed: %s", e)
+        raise ValueError(f"LLM call failed: {e}") from e
 
 
 async def call_llm_messages_async(

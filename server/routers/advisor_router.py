@@ -5,6 +5,7 @@ Provides endpoints for advisor context, conversation CRUD, and chat with persist
 """
 
 import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import asyncio
@@ -26,7 +27,8 @@ from server.utils.llm import call_llm_messages_async
 router = APIRouter(prefix="/advisor", tags=["Advisor"])
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONVERSATION_TITLE = "Nouvelle conversation"
+# None = let frontend show localized "advisor.untitled"
+DEFAULT_CONVERSATION_TITLE: Optional[str] = None
 MAX_HISTORY_TURNS = 10
 TITLE_SNIPPET_LENGTH = 50
 
@@ -313,7 +315,7 @@ async def patch_conversation(
     conv = _conversation_for_user(db, conversation_id, current_user.id)
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
-    conv.title = (payload.title or "").strip() or DEFAULT_CONVERSATION_TITLE
+    conv.title = (payload.title or "").strip() or (DEFAULT_CONVERSATION_TITLE or None)
     db.commit()
     db.refresh(conv)
     return ConversationListItem(
@@ -398,14 +400,14 @@ async def post_chat(
     if not conv:
         conv = AdvisorConversation(
             user_id=current_user.id,
-            title=DEFAULT_CONVERSATION_TITLE,
+            title=DEFAULT_CONVERSATION_TITLE or None,
         )
         db.add(conv)
         db.commit()
         db.refresh(conv)
 
-    # Update title to first user message snippet if still default
-    if conv.title == DEFAULT_CONVERSATION_TITLE and message:
+    # Update title to first user message snippet if still default (None or empty)
+    if not (conv.title or "").strip() and message:
         snippet = message[:TITLE_SNIPPET_LENGTH].strip()
         if snippet:
             conv.title = snippet + ("..." if len(message) > TITLE_SNIPPET_LENGTH else "")
@@ -415,6 +417,7 @@ async def post_chat(
     assistant_msg = AdvisorMessage(conversation_id=conv.id, role="assistant", content=reply)
     db.add(user_msg)
     db.add(assistant_msg)
+    conv.updated_at = datetime.now(timezone.utc)
     db.commit()
 
     return ChatResponse(reply=reply, conversationId=conv.id)

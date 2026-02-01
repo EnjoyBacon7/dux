@@ -263,6 +263,7 @@
 .advisor-context-pill {
     align-self: flex-start;
     max-width: 85%;
+    min-width: 0;
     padding: 0.6rem 1rem;
     margin-bottom: 0.5rem;
     background: rgba(255, 255, 255, 0.12);
@@ -311,11 +312,13 @@
 
 .advisor-msg {
     max-width: 82%;
+    min-width: 0; /* allow shrink so text wraps inside flex container */
     padding: 1.25rem 1.5rem;
     border: 2px solid var(--nb-fg);
     border-radius: var(--nb-radius);
     align-self: flex-start;
     box-shadow: 2px 2px 0 var(--nb-fg);
+    overflow-wrap: break-word;
 }
 
 .advisor-msg--user {
@@ -332,7 +335,22 @@
 .advisor-msg-content {
     white-space: pre-wrap;
     word-break: break-word;
+    overflow-wrap: break-word;
     line-height: 1.5;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.advisor-msg-content p,
+.advisor-msg-content ul,
+.advisor-msg-content ol,
+.advisor-msg-content li,
+.advisor-msg-content strong,
+.advisor-msg-content em,
+.advisor-msg-content code {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .advisor-msg-content p {

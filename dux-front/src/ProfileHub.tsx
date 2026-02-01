@@ -24,6 +24,15 @@ const ProfileHub: React.FC = () => {
         navigate("/profile-hub/advisor");
     };
 
+    const handleCardKeyDown = (handler: () => void) => (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar" || e.code === "Space") {
+            if (e.key === " " || e.key === "Spacebar" || e.code === "Space") {
+                e.preventDefault();
+            }
+            handler();
+        }
+    };
+
     return (
         <>
             <Header />
@@ -36,19 +45,12 @@ const ProfileHub: React.FC = () => {
 
                     <div className={styles['profile-hub__grid']}>
                         {/* Detailed Analysis Card - Now Clickable */}
-                        <div 
+                        <div
                             className={`nb-card ${styles['profile-hub__feature-card']} ${styles['profile-hub__feature-card--clickable']}`}
                             onClick={handleDetailedAnalysis}
                             role="button"
                             tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
-                                    if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
-                                        e.preventDefault();
-                                    }
-                                    handleDetailedAnalysis();
-                                }
-                            }}
+                            onKeyDown={handleCardKeyDown(handleDetailedAnalysis)}
                         >
                             <div className={styles['profile-hub__feature-icon']}>📊</div>
                             <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.detailed_analysis")}</h3>
@@ -62,14 +64,7 @@ const ProfileHub: React.FC = () => {
                             onClick={handleTracker}
                             role="button"
                             tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
-                                    if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
-                                        e.preventDefault();
-                                    }
-                                    handleTracker();
-                                }
-                            }}
+                            onKeyDown={handleCardKeyDown(handleTracker)}
                         >
                             <div className={styles['profile-hub__feature-icon']}>📌</div>
                             <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.tracker")}</h3>
@@ -83,14 +78,7 @@ const ProfileHub: React.FC = () => {
                             onClick={handleAdvisor}
                             role="button"
                             tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
-                                    if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') {
-                                        e.preventDefault();
-                                    }
-                                    handleAdvisor();
-                                }
-                            }}
+                            onKeyDown={handleCardKeyDown(handleAdvisor)}
                         >
                             <div className={styles['profile-hub__feature-icon']}>💬</div>
                             <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.advisor")}</h3>

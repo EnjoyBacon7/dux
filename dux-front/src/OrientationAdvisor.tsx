@@ -60,6 +60,7 @@ export default function OrientationAdvisor() {
   const [renameValue, setRenameValue] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const renameCancelRef = useRef<boolean>(false);
 
   const fetchContext = useCallback(async () => {
     const res = await fetch("/api/advisor/context", { credentials: "include" });
@@ -169,7 +170,18 @@ export default function OrientationAdvisor() {
   };
   const handleRenameKeyDown = (id: number, e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleRenameSubmit(id);
-    if (e.key === "Escape") setRenameId(null);
+    if (e.key === "Escape") {
+      renameCancelRef.current = true;
+      setRenameId(null);
+    }
+  };
+  const handleRenameBlur = (id: number) => {
+    if (renameCancelRef.current) {
+      renameCancelRef.current = false;
+      setRenameId(null);
+      return;
+    }
+    handleRenameSubmit(id);
   };
 
   const handleDeleteClick = (id: number, e: React.MouseEvent) => {
@@ -292,7 +304,7 @@ export default function OrientationAdvisor() {
                       className={styles["advisor-rename-input"]}
                       value={renameValue}
                       onChange={(e) => setRenameValue(e.target.value)}
-                      onBlur={() => handleRenameSubmit(conv.id)}
+                      onBlur={() => handleRenameBlur(conv.id)}
                       onKeyDown={(e) => handleRenameKeyDown(conv.id, e)}
                       onClick={(e) => e.stopPropagation()}
                       autoFocus
