@@ -178,7 +178,7 @@ def _validate_job_offers(job_offers: List[Dict[str, Any]]) -> None:
 # ============================================================================
 
 
-def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None) -> str:
+def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None, matching_context: Optional[str] = None) -> str:
     """
     Create a prompt for identifying France Travail API search parameters.
 
@@ -188,6 +188,7 @@ def create_ft_parameters_prompt(cv_text: str, preferences: Optional[str] = None)
     Args:
         cv_text: User's CV text
         preferences: Optional user preferences or job requirements
+        matching_context: Optional additional matching context from user
 
     Returns:
         Formatted prompt for the LLM
@@ -207,13 +208,17 @@ Only return the JSON object, no additional text."""
 
     if preferences:
         prompt += f"\n\nUser Preferences/Query:\n{preferences}"
+    
+    if matching_context and matching_context.strip():
+        prompt += f"\n\nADDITIONAL USER CONTEXT:\n{matching_context}"
 
     return prompt
 
 
 async def identify_ft_parameters(
     cv_text: str,
-    preferences: Optional[str] = None
+    preferences: Optional[str] = None,
+    matching_context: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Identify optimal France Travail API search parameters from CV.
@@ -224,6 +229,7 @@ async def identify_ft_parameters(
     Args:
         cv_text: User's CV text
         preferences: Optional user job preferences/requirements
+        matching_context: Optional additional matching context from user
 
     Returns:
         Dict with keys:
@@ -238,7 +244,7 @@ async def identify_ft_parameters(
     _validate_cv_text(cv_text)
 
     try:
-        prompt = create_ft_parameters_prompt(cv_text, preferences)
+        prompt = create_ft_parameters_prompt(cv_text, preferences, matching_context)
         result = await call_llm_async(
             prompt=prompt,
             system_content="You are an expert job search optimizer specializing in France Travail API parameters. You output only valid JSON objects with no additional text or explanation.",
@@ -294,6 +300,7 @@ def create_job_ranking_prompt(
     cv_text: str,
     job_offers: List[Dict[str, Any]],
     preferences: Optional[str] = None,
+    matching_context: Optional[str] = None,
     top_k: int = 5
 ) -> str:
     """
@@ -303,6 +310,7 @@ def create_job_ranking_prompt(
         cv_text: User's CV text
         job_offers: List of job offer dictionaries
         preferences: Optional user preferences
+        matching_context: Optional additional matching context from user
         top_k: Number of top offers to return
 
     Returns:
@@ -320,7 +328,9 @@ Analyze the provided job offers and rank them based on how well they match the u
 
 {cv_text}
 
-{preferences}## JOB OFFERS TO RANK
+{preferences}{matching_context}
+
+## JOB OFFERS TO RANK
 
 {offers_text}
 
@@ -335,10 +345,15 @@ Only return the JSON object, no additional text."""
     preferences_section = ""
     if preferences:
         preferences_section = f"\n## USER'S PREFERENCES\n\n{preferences}\n"
+    
+    matching_context_section = ""
+    if matching_context and matching_context.strip():
+        matching_context_section = f"\n## ADDITIONAL USER CONTEXT\n\n{matching_context}\n"
 
     return template.format(
         cv_text=cv_text,
         preferences=preferences_section,
+        matching_context=matching_context_section,
         offers_text=offers_text,
         top_k=top_k
     )
@@ -348,6 +363,7 @@ async def rank_job_offers(
     cv_text: str,
     job_offers: List[Dict[str, Any]],
     preferences: Optional[str] = None,
+    matching_context: Optional[str] = None,
     top_k: int = 5
 ) -> Dict[str, Any]:
     """
@@ -360,6 +376,7 @@ async def rank_job_offers(
         cv_text: User's CV text
         job_offers: List of job offer dictionaries from France Travail API
         preferences: Optional user job preferences/requirements
+        matching_context: Optional additional matching context from user
         top_k: Number of top offers to return (default: 5)
 
     Returns:
@@ -378,7 +395,7 @@ async def rank_job_offers(
     _validate_job_offers(job_offers)
 
     try:
-        prompt = create_job_ranking_prompt(cv_text, job_offers, preferences, top_k)
+        prompt = create_job_ranking_prompt(cv_text, job_offers, preferences, matching_context, top_k)
         result = await call_llm_async(
             prompt=prompt,
             system_content="You are an expert job matching analyst. Analyze CVs and job offers to identify the best matches. Return only valid JSON with no additional text.",
@@ -503,6 +520,7 @@ async def get_optimal_offers_with_cache(
                 current_user.cv_text,
                 offers,
                 preferences=preferences,
+                matching_context=current_user.matching_context,
                 top_k=top_k
             ),
             timeout=300  # 5 minute timeout for LLM ranking

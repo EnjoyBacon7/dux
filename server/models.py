@@ -33,6 +33,7 @@ class User(Base):
     cv_filename = Column(String, nullable=True)  # Stored CV filename
     cv_text = Column(Text, nullable=True)  # Extracted text from CV
     skills = Column(ARRAY(String), nullable=True)  # Array of skills
+    matching_context = Column(Text, nullable=True)  # Additional context for matching algorithms
     
     # Setup tracking
     profile_setup_completed = Column(Boolean, default=False)

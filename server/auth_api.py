@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -131,7 +131,8 @@ async def get_current_user_info(
         "title": current_user.title,
         "profile_picture": current_user.profile_picture,
         "profile_setup_completed": current_user.profile_setup_completed or False,
-        "cv_filename": current_user.cv_filename
+        "cv_filename": current_user.cv_filename,
+        "matching_context": current_user.matching_context
     }
 
 
@@ -553,3 +554,94 @@ async def delete_account(request: Request, db: Session = Depends(get_db_session)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to delete account: {str(e)}")
+
+
+@router.patch("/profile", summary="Update user profile")
+@apply_rate_limit("30/minute")
+async def update_user_profile(
+    request: Request,
+    db: Session = Depends(get_db_session),
+    background_tasks: BackgroundTasks = None
+):
+    """
+    Update user profile information.
+    Supports updating: first_name, last_name, title, matching_context, etc.
+    When matching_context is updated, triggers optimal offers regeneration.
+    """
+    from fastapi import BackgroundTasks as BT
+    if background_tasks is None:
+        background_tasks = BT()
+    
+    if "username" not in request.session:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user = db.query(User).filter(User.username == request.session["username"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    try:
+        body = await request.json()
+
+        # Track if matching_context changed
+        matching_context_changed = (
+            "matching_context" in body and 
+            body["matching_context"] != user.matching_context
+        )
+
+        # Update allowed fields
+        allowed_fields = {
+            "first_name",
+            "last_name",
+            "title",
+            "matching_context",
+            "headline",
+            "summary",
+            "location",
+            "industry"
+        }
+
+        for field in allowed_fields:
+            if field in body:
+                setattr(user, field, body[field])
+
+        db.commit()
+
+        result = {
+            "success": True,
+            "message": "Profile updated successfully",
+            "user": {
+                "user_id": user.id,
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "title": user.title,
+                "matching_context": user.matching_context
+            }
+        }
+
+        # Trigger optimal offers regeneration if matching_context changed and user has CV
+        if matching_context_changed and user.cv_text:
+            from server.scheduler import generate_optimal_offers_for_user
+            from server.database import SessionLocal
+            import logging
+            logger = logging.getLogger(__name__)
+
+            def generate_offers_task():
+                """Background task to regenerate optimal offers after matching context update."""
+                import asyncio
+                db_session = SessionLocal()
+                try:
+                    asyncio.run(generate_optimal_offers_for_user(user.id, db_session))
+                    logger.info(f"Optimal offers regeneration triggered for user {user.id} after matching_context update")
+                except Exception as e:
+                    logger.error(f"Error regenerating optimal offers for user {user.id}: {str(e)}")
+                finally:
+                    db_session.close()
+
+            background_tasks.add_task(generate_offers_task)
+            result["optimal_offers_status"] = "regenerating"
+
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")

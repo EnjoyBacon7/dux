@@ -3444,6 +3444,53 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Ver Análise',
         la: 'Videre Analysim'
     },
+    'additional_info.title': {
+        en: 'Additional Information',
+        es: 'Información Adicional',
+        fr: 'Informations Supplémentaires',
+        de: 'Zusätzliche Informationen',
+        pt: 'Informações Adicionais',
+        la: 'Informationes Addendae'
+    },
+    'additional_info.description': {
+        en: 'Add details to improve job matching.',
+        es: 'Añade detalles para mejorar la búsqueda.',
+        fr: 'Ajoutez des détails pour améliorer la recherche.',
+        de: 'Details hinzufügen für bessere Ergebnisse.',
+        pt: 'Adicione detalhes para melhorar a busca.',
+        la: 'Adde particulas ad meliorem inquisitionem.'
+    },
+    'additional_info.placeholder': {
+        en: 'Remote work, Python, startups...',
+        es: 'Trabajo remoto, Python, startups...',
+        fr: 'Télétravail, Python, startups...',
+        de: 'Remote, Python, Startups...',
+        pt: 'Remoto, Python, startups...',
+        la: 'Remotum, Python, nova...'
+    },
+    'additional_info.save': {
+        en: 'Save',
+        es: 'Guardar',
+        fr: 'Enregistrer',
+        de: 'Speichern',
+        pt: 'Salvar',
+        la: 'Servare'
+    },
+    'additional_info.saving': {
+        en: 'Saving...',
+        es: 'Guardando...',
+        fr: 'Enregistrement...',
+        de: 'Speichern...',
+        pt: 'Salvando...',
+        la: 'Servando...'
+    },
+    'additional_info.saved': {
+        en: 'Saved',
+        es: 'Guardado',
+        fr: 'Enregistré',
+        de: 'Gespeichert',
+        pt: 'Salvo',
+        la: 'Servatum'
 
     // Tracker (Favourite Occupations) page
     'tracker.title': {

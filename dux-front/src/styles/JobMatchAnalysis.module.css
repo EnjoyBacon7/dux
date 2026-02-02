@@ -73,6 +73,15 @@
     animation: nb-spin 1s linear infinite;
 }
 
+@keyframes nb-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .jma__loading p {
     margin: 0;
 }

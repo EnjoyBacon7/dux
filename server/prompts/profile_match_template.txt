@@ -23,7 +23,7 @@ PROFIL CANDIDAT:
 - Titre: {headline}
 - Résumé: {summary}
 - Compétences déclarées: {skills}
-- Expériences détaillées: {experiences}
+- Expériences détaillées: {experiences}{additional_context}
 
 OFFRE D'EMPLOI:
 - Titre: {job_title}

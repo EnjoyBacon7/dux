@@ -10,4 +10,5 @@ export { default as CVUploadForm } from './CVUploadForm';
 export { default as CVPreview } from './CVPreview';
 export { default as CVScoreCard } from './CVScoreCard';
 export { default as DetailedAnalysis } from './DetailedAnalysis';
+export { default as AdditionalInfoCard } from './AdditionalInfoCard';
 

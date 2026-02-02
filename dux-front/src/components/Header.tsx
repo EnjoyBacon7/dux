@@ -84,7 +84,7 @@ const Header: React.FC = () => {
                 </div>
 
                 <div className="nb-nav-wrapper">
-                    {user && (
+                    {user && location.pathname !== '/setup' && (
                         <nav className="nb-nav">
                             {navLinks.map(({ path, label }) => (
                                 <button
@@ -159,7 +159,7 @@ const Header: React.FC = () => {
                 </div>
             </div>
 
-            {user && (
+            {user && location.pathname !== '/setup' && (
                 <div className={`nb-nav-drawer ${mobileMenuOpen ? 'is-open' : ''}`}>
                     <div className="nb-nav-drawer__overlay" onClick={() => setMobileMenuOpen(false)} aria-hidden />
                     <div className="nb-nav-drawer__panel" id="nb-mobile-nav" role="navigation">
