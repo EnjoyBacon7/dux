@@ -154,16 +154,16 @@ export default function OrientationAdvisor() {
     setRenameValue(conv.title || "");
   };
   const handleRenameSubmit = async (id: number) => {
-    const title = renameValue.trim() || t("advisor.untitled");
+    const title = renameValue.trim();
     const res = await fetch(`/api/advisor/conversations/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ title }),
+      body: JSON.stringify({ title: title || "" }),
     });
     if (res.ok) {
       setConversations((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, title } : c))
+        prev.map((c) => (c.id === id ? { ...c, title: title || "" } : c))
       );
       setRenameId(null);
     }

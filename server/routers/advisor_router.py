@@ -6,7 +6,7 @@ Provides endpoints for advisor context, conversation CRUD, and chat with persist
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Literal, Optional
 
 import asyncio
 from fastapi import APIRouter, Depends, HTTPException
@@ -40,8 +40,8 @@ TITLE_SNIPPET_LENGTH = 50
 
 class AdvisorContextResponse(BaseModel):
     hasCv: bool
-    latestEvaluation: Optional[Dict[str, Any]] = None
-    favouriteJobs: List[Dict[str, Any]]
+    latestEvaluation: Optional[dict[str, Any]] = None
+    favouriteJobs: list[dict[str, Any]]
 
 
 class ConversationListItem(BaseModel):
@@ -71,7 +71,7 @@ class ConversationDetailResponse(BaseModel):
     title: Optional[str] = None
     createdAt: Optional[str] = None
     updatedAt: Optional[str] = None
-    messages: List[MessageItem]
+    messages: list[MessageItem]
 
 
 class ConversationPatchPayload(BaseModel):
@@ -84,13 +84,13 @@ class ChatContextPayload(BaseModel):
 
 
 class ChatMessageItem(BaseModel):
-    role: str  # "user" | "assistant"
+    role: Literal["user", "assistant"]
     content: str
 
 
 class ChatRequestPayload(BaseModel):
     message: str
-    conversationHistory: Optional[List[ChatMessageItem]] = None
+    conversationHistory: Optional[list[ChatMessageItem]] = None
     context: Optional[ChatContextPayload] = None
     conversationId: Optional[int] = None
 
@@ -105,7 +105,7 @@ class ChatResponse(BaseModel):
 # ============================================================================
 
 
-def _latest_evaluation_summary(db: Session, user_id: int) -> Optional[Dict[str, Any]]:
+def _latest_evaluation_summary(db: Session, user_id: int) -> Optional[dict[str, Any]]:
     """Return a summary dict of the latest completed CV evaluation for the user."""
     ev = (
         db.query(CVEvaluation)
@@ -129,7 +129,7 @@ def _latest_evaluation_summary(db: Session, user_id: int) -> Optional[Dict[str, 
     }
 
 
-def _favourite_jobs_list(db: Session, user_id: int) -> List[Dict[str, Any]]:
+def _favourite_jobs_list(db: Session, user_id: int) -> list[dict[str, Any]]:
     """Return list of favourite jobs for the user (same shape as jobs router)."""
     rows = (
         db.query(FavouriteJob)
@@ -150,7 +150,7 @@ def _favourite_jobs_list(db: Session, user_id: int) -> List[Dict[str, Any]]:
 
 
 def _build_system_prompt(
-    latest_eval: Optional[Dict[str, Any]],
+    latest_eval: Optional[dict[str, Any]],
     intent: Optional[str],
     job_summary: Optional[str],
 ) -> str:
@@ -192,7 +192,7 @@ def _build_system_prompt(
     return "\n".join(parts)
 
 
-def _job_offer_summary(job_data: Dict[str, Any]) -> str:
+def _job_offer_summary(job_data: dict[str, Any]) -> str:
     """Build a short text summary of a job offer for the system prompt."""
     title = job_data.get("intitule") or "Sans intitulé"
     company = job_data.get("entreprise_nom") or ""
@@ -227,7 +227,7 @@ async def get_advisor_context(
 async def list_conversations(
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
-) -> List[ConversationListItem]:
+) -> list[ConversationListItem]:
     """List conversations for the sidebar, ordered by updated_at desc."""
     rows = (
         db.query(AdvisorConversation)
@@ -369,8 +369,8 @@ async def post_chat(
             offer_data = await asyncio.to_thread(get_offer_by_id, payload.context.jobId)
             flat = _flatten_offer(offer_data)
             job_summary = _job_offer_summary(flat)
-        except Exception as e:
-            logger.warning("Could not load job offer for advisor: %s", e)
+        except ValueError as e:
+            logger.warning("Could not load job offer (jobId=%s): %s", payload.context.jobId, e)
 
     intent = payload.context.intent if payload.context else None
     system_prompt = _build_system_prompt(latest_eval, intent, job_summary)
@@ -391,8 +391,12 @@ async def post_chat(
             max_tokens=2000,
         )
     except ValueError as e:
-        logger.error("Advisor LLM call failed: %s", e)
-        raise HTTPException(status_code=502, detail=str(e))
+        logger.exception(
+            "Advisor LLM call failed (user_id=%s, conversation_id=%s)",
+            current_user.id,
+            conversation_id,
+        )
+        raise HTTPException(status_code=502, detail=str(e)) from e
 
     reply = result.get("data") or ""
 
