@@ -1,6 +1,6 @@
 /* ===== HEADER MODULE ===== */
 
-/* User avatar/profile button */
+/* User avatar/profile button - single background so no "patch" behind initials */
 .header__avatar-btn {
     width: 40px;
     height: 40px;
@@ -10,7 +10,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--nb-accent);
+    background-color: var(--nb-accent-alt);
     border: var(--nb-border) solid var(--nb-fg);
 }
 
@@ -26,7 +26,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--nb-accent-alt);
+    background-color: transparent;
     color: #fff;
     font-weight: bold;
     font-size: 0.875rem;

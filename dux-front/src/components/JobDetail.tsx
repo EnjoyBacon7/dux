@@ -2,13 +2,20 @@ import React, { useCallback, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
-import { useLanguage } from "../contexts/useLanguage";
 import JobMatchAnalysis from "./JobMatchAnalysis";
 import type { JobOffer } from "../types/job";
+import { useLanguage } from "../contexts/useLanguage";
 import styles from "../styles/job-detail.module.css";
 
 // Re-export types for backward compatibility
 export type { JobOffer, OptimalOffer } from "../types/job";
+
+interface CompetenceItem {
+    libelle?: string;
+    code?: string;
+    exigence?: string;
+}
+
 interface JobDetailProps {
     job: JobOffer;
     onClose: () => void;
@@ -125,13 +132,20 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
         return exigence;
     };
 
-    const normalizeArray = (value: unknown, fieldName?: string): any[] => {
+    const normalizeArray = <T = unknown>(
+        value: unknown,
+        fieldName?: string,
+        isItem?: (item: unknown) => item is T
+    ): T[] => {
         if (value === null || value === undefined) return [];
-        if (Array.isArray(value)) return value;
+        if (Array.isArray(value)) {
+            return isItem ? value.filter(isItem) : (value as T[]);
+        }
         if (typeof value === "string") {
             try {
                 const parsed = JSON.parse(value);
-                return Array.isArray(parsed) ? parsed : [];
+                if (!Array.isArray(parsed)) return [];
+                return isItem ? parsed.filter(isItem) : (parsed as T[]);
             } catch (error) {
                 console.error(`normalizeArray: failed to parse JSON for ${fieldName ?? 'value'}`, error, value);
                 return [];
@@ -226,7 +240,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                                         padding: '0.5rem 1rem'
                                         }}
                                     >
-                                        <span>{isFavourited ? "📌" : "☆"}</span>{" "}
+                                        <span>{isFavourited ? "★" : "☆"}</span>{" "}
                                         {isFavourited ? t("metiers.detail.action_unfavorite") : t("metiers.detail.action_favorite")}
                                     </button>
                                     </div>
@@ -294,8 +308,8 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                                 <div style={{ marginTop: '0.4rem' }}>
                                     <div className={styles['jd-field-label']} style={{ marginBottom: '0.4rem' }}>Compétences</div>
                                     <div className={styles['jd-meta-grid']}>
-                                        {normalizeArray(job.competences).map((comp, idx) => {
-                                             const c: any = comp || {};
+                                        {normalizeArray<CompetenceItem>(job.competences).map((comp, idx) => {
+                                             const c: CompetenceItem = comp ?? {};
                                              return (
                                                  <div key={idx} className={styles['jd-chip']} style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
                                                      <strong>{c.libelle || 'Compétence'}</strong>
