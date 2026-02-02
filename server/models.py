@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Boolean, Text, Float
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Boolean, Text, Float, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
@@ -33,6 +33,7 @@ class User(Base):
     cv_filename = Column(String, nullable=True)  # Stored CV filename
     cv_text = Column(Text, nullable=True)  # Extracted text from CV
     skills = Column(ARRAY(String), nullable=True)  # Array of skills
+    matching_context = Column(Text, nullable=True)  # Additional context for matching algorithms
     
     # Setup tracking
     profile_setup_completed = Column(Boolean, default=False)
@@ -50,6 +51,8 @@ class User(Base):
     optimal_offers = relationship("OptimalOffer", back_populates="user", cascade="all, delete-orphan")
     cv_evaluations = relationship("CVEvaluation", back_populates="user", cascade="all, delete-orphan")
     matchcompetences = relationship("MatchCompetence", back_populates="user", cascade="all, delete-orphan")
+    favourite_metiers = relationship("FavouriteMetier", back_populates="user", cascade="all, delete-orphan")
+    favourite_jobs = relationship("FavouriteJob", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username})>"
@@ -230,6 +233,42 @@ class Offres_FT(Base):
 
     def __repr__(self):
         return f"<Offres_FT(id={self.id})>"
+
+
+class FavouriteMetier(Base):
+    """User's favourite occupations (ROME codes) for the Tracker feature."""
+    __tablename__ = "favourite_metiers"
+    __table_args__ = (UniqueConstraint("user_id", "rome_code", name="uq_favourite_metier_user_rome"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    rome_code = Column(String, nullable=False, index=True)
+    rome_libelle = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="favourite_metiers")
+
+    def __repr__(self):
+        return f"<FavouriteMetier(id={self.id}, user_id={self.user_id}, rome_code={self.rome_code})>"
+
+
+class FavouriteJob(Base):
+    """User's favourite job offers for the Tracker feature."""
+    __tablename__ = "favourite_jobs"
+    __table_args__ = (UniqueConstraint("user_id", "job_id", name="uq_favourite_job_user_job"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    job_id = Column(String, nullable=False, index=True)
+    intitule = Column(String, nullable=True)
+    entreprise_nom = Column(String, nullable=True)
+    rome_code = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="favourite_jobs")
+
+    def __repr__(self):
+        return f"<FavouriteJob(id={self.id}, user_id={self.user_id}, job_id={self.job_id})>"
 
 
 class Metier_ROME(Base):

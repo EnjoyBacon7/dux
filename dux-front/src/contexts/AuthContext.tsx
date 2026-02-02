@@ -11,6 +11,7 @@ interface User {
     profile_picture?: string;
     profile_setup_completed?: boolean;
     cv_filename?: string | null;
+    matching_context?: string | null;
 }
 
 interface AuthContextType {

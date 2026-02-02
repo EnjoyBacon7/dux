@@ -2,8 +2,8 @@
 
     /* ===== PALETTE TOKENS ===== */
     --clr-light-a0: #ffffff;
-    --clr-primary-a0: #c3b9f8;
-    --clr-primary-a10: #cac1f9;
+    --clr-primary-a0: #6b5fa8;       /* Darker purple for white text contrast (was #9a90ce) */
+    --clr-primary-a10: #5d5299;      /* Darker purple for dark mode accents (was #9289bf) */
     --clr-primary-a20: #d1c8fa;
     --clr-primary-a30: #d7d0fb;
     --clr-primary-a40: #ded8fb;
@@ -246,6 +246,7 @@ a:hover {
 
 .nb-btn--accent {
     background: var(--nb-accent);
+    color: var(--nb-fg);
 }
 
 /* Inputs */
@@ -389,6 +390,10 @@ select:focus {
 .nb-tabs {
     display: flex;
     gap: .75rem;
+}
+
+.nb-tab {
+    flex: 1;
 }
 
 
@@ -660,7 +665,51 @@ select:focus {
     opacity: 0.9;
 }
 
+.nb-theme-btn {
+    appearance: none;
+    padding: 0.65rem 1rem;
+    background: var(--nb-input-bg);
+    color: var(--nb-fg);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--nb-transition);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0;
+    border: none;
+}
 
+.nb-theme-btn:first-child {
+    border-radius: var(--nb-radius) 0 0 var(--nb-radius);
+}
+
+.nb-theme-btn:last-child {
+    border-radius: 0 var(--nb-radius) var(--nb-radius) 0;
+}
+
+.nb-theme-btn:hover {
+    opacity: 0.85;
+    background: var(--nb-input-focus-bg);
+}
+
+.nb-theme-btn:focus {
+    outline: none;
+    background: var(--nb-input-focus-bg);
+}
+
+.nb-theme-btn--active {
+    background: var(--nb-accent);
+    color: var(--nb-accent-text, #ffffff);
+    font-weight: 600;
+}
+
+.nb-theme-btn--active:hover {
+    opacity: 0.9;
+}
 
 .nb-logout-btn {
     appearance: none;
@@ -906,6 +955,34 @@ select:focus {
 
 .home-upload-form .nb-btn {
     width: 100%;
+}
+
+/* Setup form styles */
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.setup-form__actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.setup-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.setup-step-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.setup-error {
+    margin-top: 1rem;
 }
 
 /* Actions */

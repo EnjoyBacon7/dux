@@ -26,8 +26,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--accent-color);
-    color: white;
+    background-color: var(--nb-accent-alt);
+    color: #fff;
     font-weight: bold;
     font-size: 0.875rem;
 }
@@ -43,13 +43,13 @@
     right: 0;
     min-width: 150px;
     z-index: 1000;
-    padding: 0.5rem;
+    padding: 0.35rem;
     margin: 0;
 }
 
 .header__dropdown-item {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.75rem;
     border: none;
     background: none;
     text-align: left;

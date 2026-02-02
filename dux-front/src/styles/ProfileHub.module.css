@@ -67,8 +67,8 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--nb-accent);
-    background: var(--nb-bg-muted);
+    color: #fff;
+    background: var(--nb-accent-alt);
     padding: 0.25rem 0.75rem;
     border-radius: var(--nb-radius);
     border: var(--nb-border) solid var(--nb-fg);
@@ -87,7 +87,7 @@
 .profile-hub__view-btn {
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--nb-bg);
+    color: var(--nb-fg);
     background: var(--nb-accent);
     padding: 0.5rem 1rem;
     border-radius: var(--nb-radius);

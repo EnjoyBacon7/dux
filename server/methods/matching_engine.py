@@ -60,6 +60,11 @@ class MatchingEngine:
                     for exp in user.experiences
                 ])
 
+        # Additional matching context provided by user
+        additional_context = ""
+        if user.matching_context and len(user.matching_context.strip()) > 0:
+            additional_context = f"\n\nCONTEXTE SUPPLÉMENTAIRE FOURNI PAR LE CANDIDAT:\n{user.matching_context}"
+
         # --- ÉTAPE 2 : Traitement de l'Offre (Job) ---
         job_skills = job.competences
         if isinstance(job_skills, str) and job_skills.strip().startswith("["):
@@ -92,7 +97,8 @@ class MatchingEngine:
             job_title=job.intitule,
             company_name=job.entreprise_nom,
             job_description=job.description,
-            job_skills=job_skills
+            job_skills=job_skills,
+            additional_context=additional_context
         )
         return prompt
 
