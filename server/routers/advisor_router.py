@@ -15,7 +15,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from server.database import get_db_session
+from server.database import get_db_session, SessionLocal
 from server.models import (
     User,
     CVEvaluation,
@@ -524,7 +524,7 @@ async def post_chat_stream(
     payload: ChatRequestPayload,
     db: Session = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
-):
+) -> StreamingResponse:
     """Stream advisor reply as Server-Sent Events. Each event is data: {\"content\": \"...\"}; final event is data: {\"done\": true, \"conversationId\": id}."""
     message = (payload.message or "").strip()
     if not message:
@@ -578,6 +578,8 @@ async def post_chat_stream(
     db.add(user_msg)
     db.commit()
 
+    conversation_id = conv.id
+
     async def sse_stream():
         reply_parts: list[str] = []
         try:
@@ -589,14 +591,35 @@ async def post_chat_stream(
                 reply_parts.append(chunk)
                 yield f"data: {json.dumps({'content': chunk})}\n\n"
         except ValueError as e:
+            error_db = SessionLocal()
+            try:
+                error_content = f"Assistant failed to generate response: {str(e)}"
+                error_msg = AdvisorMessage(conversation_id=conversation_id, role="assistant", content=error_content)
+                error_db.add(error_msg)
+                conv_for_update = error_db.get(AdvisorConversation, conversation_id)
+                if conv_for_update:
+                    conv_for_update.updated_at = datetime.now(timezone.utc)
+                error_db.commit()
+            except Exception:
+                error_db.rollback()
+            finally:
+                error_db.close()
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
             return
         reply = "".join(reply_parts)
-        assistant_msg = AdvisorMessage(conversation_id=conv.id, role="assistant", content=reply)
-        db.add(assistant_msg)
-        conv.updated_at = datetime.now(timezone.utc)
-        db.commit()
-        yield f"data: {json.dumps({'done': True, 'conversationId': conv.id})}\n\n"
+        fresh_db = SessionLocal()
+        try:
+            assistant_msg = AdvisorMessage(conversation_id=conversation_id, role="assistant", content=reply)
+            fresh_db.add(assistant_msg)
+            conv_for_update = fresh_db.get(AdvisorConversation, conversation_id)
+            if conv_for_update:
+                conv_for_update.updated_at = datetime.now(timezone.utc)
+            fresh_db.commit()
+        except Exception:
+            fresh_db.rollback()
+        finally:
+            fresh_db.close()
+        yield f"data: {json.dumps({'done': True, 'conversationId': conversation_id})}\n\n"
 
     return StreamingResponse(
         sse_stream(),

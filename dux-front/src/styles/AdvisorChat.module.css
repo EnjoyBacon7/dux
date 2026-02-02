@@ -6,7 +6,6 @@
     flex-direction: row;
     height: calc(100vh - var(--header-height, 60px));
     width: min(100% - 2rem, 1200px);
-    max-width: 1200px;
     margin: 0 auto;
     overflow: hidden;
 }
@@ -382,7 +381,8 @@
 }
 
 .advisor-suggestion-btn:disabled {
-    opacity: 0.6;
+    color: color-mix(in srgb, var(--nb-fg) 50%, transparent);
+    background: var(--nb-card-bg);
     cursor: not-allowed;
 }
 

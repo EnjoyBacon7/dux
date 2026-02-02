@@ -9,7 +9,7 @@ import json
 import logging
 import base64
 from io import BytesIO
-from typing import Optional, Dict, Any, List, Union, TYPE_CHECKING
+from typing import AsyncIterator, Optional, Dict, Any, List, Union, TYPE_CHECKING
 from openai import OpenAI
 
 from server.config import settings
@@ -388,7 +388,7 @@ async def stream_llm_messages_async(
     temperature: float = 0.7,
     max_tokens: int = 2000,
     model: Optional[str] = None,
-):
+) -> AsyncIterator[str]:
     """
     Async generator that yields content chunks from a streaming LLM call.
     Yields str chunks; use for SSE or other streaming responses.
@@ -408,8 +408,6 @@ async def stream_llm_messages_async(
                 content = chunk.choices[0].delta.content
                 if content:
                     yield content
-    except ValueError:
-        raise
     except Exception as e:
         logger.exception("LLM stream failed")
         raise ValueError("LLM stream failed") from e
