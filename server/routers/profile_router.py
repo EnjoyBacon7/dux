@@ -89,7 +89,7 @@ async def upload_endpoint(
             import asyncio
             db_session = SessionLocal()
             try:
-                asyncio.run(generate_optimal_offers_for_user(current_user.id, db_session))
+                asyncio.run(generate_optimal_offers_for_user(current_user.id, db_session, force_refresh=True))
                 logger.info(f"Optimal offers generation triggered for user {current_user.id}")
             except Exception as e:
                 logger.error(f"Error generating optimal offers for user {current_user.id}: {str(e)}")

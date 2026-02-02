@@ -23,13 +23,14 @@ logger = logging.getLogger(__name__)
 scheduler: Optional[AsyncIOScheduler] = None
 
 
-async def generate_optimal_offers_for_user(user_id: int, db: Session) -> None:
+async def generate_optimal_offers_for_user(user_id: int, db: Session, force_refresh: bool = False) -> None:
     """
     Generate optimal job offers for a single user.
 
     Args:
         user_id: ID of the user to generate offers for
         db: Database session
+        force_refresh: If True, skip cache and regenerate offers
     """
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -53,14 +54,15 @@ async def generate_optimal_offers_for_user(user_id: int, db: Session) -> None:
         ft_parameters = ft_result.get("parameters", {})
 
         # Generate optimal offers (will be cached in database)
-        # Use a shorter cache time (1 hour) since this runs hourly
+        # Always force refresh for scheduler - no caching
         await get_optimal_offers_with_cache(
             current_user=user,
             db=db,
             ft_parameters=ft_parameters,
             preferences=None,
             top_k=5,
-            cache_hours=1  # 1 hour cache since task runs hourly
+            cache_hours=1,  # 1 hour cache for frontend reads only
+            force_refresh=True  # Always regenerate for scheduler tasks
         )
 
         logger.info(f"Successfully generated optimal offers for user {user_id}")

@@ -431,14 +431,16 @@ async def get_optimal_offers_with_cache(
     ft_parameters: dict,
     preferences: Optional[str] = None,
     top_k: int = 5,
-    cache_hours: int = 24
+    cache_hours: int = 24,
+    force_refresh: bool = False
 ) -> Dict[str, Any]:
     """
     Get optimal job offers, using cache if available and fresh.
 
     Checks if cached offers exist and are less than cache_hours old.
-    If cache is valid, returns cached results. Otherwise, fetches new offers
-    from France Travail API, ranks them with LLM, and saves to database.
+    If cache is valid and force_refresh is False, returns cached results. 
+    Otherwise, fetches new offers from France Travail API, ranks them with LLM, 
+    and saves to database.
 
     Args:
         current_user: Current authenticated user
@@ -447,6 +449,7 @@ async def get_optimal_offers_with_cache(
         preferences: Optional user preferences for ranking
         top_k: Number of top offers to return
         cache_hours: Number of hours before cache is considered stale
+        force_refresh: If True, skip cache and regenerate offers
 
     Returns:
         dict: Ranked job offers with match scores, reasoning, and cache status
@@ -455,41 +458,42 @@ async def get_optimal_offers_with_cache(
         ValueError: If no offers found
         Exception: If ranking or database operations fail
     """
-    # Check cache first
-    try:
-        cached_offers = db.query(OptimalOffer).filter(
-            OptimalOffer.user_id == current_user.id
-        ).order_by(OptimalOffer.position).all()
+    # Check cache first (unless force_refresh is True)
+    if not force_refresh:
+        try:
+            cached_offers = db.query(OptimalOffer).filter(
+                OptimalOffer.user_id == current_user.id
+            ).order_by(OptimalOffer.position).all()
 
-        if cached_offers:
-            # Check if cache is fresh
-            most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
-            last_updated = most_recent.updated_at or most_recent.created_at
-            cache_age = datetime.now(last_updated.tzinfo) - last_updated
+            if cached_offers:
+                # Check if cache is fresh
+                most_recent = max(cached_offers, key=lambda o: o.updated_at or o.created_at)
+                last_updated = most_recent.updated_at or most_recent.created_at
+                cache_age = datetime.now(last_updated.tzinfo) - last_updated
 
-            if cache_age < timedelta(hours=cache_hours):
-                # Cache is fresh, return cached results
-                # Return offers with job_id for frontend to fetch full data
-                offers_data = []
-                for o in cached_offers:
-                    offer_dict = {
-                        "job_id": o.job_id,
-                        "position": o.position,
-                        "score": o.score,
-                        "match_reasons": o.match_reasons,
-                        "concerns": o.concerns,
+                if cache_age < timedelta(hours=cache_hours):
+                    # Cache is fresh, return cached results
+                    # Return offers with job_id for frontend to fetch full data
+                    offers_data = []
+                    for o in cached_offers:
+                        offer_dict = {
+                            "job_id": o.job_id,
+                            "position": o.position,
+                            "score": o.score,
+                            "match_reasons": o.match_reasons,
+                            "concerns": o.concerns,
+                        }
+                        offers_data.append(offer_dict)
+
+                    return {
+                        "success": True,
+                        "offers": offers_data,
+                        "count": len(offers_data),
+                        "cached": True,
+                        "cache_age_hours": round(cache_age.total_seconds() / 3600, 1)
                     }
-                    offers_data.append(offer_dict)
-
-                return {
-                    "success": True,
-                    "offers": offers_data,
-                    "count": len(offers_data),
-                    "cached": True,
-                    "cache_age_hours": round(cache_age.total_seconds() / 3600, 1)
-                }
-    except Exception as e:
-        logger.warning(f"Error checking cache: {str(e)}, proceeding with fresh search")
+        except Exception as e:
+            logger.warning(f"Error checking cache: {str(e)}, proceeding with fresh search")
 
     # Cache is stale or missing, fetch new offers in thread pool
     # Run France Travail API call in thread pool to avoid blocking other clients
