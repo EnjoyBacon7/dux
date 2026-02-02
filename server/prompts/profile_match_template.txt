@@ -32,7 +32,7 @@ OFFRE D'EMPLOI:
 - Compétences requises: {job_skills}
 
 INSTRUCTIONS DE SORTIE JSON :
-Retourne UNIQUEMENT un JSON valide avec les clés en anglais :
+Retourne UNIQUEMENT un JSON valide avec les clés en anglais. Tous les champs textuels doivent être rédigés en {target_lang} (langue de l'utilisateur) :
 {{
     "score_technique": (int 0-100),
     "score_culturel": (int 0-100),
