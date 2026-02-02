@@ -4,11 +4,11 @@ title: Welcome to Dux
 description: Your complete guide to mastering the Dux intelligent career assistant.
 ---
 
-# Welcome to Dux 👋
+# Welcome to Dux
 
 **Dux** is more than just a job board. It is your personal, AI-powered career coach designed to bridge the gap between your resume and your dream job.
 
-By combining official market data from **France Travail** with advanced **Artificial Intelligence**, Dux reads and understands your profile just like a recruiter would—but in milliseconds.
+By combining official market data from **[France Travail](https://www.francetravail.fr/)** with advanced **Artificial Intelligence**, Dux reads and understands your profile just like a recruiter would—but in milliseconds.
 
 ---
 
@@ -28,6 +28,7 @@ You might wonder how Dux determines if you are a good match. Here is the process
 2.  **One-Time Upload:** Go to your **Profile** and upload your PDF resume. Dux will digitize it immediately.
 3.  **Check Your Health:** Look at your **CV Score** to see if your resume is ready for the market.
 4.  **Analyze & Apply:** Browse jobs and hit **"Analyze"** to get instant feedback before you apply.
+5.  **Profil Match:** Different jobs that may be convenient to you are shown to you with justifications.
 
 ---
 
@@ -59,15 +60,15 @@ Unlike standard job alerts, Dux provides **Justifications** for every suggestion
 
 ## Intelligent Job Search & Career Explorer
 
-Dux connects directly to the **France Travail** network to fetch real-time opportunities and official job market data.
+Dux connects directly to the **[France Travail](https://www.francetravail.fr/)** network to fetch real-time opportunities and official job market data.
 
 ### 1. Smart Job Board
 Filter offers precisely by Region, Contract Type, or Salary.
-* **Bookmarks:** Found a job you like but not ready to apply? Click the **Bookmark icon** to save offers and review them later in your personal space.
+* **Bookmarks:** Found a job you like but not ready to apply? Click the **Bookmark** icon to save offers and review them later in your personal space.
 
 ### 2. Job Identity Cards
-Unsure about a specific career path? Dux lets you explore professions via their official **ROME Codes**.
-Click on a job title to access its full "Identity Card":
+Unsure about a specific career path? Dux lets you explore professions via their official **ROME** Codes.
+Click on a job title to access its full "Identity Card" with data such as:
 * **Requirements:** See exactly what skills and certifications are standard for this role.
 * **Salary Insights:** View official salary ranges to negotiate better.
 * **Market Trends:** Understand the demand for this specific role.
@@ -84,10 +85,10 @@ Dux creates a virtual interview between your digitized profile and the specific 
 
 **What you get in the Analysis Report:**
 
-1.  **Technical Score:** Do you have the hard skills (tools, languages, certifications) required?
-2.  **Culture Fit:** Does the tone of your profile match the company's values?
-3.  **The Verdict:** A clear "Go" or "No-Go" summary.
-4.  **Gap Analysis:** Dux highlights exactly **what skills you are missing**.
+1.  **Technical Score:** Do you have the **hard skills** (tools, languages, certifications) required?
+2.  **Culture Fit:** Does the **tone of your profile** match the company's values?
+3.  **The Verdict:** A **clear and short summary** that explain why your profil is relevant or not to the selected job.
+4.  **Gap Analysis:** Dux highlights exactly **what skills you are missing or should improve in order to match perfectly**.
     * *Use this to customize your cover letter!*
 
 > **Speed:** Thanks to our "Fast-Text" technology, this analysis happens in real-time. You can analyze 10 offers in a minute to find the perfect one.
@@ -101,7 +102,7 @@ The Profile Hub is your command center for perfection. It goes beyond the simple
 1.  **Semantic Analysis (LLM):** Checks the *meaning* of your words. Are your sentences impactful? Is your vocabulary professional?
 2.  **Visual Analysis (VLM):** "Looks" at your CV like a human eye. It analyzes your layout, font usage, margins, and readability.
 
-Dux provides specific feedback to correct both the **content** and the **design** of your resume, maximizing your chances of passing both automated filters (ATS) and human recruiters.
+Dux provides specific feedback to correct both the **content** and the **design** of your resume, maximizing your chances of passing both automated filters and human recruiters.
 
 ---
 

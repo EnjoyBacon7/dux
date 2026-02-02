@@ -16,9 +16,9 @@ In accordance with the principles of digital commons, we have chosen to maximize
 2.  **Reciprocity (ShareAlike)**: We guarantee that any improvement made to Dux will benefit the entire community.
 3.  **Community**: We encourage contribution to sustain the resource beyond the initial team.
 
-## 📜 The License: CC BY-SA 4.0
+## The License
 
-We have placed the entire project (code, design, documentation) under the **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)** license.
+We have placed the entire project (code, design, documentation) under the **Creative Commons Attribution-ShareAlike 4.0 International ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/))** license.
 
 This choice aligns with the philosophy of **Free Software** and **Copyleft**: it preserves user freedoms while ensuring the long-term free nature of the project.
 
@@ -46,7 +46,7 @@ It is comparable to "reciprocal" licenses in the software world (like the GPL), 
 
 If you reuse our work, please include the following notice:
 
-> "Based on Dux, an Open Source career assistant. Licensed under CC BY-SA 4.0."
+> "Based on Dux, an Open Source career assistant. Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)."
 
 ---
 
