@@ -29,13 +29,9 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-<<<<<<< Updated upstream
-  const [cvComparisonText, setCvComparisonText] = useState<string>("Loading CV...");
   const [isFavourited, setIsFavourited] = useState<boolean>(false);
   const [favouritesLoading, setFavouritesLoading] = useState<boolean>(false);
   const [favouriteActionLoading, setFavouriteActionLoading] = useState<boolean>(false);
-=======
->>>>>>> Stashed changes
 
   useEffect(() => {
     let cancelled = false;
@@ -198,7 +194,6 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     setIsExpanded(false);
   }, [romeCode]);
 
-<<<<<<< Updated upstream
   useEffect(() => {
     let cancelled = false;
     if (!romeCode) return;
@@ -235,45 +230,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     };
   }, [romeCode, apiBaseUrl]);
 
-  useEffect(() => {
-    let cancelled = false;
 
-    const buildCvComparisonText = (cvTextValue: string | null) => {
-      const cleaned = (cvTextValue ?? "").replace(/\s+/g, " ").trim();
-      if (!cleaned) {
-        return "No CV text available yet.";
-      }
-      const preview = cleaned.length > 240 ? `${cleaned.slice(0, 240)}...` : cleaned;
-      return `CV preview: ${preview}`;
-    };
-
-    async function loadCvText() {
-      try {
-        const url = `${apiBaseUrl}/api/metiers/cv_text`;
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-        }
-        const json = await res.json();
-        if (!cancelled) {
-          setCvComparisonText(buildCvComparisonText(json?.cvText ?? null));
-        }
-      } catch (e: any) {
-        if (!cancelled) {
-          setCvComparisonText("Unable to load CV text.");
-        }
-      }
-    }
-
-    loadCvText();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [apiBaseUrl]);
-
-=======
->>>>>>> Stashed changes
   const resume = useMemo(() => {
     if (!data?.definition) return t("metiers.detail.summary_fallback");
     const normalized = data.definition.replace(/\s+/g, " ").trim();
