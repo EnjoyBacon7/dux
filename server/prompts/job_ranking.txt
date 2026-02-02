@@ -32,4 +32,6 @@ Return a JSON array with the top {top_k} offers, each containing:
 - match_reasons: brief list of 2-3 key reasons why this is a good match
 - concerns: any potential concerns or mismatches (if any)
 
+All free-text fields (including match_reasons and concerns) must be in the user's language.
+
 IMPORTANT: Return ONLY the JSON array, no other text or explanation.

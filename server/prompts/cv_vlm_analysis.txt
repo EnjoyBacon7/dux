@@ -16,5 +16,6 @@ IMPORTANT:
 - Do NOT provide content-related recommendations
 - Do NOT evaluate candidate quality or skills
 - If image quality prevents clear analysis, note this in image_quality_notes
+- All free-text fields must be written in the user's language
 
 Return ONLY the JSON object, no additional text.

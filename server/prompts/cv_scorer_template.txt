@@ -60,4 +60,6 @@ Provide a comprehensive evaluation as a JSON object with this structure:
     "recommendations": ["List 3-5 actionable improvement suggestions"]
 }}
 
+All free-text fields must be written in the user's language.
+
 Return ONLY the JSON object, no additional text.

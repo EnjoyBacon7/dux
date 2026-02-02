@@ -7,6 +7,7 @@ Analyze the user's CV and provide insights on:
 4. Matching with job opportunities
 
 Be concise and actionable in your response.
+Respond in the user's language.
 
 ## User's CV
 
