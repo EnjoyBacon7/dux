@@ -29,10 +29,13 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+<<<<<<< Updated upstream
   const [cvComparisonText, setCvComparisonText] = useState<string>("Loading CV...");
   const [isFavourited, setIsFavourited] = useState<boolean>(false);
   const [favouritesLoading, setFavouritesLoading] = useState<boolean>(false);
   const [favouriteActionLoading, setFavouriteActionLoading] = useState<boolean>(false);
+=======
+>>>>>>> Stashed changes
 
   useEffect(() => {
     let cancelled = false;
@@ -195,6 +198,7 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     setIsExpanded(false);
   }, [romeCode]);
 
+<<<<<<< Updated upstream
   useEffect(() => {
     let cancelled = false;
     if (!romeCode) return;
@@ -268,6 +272,8 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
     };
   }, [apiBaseUrl]);
 
+=======
+>>>>>>> Stashed changes
   const resume = useMemo(() => {
     if (!data?.definition) return t("metiers.detail.summary_fallback");
     const normalized = data.definition.replace(/\s+/g, " ").trim();
@@ -372,19 +378,12 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
 
   return (
     <div className={styles["wiki-metier-detail"]} key={romeCode}>
-      <section className={`${styles["wm-card"]} ${styles["wm-hero"]}`} style={delayStyle("0.02s")}>
+      <section className={`${styles["wm-card"]}`} style={delayStyle("0.02s")}>
         <div className={styles["wm-hero-title-row"]}>
           <h2 className={styles["wm-hero-title"]}>{data.romeLibelle ?? t("metiers.detail.title_fallback")}</h2>
           <span className={styles["wm-rome-badge"]}>{data.romeCode}</span>
         </div>
         <p className={styles["wm-hero-summary"]}>{renderDefinition(resume)}</p>
-      </section>
-
-      <section className={`${styles["wm-card"]} ${styles["wm-hero"]}`} style={delayStyle("0.02s")}>
-        <div className={styles["wm-card-header"]}>
-          <h3>{t("metiers.detail.title_cv_comparison")}</h3>
-        </div>
-        <p className={styles["wm-hero-summary"]}>{cvComparisonText}</p>
       </section>
 
       <div className={styles["wm-detail-grid"]}>
