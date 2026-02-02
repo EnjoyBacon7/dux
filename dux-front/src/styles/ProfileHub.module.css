@@ -31,6 +31,13 @@
     gap: 1.5rem;
 }
 
+/* Third card (Orientation Advisor) spans row and is centered, same width as one column */
+.profile-hub__feature-card--centered {
+    grid-column: 1 / -1;
+    justify-self: center;
+    max-width: calc((100% - 1.5rem) / 2);
+}
+
 .profile-hub__feature-card {
     display: flex;
     flex-direction: column;
@@ -102,6 +109,10 @@
 @media (max-width: 767px) {
     .profile-hub__grid {
         grid-template-columns: 1fr;
+    }
+
+    .profile-hub__feature-card--centered {
+        max-width: 100%;
     }
 
     .profile-hub__title {

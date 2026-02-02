@@ -226,7 +226,7 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
                                         padding: '0.5rem 1rem'
                                         }}
                                     >
-                                        <span>{isFavourited ? "📌" : "☆"}</span>{" "}
+                                        <span>{isFavourited ? "★" : "☆"}</span>{" "}
                                         {isFavourited ? t("metiers.detail.action_unfavorite") : t("metiers.detail.action_favorite")}
                                     </button>
                                     </div>

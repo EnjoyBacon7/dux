@@ -13,7 +13,7 @@ from typing import Optional, Dict, Any, List, Union, TYPE_CHECKING
 from openai import OpenAI
 
 from server.config import settings
-from server.utils.openai_client import create_openai_client
+from server.utils.openai_client import create_openai_client, create_async_openai_client
 
 if TYPE_CHECKING:
     from PIL import Image
@@ -381,3 +381,35 @@ async def call_llm_messages_async(
         max_tokens,
         model,
     )
+
+
+async def stream_llm_messages_async(
+    messages: list[dict[str, str]],
+    temperature: float = 0.7,
+    max_tokens: int = 2000,
+    model: Optional[str] = None,
+):
+    """
+    Async generator that yields content chunks from a streaming LLM call.
+    Yields str chunks; use for SSE or other streaming responses.
+    """
+    model = model or settings.openai_model
+    client = create_async_openai_client()
+    try:
+        stream = await client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+        )
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta is not None:
+                content = chunk.choices[0].delta.content
+                if content:
+                    yield content
+    except ValueError:
+        raise
+    except Exception as e:
+        logger.exception("LLM stream failed")
+        raise ValueError("LLM stream failed") from e

@@ -72,9 +72,9 @@ const ProfileHub: React.FC = () => {
                             <span className={styles['profile-hub__view-btn']}>{t("profile_hub.view_tracker")}</span>
                         </div>
 
-                        {/* Advisor (Mon conseiller en orientation) Card - Clickable */}
+                        {/* Advisor Card - Clickable, centered below the two above */}
                         <div
-                            className={`nb-card ${styles['profile-hub__feature-card']} ${styles['profile-hub__feature-card--clickable']}`}
+                            className={`nb-card ${styles['profile-hub__feature-card']} ${styles['profile-hub__feature-card--clickable']} ${styles['profile-hub__feature-card--centered']}`}
                             onClick={handleAdvisor}
                             role="button"
                             tabIndex={0}
@@ -84,27 +84,6 @@ const ProfileHub: React.FC = () => {
                             <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.advisor")}</h3>
                             <p className={styles['profile-hub__feature-desc']}>{t("profile_hub.advisor_desc")}</p>
                             <span className={styles['profile-hub__view-btn']}>{t("profile_hub.view_advisor")}</span>
-                        </div>
-
-                        <div className={`nb-card ${styles['profile-hub__feature-card']}`}>
-                            <div className={styles['profile-hub__feature-icon']}>🎯</div>
-                            <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.career_path")}</h3>
-                            <p className={styles['profile-hub__feature-desc']}>{t("profile_hub.career_path_desc")}</p>
-                            <span className={styles['profile-hub__coming-soon']}>{t("profile_hub.coming_soon")}</span>
-                        </div>
-
-                        <div className={`nb-card ${styles['profile-hub__feature-card']}`}>
-                            <div className={styles['profile-hub__feature-icon']}>💡</div>
-                            <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.skill_gaps")}</h3>
-                            <p className={styles['profile-hub__feature-desc']}>{t("profile_hub.skill_gaps_desc")}</p>
-                            <span className={styles['profile-hub__coming-soon']}>{t("profile_hub.coming_soon")}</span>
-                        </div>
-
-                        <div className={`nb-card ${styles['profile-hub__feature-card']}`}>
-                            <div className={styles['profile-hub__feature-icon']}>📝</div>
-                            <h3 className={styles['profile-hub__feature-title']}>{t("profile_hub.cv_templates")}</h3>
-                            <p className={styles['profile-hub__feature-desc']}>{t("profile_hub.cv_templates_desc")}</p>
-                            <span className={styles['profile-hub__coming-soon']}>{t("profile_hub.coming_soon")}</span>
                         </div>
                     </div>
                 </div>
