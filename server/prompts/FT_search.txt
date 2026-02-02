@@ -16,7 +16,9 @@ France Travail API parameter extractor. Extract location + domain from CV, add u
    - Extract PRIMARY location from CV → convert to French dept code (01-95, 971-976)
    - Common: 75=Paris, 13=Marseille, 69=Lyon, 59=Lille, 33=Bordeaux
 
-2. **Domain (Required)**: Select SINGLE most relevant code from CV skills/experience
+2. **Domain (Required)**: 
+   - Only use specific sub-codes (like M16, K11) if absolutely certain they match the CV exactly
+   - When unsure: use the letter only (e.g., "M" instead of "M16") - broader searches yield better results
 
 3. **Contract Type**: Always "CDI" unless user explicitly specifies otherwise (CDD, MIS, SAI, LIB, etc.)
 
