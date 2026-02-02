@@ -26,8 +26,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--accent-color);
-    color: white;
+    background-color: var(--nb-accent-alt);
+    color: #fff;
     font-weight: bold;
     font-size: 0.875rem;
 }

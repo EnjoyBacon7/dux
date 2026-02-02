@@ -10,31 +10,29 @@ import random
 import requests
 import re
 import time
-import json
-import asyncio
-from typing import Optional, Dict, Any, List, Union, Tuple
 
-from fastapi import APIRouter, Query, Depends, HTTPException
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, Session
+from fastapi import APIRouter, Query, Depends
+from server.config import settings
+from server.models import Metier_ROME, User, Offres_FT, Competence_ROME, FavouriteJob
+from server.database import get_db_session
+import json
+from typing import Optional, Dict, Any, List, Union, Tuple
 from pydantic import BaseModel
 
-from server.config import settings
-from server.models import Metier_ROME, User, Offres_FT, Competence_ROME
-from server.database import get_db_session
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker, Session
+from tqdm.auto import tqdm
+
+from server.methods.FT_job_search import search_france_travail
 from server.thread_pool import run_blocking_in_executor
 from server.utils.dependencies import get_current_user
-
-# --- IMPORTS POUR LE MATCHING
-from server.methods.FT_job_search import search_france_travail, get_offer_by_id
 from server.methods.matching_engine import MatchingEngine
-# ----------------------------------------
+import asyncio
 
 from sentence_transformers import SentenceTransformer
+from fastapi import HTTPException
 
-# ============================================================================
-# Helpers
-# ============================================================================
 
 def _extract_url_from_text(text: str) -> Optional[str]:
     """
@@ -75,13 +73,18 @@ def get_token_api_FT(CLIENT_ID: str, CLIENT_SECRET: str, AUTH_URL: str, scope: s
     resp = requests.post(AUTH_URL, data=data, params=params, timeout=30)
     resp.raise_for_status()
     token = resp.json()["access_token"]
+
     return token
 
-def get_offers(code_rome: str) -> dict:
+
+def get_offers(code_rome: str) -> List[Dict[str, Any]]:
+    # Reuse centralized France Travail client with built-in retries/pagination
     return search_france_travail({"codeROME": code_rome}, nb_offres=300)
+
 
 def _to_float(s: str) -> float:
     return float(s.replace(",", "."))
+
 
 def _match_first(text: str, patterns: list[str]) -> re.Match:
     for pat in patterns:
@@ -90,20 +93,37 @@ def _match_first(text: str, patterns: list[str]) -> re.Match:
             return m
     raise ValueError("Format non reconnu")
 
+
 def _parse_amounts_and_months(text: str, prefix: str) -> Tuple[float, float]:
+    """
+    Returns (amount, nb_mois) where amount is:
+      - the single amount, or
+      - the average of (inf, sup) if a range is provided.
+
+    nb_mois defaults to 12.0 when not provided.
+    """
     patterns = [
+        # range + months
         rf"{prefix}\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois",
+        # range
         rf"{prefix}\s+de\s+([\d.,]+)\s*Euros\s+à\s+([\d.,]+)\s*Euros",
+        # single + months
         rf"{prefix}\s+de\s+([\d.,]+)\s*Euros\s+sur\s+([\d.,]+)\s*mois",
+        # single
         rf"{prefix}\s+de\s+([\d.,]+)\s*Euros",
     ]
+
     m = _match_first(text, patterns)
+
+    # Determine which case matched by number of captured groups
     if m.lastindex == 3:
         inf_ = _to_float(m.group(1))
         sup_ = _to_float(m.group(2))
         nb_mois = _to_float(m.group(3))
         amount = (inf_ + sup_) / 2.0
     elif m.lastindex == 2:
+        # Could be range (inf, sup) OR single+months (amount, months)
+        # Disambiguate via presence of "à" in the matched text.
         if "à" in m.group(0).lower():
             inf_ = _to_float(m.group(1))
             sup_ = _to_float(m.group(2))
@@ -117,32 +137,52 @@ def _parse_amounts_and_months(text: str, prefix: str) -> Tuple[float, float]:
         nb_mois = 12.0
     else:
         raise ValueError("Format non reconnu")
+
     return amount, nb_mois
 
+
 def _parse_nb_heures_semaine(texte_heure: Optional[str]) -> float:
+    """
+    Extract weekly hours; default to 35.0 if not found/parsable.
+    (No exceptions used for control flow.)
+    """
     if not texte_heure:
         return 35.0
+
+    # Keep your behavior: cut anything after "semaine"
     texte_heure = re.sub(r"(semaine)\b.*$", r"\1", texte_heure, flags=re.S | re.IGNORECASE)
+
+    # Temps partiel - XXH/semaine
     m = re.search(r"Temps\s+partiel\s+-\s+([\d.,]+)H/semaine\b", texte_heure, flags=re.IGNORECASE)
-    if m: return _to_float(m.group(1))
+    if m:
+        return _to_float(m.group(1))
+
+    # XXHYY/semaine (e.g., 35H30/semaine)
     m = re.search(r"([\d.,]+)H([\d.,]+)/semaine\b", texte_heure, flags=re.IGNORECASE)
     if m:
         heures = _to_float(m.group(1))
         minutes = _to_float(m.group(2))
         return heures + minutes / 60.0
+
+    # XXH/semaine
     m = re.search(r"([\d.,]+)H/semaine\b", texte_heure, flags=re.IGNORECASE)
-    if m: return _to_float(m.group(1))
+    if m:
+        return _to_float(m.group(1))
+
     return 35.0
+
 
 def _parse_mensuel(texte_salaire: str) -> float:
     salaire_mensuel, nb_mois = _parse_amounts_and_months(texte_salaire, "Mensuel")
     annuel = salaire_mensuel * nb_mois
     return annuel / 12.0
 
+
 def _parse_annuel(texte_salaire: str) -> float:
     salaire_annuel, nb_mois = _parse_amounts_and_months(texte_salaire, "Annuel")
     annuel_effectif = salaire_annuel * (nb_mois / 12.0)
     return annuel_effectif / 12.0
+
 
 def _parse_horaire(texte_salaire: str, texte_heure: Optional[str]) -> float:
     salaire_horaire, nb_mois = _parse_amounts_and_months(texte_salaire, "Horaire")
@@ -150,23 +190,37 @@ def _parse_horaire(texte_salaire: str, texte_heure: Optional[str]) -> float:
     annuel = salaire_horaire * nb_heures_semaine * 52.0 * (nb_mois / 12.0)
     return annuel / 12.0
 
+
 def calcul_salaire(texte_salaire: Optional[str], texte_heure: Optional[str]) -> Optional[float]:
-    if not texte_salaire: return None
+    """
+    Returns monthly salary as float, or None if salary text cannot be parsed.
+
+    Top-level catches only (ValueError, AttributeError) as requested.
+    """
+    if not texte_salaire:
+        return None
+
     ts = texte_salaire.strip()
+
     dispatch = {
         "mensuel": lambda: _parse_mensuel(ts),
         "horaire": lambda: _parse_horaire(ts, texte_heure),
         "annuel": lambda: _parse_annuel(ts),
     }
+
     try:
-        key = ts[:7].strip().lower()
+        key = ts[:7].strip().lower()  # "Mensuel", "Horaire", "Annuel"
         handler = dispatch.get(key)
         return handler() if handler else None
+
     except (ValueError, AttributeError) as e:
+        # Keep logs helpful; let unexpected exceptions bubble up.
         logger.info("calcul_salaire: parsing failed for texte_salaire=%r: %s", texte_salaire, e)
         return None
 
+
 def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize France Travail offers to the flat shape expected by the UI."""
     entreprise = offer.get("entreprise") or {}
     lieu = offer.get("lieuTravail") or {}
     salaire = offer.get("salaire") or {}
@@ -258,10 +312,21 @@ def _flatten_offer(offer: Dict[str, Any]) -> Dict[str, Any]:
         "experienceCommentaire": offer.get("experienceCommentaire"),
     }
 
+# ============================================================================
+# Router Setup
+# ============================================================================
+
+
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 logger = logging.getLogger(__name__)
 
-def _get_with_retry(url: str, headers: Dict[str, str], timeout: int, max_retries: int = 5, base_delay: float = 1.0) -> requests.Response:
+def _get_with_retry(
+    url: str,
+    headers: Dict[str, str],
+    timeout: int,
+    max_retries: int = 5,
+    base_delay: float = 1.0,
+) -> requests.Response:
     for attempt in range(max_retries + 1):
         resp = requests.get(url, headers=headers, timeout=timeout)
         if resp.status_code != 429:
@@ -270,60 +335,74 @@ def _get_with_retry(url: str, headers: Dict[str, str], timeout: int, max_retries
             logger.error("FT API rate limit exceeded after %s retries for %s", max_retries, url)
             resp.raise_for_status()
         delay = base_delay * (2 ** attempt) + random.uniform(0, base_delay)
-        logger.warning("FT API rate limit hit (attempt %s/%s). Retrying in %.2fs for %s", attempt + 1, max_retries, delay, url)
+        logger.warning(
+            "FT API rate limit hit (attempt %s/%s). Retrying in %.2fs for %s",
+            attempt + 1,
+            max_retries,
+            delay,
+            url,
+        )
         time.sleep(delay)
 
 # ============================================================================
 # Job Search Endpoints
 # ============================================================================
 
+
 @router.post("/load_offers", summary="Load offers from France Travail API")
 async def load_offers(
-    nb_offres: int = Query(150),
-    accesTravailleurHandicape: bool = Query(None),
-    appellation: str = Query(None),
-    codeNAF: str = Query(None),
-    codeROME: str = Query(None),
-    commune: str = Query(None),
-    departement: str = Query(None),
-    distance: int = Query(None),
-    domaine: str = Query(None),
-    dureeContratMax: str = Query(None),
-    dureeContratMin: str = Query(None),
-    dureeHebdo: str = Query(None),
-    dureeHebdoMax: str = Query(None),
-    dureeHebdoMin: str = Query(None),
-    employeursHandiEngages: bool = Query(None),
-    entreprisesAdaptees: bool = Query(None),
-    experience: str = Query(None),
-    experienceExigence: str = Query(None),
-    grandDomaine: str = Query(None),
-    inclureLimitrophes: bool = Query(None),
-    maxCreationDate: str = Query(None),
-    minCreationDate: str = Query(None),
-    modeSelectionPartenaires: str = Query(None),
-    motsCles: str = Query(None),
-    natureContrat: str = Query(None),
-    niveauFormation: str = Query(None),
-    offresMRS: bool = Query(None),
-    offresManqueCandidats: bool = Query(None),
-    origineOffre: int = Query(None),
-    partenaires: str = Query(None),
-    paysContinent: str = Query(None),
-    periodeSalaire: str = Query(None),
-    permis: str = Query(None),
-    publieeDepuis: int = Query(None),
-    qualification: str = Query(None),
-    content_range: str = Query(None, alias="range"),
-    region: str = Query(None),
-    salaireMin: str = Query(None),
-    secteurActivite: str = Query(None),
-    sort: str = Query(None),
-    tempsPlein: bool = Query(None),
-    theme: str = Query(None),
-    typeContrat: str = Query(None),
+    nb_offres: int = Query(150, description="Nombre d'offres à récupérer"),
+    accesTravailleurHandicape: bool = Query(
+        None, description="Offres ouvertes aux Bénéficiaires de l'Obligation d'Emploi"),
+    appellation: str = Query(None, description="Code appellation ROME de l'offre"),
+    codeNAF: str = Query(None, description="Code NAF (Code APE) de l'offre"),
+    codeROME: str = Query(None, description="Code ROME de l'offre"),
+    commune: str = Query(None, description="Code INSEE de la commune"),
+    departement: str = Query(None, description="Département de l'offre"),
+    distance: int = Query(None, description="Distance kilométrique du rayon de la recherche autour de la commune"),
+    domaine: str = Query(None, description="Domaine de l'offre"),
+    dureeContratMax: str = Query(None, description="Durée de contrat maximale (en mois)"),
+    dureeContratMin: str = Query(None, description="Durée de contrat minimale (en mois)"),
+    dureeHebdo: str = Query(None, description="Type de durée du contrat de l'offre"),
+    dureeHebdoMax: str = Query(None, description="Durée hebdomadaire maximale (format HHMM)"),
+    dureeHebdoMin: str = Query(None, description="Durée hebdomadaire minimale (format HHMM)"),
+    employeursHandiEngages: bool = Query(
+        None, description="Filtre les offres dont l'employeur est reconnu pour ses actions en faveur du handicap"),
+    entreprisesAdaptees: bool = Query(
+        None, description="Filtre les offres dont l'entreprise permet des conditions adaptées au handicap"),
+    experience: str = Query(None, description="Niveau d'expérience demandé"),
+    experienceExigence: str = Query(None, description="Exigence d'expérience"),
+    grandDomaine: str = Query(None, description="Code du grand domaine de l'offre"),
+    inclureLimitrophes: bool = Query(None, description="Inclure les départements limitrophes dans la recherche"),
+    maxCreationDate: str = Query(None, description="Date maximale pour laquelle rechercher des offres"),
+    minCreationDate: str = Query(None, description="Date minimale pour laquelle rechercher des offres"),
+    modeSelectionPartenaires: str = Query(None, description="Mode de sélection des partenaires"),
+    motsCles: str = Query(None, description="Mots clés pour la recherche"),
+    natureContrat: str = Query(None, description="Code de la nature du contrat"),
+    niveauFormation: str = Query(None, description="Niveau de formation demandé"),
+    offresMRS: bool = Query(None, description="Uniquement les offres avec méthode de recrutement par simulation"),
+    offresManqueCandidats: bool = Query(None, description="Filtre les offres difficiles à pourvoir"),
+    origineOffre: int = Query(None, description="Origine de l'offre"),
+    partenaires: str = Query(None, description="Liste des codes partenaires à inclure ou exclure"),
+    paysContinent: str = Query(None, description="Pays ou continent de l'offre"),
+    periodeSalaire: str = Query(None, description="Période pour le calcul du salaire minimum"),
+    permis: str = Query(None, description="Permis demandé"),
+    publieeDepuis: int = Query(None, description="Recherche les offres publiées depuis maximum X jours"),
+    qualification: str = Query(None, description="Qualification du poste"),
+    content_range: str = Query(None, description="Pagination des données"),
+    region: str = Query(None, description="Région de l'offre"),
+    salaireMin: str = Query(None, description="Salaire minimum recherché"),
+    secteurActivite: str = Query(None, description="Division NAF de l'offre"),
+    sort: str = Query(None, description="Tri des résultats"),
+    tempsPlein: bool = Query(None, description="Temps plein ou partiel"),
+    theme: str = Query(None, description="Thème ROME du métier"),
+    typeContrat: str = Query(None, description="Code du type de contrat"),
 ):
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
     try:
+        # Build FT parameters dictionary
         ft_parameters = {
             "accesTravailleurHandicape": accesTravailleurHandicape,
             "appellation": appellation,
@@ -368,49 +447,93 @@ async def load_offers(
             "theme": theme,
             "typeContrat": typeContrat,
         }
-        offers = await run_blocking_in_executor(search_france_travail, ft_parameters, nb_offres)
+
+        # Use centralized search method in thread pool to avoid blocking other clients
+        offers = await run_blocking_in_executor(
+            search_france_travail,
+            ft_parameters,
+            nb_offres
+        )
         if isinstance(offers, list):
             return [_flatten_offer(offer) for offer in offers]
         return offers
+
     except ValueError as e:
         logger.error(f"Error loading offers: {str(e)}")
         return {"error": str(e)}
     except Exception as e:
         logger.error(f"Error loading offers: {e}")
         return {"error": str(e)}
-
+    
 @router.post("/load_fiche_metier", summary="Load fiche metier from France Travail API (ROME)")
-def load_fiche_metier(codeROME: str = Query("A1413")):
+def load_fiche_metier(
+        codeROME: str = Query("A1413", description="Code ROME Offre à récupérer")
+    ):
+
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
     try:
         FT_CLIENT_ID = settings.ft_client_id
         FT_CLIENT_SECRET = settings.ft_client_secret
         FT_AUTH_URL = settings.ft_auth_url
         FT_API_URL_METIER = settings.ft_api_url_fiche_metier
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
         token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-        headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
-        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobiliseesprincipales(libelle,@macrosavoiretreprofessionnel(riasecmineur,riasecmajeur),@competencedetaillee(riasecmineur,riasecmajeur),code,@macrosavoirfaire(riasecmineur,riasecmajeur),codeogr),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
         
+        champs = "?champs=accesemploi,appellations(code,classification,libelle),centresinteretslies(centreinteret(libelle,code,definition)),code,libelle,competencesmobiliseesprincipales(libelle,@macrosavoiretreprofessionnel(riasecmineur,riasecmajeur),@competencedetaillee(riasecmineur,riasecmajeur),code,@macrosavoirfaire(riasecmineur,riasecmajeur),codeogr),contextestravail(libelle,code,categorie),definition,domaineprofessionnel(libelle,code,granddomaine(libelle,code)),metiersenproximite(libelle,code),secteursactiviteslies(secteuractivite(libelle,code,secteuractivite(libelle,code,definition),definition)),themes(libelle,code),emploicadre,emploireglemente,transitiondemographique,transitionecologique,transitionnumerique"
+
         try:
-            resp = _get_with_retry(FT_API_URL_METIER + f"/{codeROME}" + champs, headers=headers, timeout=30)
+            resp = _get_with_retry(
+                FT_API_URL_METIER + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
             resp.raise_for_status()
             data = resp.json()
+            # Getting offers info from france travail API
             liste_offres = get_offers(codeROME)
             salaire = []
             for offre in liste_offres:
                 salaire_obj = offre.get('salaire') or {}
-                salaire.append(calcul_salaire(salaire_obj.get('libelle'), offre.get('dureeTravailLibelle')))
+                salaire.append(calcul_salaire(
+                    salaire_obj.get('libelle'),
+                    offre.get('dureeTravailLibelle')
+                ))
         except (requests.RequestException, KeyError) as e:
             logger.warning("Initial fiche metier request failed, retrying with new token: %s", e)
             token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-            headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
-            resp = _get_with_retry(FT_API_URL_METIER + f"/{codeROME}" + champs, headers=headers, timeout=30)
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = _get_with_retry(
+                FT_API_URL_METIER + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
             resp.raise_for_status()
             data = resp.json()
+
+            # Getting offers info from france travail API
             liste_offres = get_offers(codeROME)
             salaire = []
             for offre in liste_offres:
                 salaire_obj = offre.get('salaire') or {}
-                salaire.append(calcul_salaire(salaire_obj.get('libelle'), offre.get('dureeTravailLibelle')))
+                salaire.append(calcul_salaire(
+                    salaire_obj.get('libelle'),
+                    offre.get('dureeTravailLibelle')
+                ))
 
         if len(liste_offres) == 0:
             data['nb_offre'] = 0
@@ -418,21 +541,41 @@ def load_fiche_metier(codeROME: str = Query("A1413")):
         else:
             data['nb_offre'] = len(liste_offres)
             data['liste_salaire_offre'] = salaire
+
         return data
+
     except Exception as e:
         return {"error": str(e)}
 
+
 @router.post("/load_code_metier", summary="Load code metier from France Travail API (ROME)")
 def load_code_metier():
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
     try:
         FT_CLIENT_ID = settings.ft_client_id
         FT_CLIENT_SECRET = settings.ft_client_secret
         FT_AUTH_URL = settings.ft_auth_url
         FT_API_URL_CODE_METIER = settings.ft_api_url_code_metier
         DATABASE_URL = settings.database_url
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
         token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-        headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        # Récupérer les codes métiers ROME
         code_metier = []
+
+        # Getting the list of ROME codes
         try:
             resp = requests.get(FT_API_URL_CODE_METIER, headers=headers, timeout=30)
             resp.raise_for_status()
@@ -440,74 +583,139 @@ def load_code_metier():
         except (requests.RequestException, KeyError) as e:
             logger.warning("Initial code metier request failed, retrying with new token: %s", e)
             token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-            headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
             resp = requests.get(FT_API_URL_CODE_METIER, headers=headers, timeout=30)
             resp.raise_for_status()
             data = resp.json()
 
 
         code_metier += data
+
+
         logger.info(f"Enregistrement des codes métiers : {len(code_metier)} obtenues.")
         engine = create_engine(DATABASE_URL)
         Session = sessionmaker(bind=engine)
+
         if not code_metier:
-            return {"message": "Aucun code métier reçue"}
+            logger.warning("Aucun code métier reçu, rien à sauvegarder.")  
+            return {"message": "Aucun code métier reçue"} 
+
         session = Session()
         session.execute(text("TRUNCATE TABLE Metier_ROME RESTART IDENTITY CASCADE;"))
+
         try:
             for fiche in code_metier:
-                fiche_insert = Metier_ROME(code=fiche.get("code"), libelle=fiche.get("libelle"))
+                fiche_insert = Metier_ROME(
+                    code = fiche.get("code"),
+                    libelle = fiche.get("libelle"),
+                                )
                 try:
                     session.add(fiche_insert)
                 except Exception as e:
                     logger.exception(f"Erreur lors de l'ajout du métier {fiche.get('code')}: {e}")
                     continue
+
             session.commit()
         except Exception as e:
             session.rollback()
             logger.error(f"Erreur lors de la sauvegarde des métiers ROME : {str(e)}", exc_info=True)
         finally:
             session.close()
+
         return {"message": f"{len(code_metier)} métiers ROME chargées et sauvegardées avec succès"}
+
     except Exception as e:
         return {"error": str(e)}
+    
 
 @router.post("/load_fiche_competence", summary="Load fiche competence from France Travail API (ROME)")
-def load_fiche_competence(codeROME: str = Query("100253")):
+def load_fiche_competence(
+        codeROME : str = Query("100253", description="Code ROME Compétence à récupérer")
+    ):
+
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
     try:
         FT_CLIENT_ID = settings.ft_client_id
         FT_CLIENT_SECRET = settings.ft_client_secret
         FT_AUTH_URL = settings.ft_auth_url
         FT_API_URL_COMPETENCE = settings.ft_api_url_fiche_competence
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
         token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
-        headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+        
         champs = ""
+        
         try:
-            resp = _get_with_retry(FT_API_URL_COMPETENCE + f"/{codeROME}" + champs, headers=headers, timeout=30)
+            resp = _get_with_retry(
+                FT_API_URL_COMPETENCE + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
             resp.raise_for_status()
             data = resp.json()
         except (requests.RequestException, KeyError) as e:
             logger.warning("Initial fiche metier request failed, retrying with new token: %s", e)
             token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
-            headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
-            resp = _get_with_retry(FT_API_URL_COMPETENCE + f"/{codeROME}" + champs, headers=headers, timeout=30)
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+            resp = _get_with_retry(
+                FT_API_URL_COMPETENCE + f"/{codeROME}" + champs,
+                headers=headers,
+                timeout=30,
+            )
             resp.raise_for_status()
             data = resp.json()
+
         return data
+
     except Exception as e:
         return {"error": str(e)}
 
+
 @router.post("/load_code_competences", summary="Load code competences from France Travail API (ROME)")
 def load_code_competences():
+    """
+    Charge des données depuis l'API France Travail en fonction des paramètres de recherche.
+    """
+
     try:
         FT_CLIENT_ID = settings.ft_client_id
         FT_CLIENT_SECRET = settings.ft_client_secret
         FT_AUTH_URL = settings.ft_auth_url
         FT_API_URL_CODE_COMPETENCE = settings.ft_api_url_code_competence
         DATABASE_URL = settings.database_url
+
+        """
+        Récupère un token OAuth2 en mode client_credentials.
+        """
+
         token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-competencesv1 nomenclatureRome")
-        headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        }
+
+        # Récupérer les codes compétence ROME
         code_competence = []
+
+        # Getting the list of ROME codes
         try:
             resp = requests.get(FT_API_URL_CODE_COMPETENCE, headers=headers, timeout=30)
             resp.raise_for_status()
@@ -515,33 +723,49 @@ def load_code_competences():
         except (requests.RequestException, KeyError) as e:
             logger.warning("Initial code metier request failed, retrying with new token: %s", e)
             token = get_token_api_FT(FT_CLIENT_ID, FT_CLIENT_SECRET, FT_AUTH_URL, "api_rome-metiersv1 nomenclatureRome")
-            headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
             resp = requests.get(FT_API_URL_CODE_COMPETENCE, headers=headers, timeout=30)
             resp.raise_for_status()
             data = resp.json()
+
         code_competence += data
+
+
         logger.info(f"Enregistrement des codes compétences : {len(code_competence)} obtenues.")
         engine = create_engine(DATABASE_URL)
         Session = sessionmaker(bind=engine)
+
         if not code_competence:
-            return {"message": "Aucun code competence reçue"}
+            logger.warning("Aucun code competence reçu, rien à sauvegarder.")  
+            return {"message": "Aucun code competence reçue"} 
+
         session = Session()
         session.execute(text("TRUNCATE TABLE Competence_ROME RESTART IDENTITY CASCADE;"))
+
         try:
             for fiche in code_competence:
-                fiche_insert = Competence_ROME(code=fiche.get("code"), libelle=fiche.get("libelle"))
+                fiche_insert = Competence_ROME(
+                    code = fiche.get("code"),
+                    libelle = fiche.get("libelle"),
+                                )
                 try:
                     session.add(fiche_insert)
                 except Exception as e:
                     logger.exception(f"Erreur lors de l'ajout du métier {fiche.get('code')}: {e}")
                     continue
+
             session.commit()
         except Exception as e:
             session.rollback()
             logger.error(f"Erreur lors de la sauvegarde des compétences ROME : {str(e)}", exc_info=True)
         finally:
             session.close()
+
         return {"message": f"{len(code_competence)} compétences ROME chargées et sauvegardées avec succès"}
+
     except Exception as e:
         return {"error": str(e)}
 
@@ -549,17 +773,14 @@ def load_code_competences():
 #  Analyse IA (Helpers & Routes)
 # ============================================================================
 
+
 def _run_analysis_in_thread(
     user_id: int,
     job_id: Optional[str],
     job_payload: Optional[Dict[str, Any]],
     bind,
-    lang: str = "fr"
+    lang: str = "fr"  # <--- Ajout du paramètre
 ):
-    """
-    Exécute le matching dans un thread séparé.
-    Utilise exclusivement user.cv_text (Raw Text en BDD) via le MatchingEngine.
-    """
     SessionLocal = sessionmaker(bind=bind)
     with SessionLocal() as session:
         user = session.get(User, user_id)
@@ -567,18 +788,16 @@ def _run_analysis_in_thread(
             raise ValueError("Utilisateur introuvable dans le thread")
 
         if job_payload is None:
-            # Cas 1: Analyse par ID d'offre existante en base
             job = session.query(Offres_FT).filter(Offres_FT.id == job_id).first()
             if not job:
                 raise ValueError("Offre introuvable dans le thread")
         else:
-            # Cas 2: Analyse d'une offre passée en JSON
             comps = job_payload.get('competences')
             if isinstance(comps, (list, dict)):
                 comps = json.dumps(comps)
 
             job = Offres_FT(
-                id=job_payload.get('id', 'temp_id'),
+                id=job_payload.get('id'),
                 intitule=job_payload.get('intitule'),
                 description=job_payload.get('description'),
                 entreprise_nom=job_payload.get('entreprise_nom'),
@@ -586,8 +805,39 @@ def _run_analysis_in_thread(
             )
 
         engine = MatchingEngine(session)
-        # Signature propre : (User, Job, Lang)
-        return engine.analyser_match(user, job, lang=lang)
+        return engine.analyser_match(user, job, lang)
+
+
+@router.get("/analyze/{job_id}")
+async def analyze_specific_job(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_session)
+):
+    bind = db.get_bind()
+    user_id = current_user.id
+    logger.info(f"Analyse demandée par : {current_user.username} pour l'offre {job_id}")
+
+    try:
+        evaluation = await asyncio.to_thread(
+            _run_analysis_in_thread,
+            user_id,
+            job_id,
+            None,
+            bind,
+            "fr"
+        )
+
+        offre = db.query(Offres_FT).filter(Offres_FT.id == job_id).first()
+        return {
+            "status": "success",
+            "candidat": {"nom": f"{current_user.first_name} {current_user.last_name}"},
+            "job": {"id": job_id, "intitule": offre.intitule if offre else "N/A"},
+            "analysis": evaluation
+        }
+    except Exception as e:
+        logger.error(f"Erreur critique analyse : {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 class JobDataForAnalysis(BaseModel):
@@ -605,21 +855,11 @@ async def analyze_job_direct(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_session)
 ):
-    """
-    Analyse basée sur cv_text.
-    """
     bind = db.get_bind()
     user_id = current_user.id
-    lang = job_data.lang
+    lang = job_data.lang  # <--- On récupère la langue
 
     logger.info(f"Analyse directe ({lang}) demandée par : {current_user.username}")
-
-    # 1. Vérification simple : On veut juste du texte
-    if not current_user.cv_text or len(current_user.cv_text) < 10:
-        raise HTTPException(
-            status_code=400, 
-            detail="Votre profil ne contient pas de texte de CV exploitable. Veuillez ré-uploader votre CV."
-        )
 
     try:
         payload = job_data.model_dump()
@@ -627,10 +867,10 @@ async def analyze_job_direct(
         evaluation = await asyncio.to_thread(
             _run_analysis_in_thread,
             user_id,
-            None,      # Pas d'ID de job BDD
-            payload,   # Payload JSON
+            None,
+            payload,
             bind,
-            lang       # Langue
+            lang  # <--- On la passe au thread
         )
 
         return {
@@ -641,27 +881,190 @@ async def analyze_job_direct(
         }
     except Exception as e:
         logger.error(f"Erreur critique analyse directe : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur lors de l'analyse du CV.")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Job Favourites (Tracker) - must be defined before /offer/{job_id}
+# ============================================================================
+
+
+class AddFavouriteJobPayload(BaseModel):
+    job_id: str
+    intitule: Optional[str] = None
+    entreprise_nom: Optional[str] = None
+    rome_code: Optional[str] = None
+
+
+class FavouriteJobResponse(BaseModel):
+    jobId: str
+    intitule: str
+    entreprise_nom: Optional[str] = None
+    romeCode: Optional[str] = None
+    addedAt: Optional[str] = None
+
+
+@router.get(
+    "/favourites",
+    summary="List current user's favourite jobs",
+    response_model=List[FavouriteJobResponse],
+)
+def list_favourite_jobs(
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> List[FavouriteJobResponse]:
+    rows = (
+        db.query(FavouriteJob)
+        .filter(FavouriteJob.user_id == current_user.id)
+        .order_by(FavouriteJob.created_at.desc())
+        .all()
+    )
+    return [
+        FavouriteJobResponse(
+            jobId=r.job_id,
+            intitule=r.intitule or r.job_id,
+            entreprise_nom=r.entreprise_nom,
+            romeCode=r.rome_code,
+            addedAt=r.created_at.isoformat() if r.created_at else None,
+        )
+        for r in rows
+    ]
+
+
+@router.post(
+    "/favourites",
+    summary="Add job to favourites",
+    response_model=FavouriteJobResponse,
+)
+def add_favourite_job(
+    payload: AddFavouriteJobPayload,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> FavouriteJobResponse:
+    job_id = (payload.job_id or "").strip()
+    if not job_id:
+        raise HTTPException(status_code=400, detail="job_id is required")
+    existing = (
+        db.query(FavouriteJob)
+        .filter(
+            FavouriteJob.user_id == current_user.id,
+            FavouriteJob.job_id == job_id,
+        )
+        .first()
+    )
+    if existing:
+        return FavouriteJobResponse(
+            jobId=existing.job_id,
+            intitule=existing.intitule or existing.job_id,
+            entreprise_nom=existing.entreprise_nom,
+            romeCode=existing.rome_code,
+            addedAt=existing.created_at.isoformat() if existing.created_at else None,
+        )
+    fj = FavouriteJob(
+        user_id=current_user.id,
+        job_id=job_id,
+        intitule=(payload.intitule or "").strip() or None,
+        entreprise_nom=(payload.entreprise_nom or "").strip() or None,
+        rome_code=(payload.rome_code or "").strip() or None,
+    )
+    try:
+        db.add(fj)
+        db.commit()
+        db.refresh(fj)
+        return FavouriteJobResponse(
+            jobId=fj.job_id,
+            intitule=fj.intitule or fj.job_id,
+            entreprise_nom=fj.entreprise_nom,
+            romeCode=fj.rome_code,
+            addedAt=fj.created_at.isoformat() if fj.created_at else None,
+        )
+    except IntegrityError:
+        db.rollback()
+        existing = (
+            db.query(FavouriteJob)
+            .filter(
+                FavouriteJob.user_id == current_user.id,
+                FavouriteJob.job_id == job_id,
+            )
+            .first()
+        )
+        if not existing:
+            raise HTTPException(
+                status_code=409,
+                detail="Duplicate favourite job; concurrent insert. Retry to fetch existing.",
+            )
+        return FavouriteJobResponse(
+            jobId=existing.job_id,
+            intitule=existing.intitule or existing.job_id,
+            entreprise_nom=existing.entreprise_nom,
+            romeCode=existing.rome_code,
+            addedAt=existing.created_at.isoformat() if existing.created_at else None,
+        )
+
+
+@router.delete("/favourites/{job_id}", summary="Remove job from favourites")
+def remove_favourite_job(
+    job_id: str,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    row = (
+        db.query(FavouriteJob)
+        .filter(
+            FavouriteJob.user_id == current_user.id,
+            FavouriteJob.job_id == job_id,
+        )
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Favourite job not found")
+    db.delete(row)
+    db.commit()
+    return None
+
 
 @router.get("/offer/{job_id}", summary="Get job offer details by ID")
 async def get_job_offer(
     job_id: str,
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
+    """
+    Fetch full job offer details from France Travail API by ID.
+    Used by frontend to display full job details when showing optimal offers.
+    """
     try:
+        from server.methods.FT_job_search import get_offer_by_id
+
         offer_data = await asyncio.to_thread(get_offer_by_id, job_id)
+
+        # Flatten the offer structure to match frontend expectations
         flattened_offer = _flatten_offer(offer_data)
-        return {"status": "success", "offer": flattened_offer}
+
+        return {
+            "status": "success",
+            "offer": flattened_offer
+        }
+
     except ValueError as e:
         error_msg = str(e).lower()
+
+        # Check if it's a "not found" error (404)
         if "not found" in error_msg:
+            logger.warning(f"Job offer not found: job_id={job_id}, error={str(e)}")
             raise HTTPException(status_code=404, detail=f"Job offer {job_id} not found")
+
+        # Check if it's a "bad request" error (400)
         elif "bad request" in error_msg:
+            logger.warning(f"Bad request for job offer: job_id={job_id}, error={str(e)}")
             raise HTTPException(status_code=400, detail=str(e))
+
+        # Other ValueError cases - log and return 500
         else:
+            logger.error(f"Error fetching job offer: job_id={job_id}, error={str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error fetching job offer: {e}")
+        logger.error(f"Unexpected error fetching job offer: job_id={job_id}, error={str(e)}, type={type(e).__name__}")
         raise HTTPException(status_code=500, detail=str(e))
