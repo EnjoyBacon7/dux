@@ -3491,7 +3491,7 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Gespeichert',
         pt: 'Salvo',
         la: 'Servatum'
-
+    },
     // Tracker (Favourite Occupations) page
     'tracker.title': {
         en: 'Tracker',
