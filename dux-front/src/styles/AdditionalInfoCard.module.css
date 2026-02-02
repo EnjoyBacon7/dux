@@ -1,0 +1,125 @@
+/* ===== ADDITIONAL INFO CARD MODULE ===== */
+
+.additional-info-card {
+    display: flex;
+    flex-direction: column;
+    grid-column: 1 / -1;
+    gap: 1rem;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-description {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.info-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius, 8px);
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: vertical;
+    color: var(--text-primary);
+    background-color: var(--input-bg, var(--bg-secondary));
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-textarea:hover {
+    border-color: var(--border-color-hover, var(--border-color));
+}
+
+.info-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+}
+
+.info-textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.action-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.save-button {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius, 8px);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.save-button:hover:not(:disabled) {
+    background-color: var(--primary-color-hover, #2563eb);
+    transform: translateY(-1px);
+}
+
+.save-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.save-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.save-button.success {
+    background-color: var(--success-color, #10b981);
+}
+
+.success-message {
+    display: flex;
+    align-items: center;
+    color: var(--success-color, #10b981);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.error-message {
+    display: flex;
+    align-items: center;
+    color: var(--error-color, #ef4444);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.help-text {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-tertiary, var(--text-secondary));
+    line-height: 1.4;
+    font-style: italic;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .info-textarea {
+        background-color: var(--input-bg, rgba(255, 255, 255, 0.05));
+        color: var(--text-primary);
+    }
+
+    .info-textarea:focus {
+        box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+    }
+}

@@ -4,7 +4,7 @@ You are a professional job matching expert. Analyze the following CV and job off
 
 {cv_text}
 
-{preferences}
+{preferences}{matching_context}
 
 ## AVAILABLE JOB OFFERS
 

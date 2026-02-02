@@ -45,7 +45,11 @@ async def generate_optimal_offers_for_user(user_id: int, db: Session) -> None:
         logger.info(f"Generating optimal offers for user {user_id} ({user.username})")
 
         # Identify France Travail parameters from CV
-        ft_result = await identify_ft_parameters(user.cv_text)
+        ft_result = await identify_ft_parameters(
+            user.cv_text,
+            preferences=None,
+            matching_context=user.matching_context
+        )
         ft_parameters = ft_result.get("parameters", {})
 
         # Generate optimal offers (will be cached in database)

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useAuth } from "./contexts/useAuth";
-import { Header, AccountCard, JobOffersCard, WelcomeCard, CVUploadForm, CVPreview, CVScoreCard } from "./components";
+import { Header, AccountCard, JobOffersCard, WelcomeCard, CVUploadForm, CVPreview, CVScoreCard, AdditionalInfoCard } from "./components";
 import styles from "./styles/Home.module.css";
 
 const Home: React.FC = () => {
@@ -33,6 +33,7 @@ const Home: React.FC = () => {
                     <CVUploadForm onSuccess={handleCvUploadSuccess} />
                     <CVScoreCard hasCv={hasCv} refreshTrigger={cvRefreshTrigger} />
                     <CVPreview hasCV={hasCv} cvFilename={user.cv_filename} />
+                    <AdditionalInfoCard initialValue={user.matching_context || ""} />
                     <JobOffersCard />
                 </div>
             </main>
