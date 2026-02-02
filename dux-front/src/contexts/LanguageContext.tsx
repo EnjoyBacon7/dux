@@ -2159,6 +2159,22 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Cancelar',
         la: 'Revocare'
     },
+    'common.loading': {
+        en: 'Loading...',
+        es: 'Cargando...',
+        fr: 'Chargement...',
+        de: 'Laden...',
+        pt: 'Carregando...',
+        la: 'Loading...'
+    },
+    'common.yes': {
+        en: 'Yes',
+        es: 'Sí',
+        fr: 'Oui',
+        de: 'Ja',
+        pt: 'Sim',
+        la: 'Ita'
+    },
     'common.deleting': {
         en: 'Deleting...',
         es: 'Eliminando...',
@@ -2805,6 +2821,176 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         de: 'Anzeigen',
         pt: 'Ver',
         la: 'Videre'
+    },
+    'profile_hub.advisor': {
+        en: 'My Orientation Advisor',
+        es: 'Mi Asesor de Orientación',
+        fr: 'Mon conseiller en orientation',
+        de: 'Mein Orientierungsberater',
+        pt: 'Meu Conselheiro de Orientação',
+        la: 'Consiliarius Orientationis'
+    },
+    'profile_hub.advisor_desc': {
+        en: 'Career guidance, cover letter help, and CV tips',
+        es: 'Orientación profesional, ayuda con cartas de motivación y consejos de CV',
+        fr: 'Orientation carrière, aide à la lettre de motivation et conseils CV',
+        de: 'Karriereberatung, Hilfe beim Anschreiben und CV-Tipps',
+        pt: 'Orientação de carreira, ajuda com carta de motivação e dicas de CV',
+        la: 'Consilium curriculum, auxilium epistulae et consilia CV'
+    },
+    'profile_hub.view_advisor': {
+        en: 'Open Advisor',
+        es: 'Abrir Asesor',
+        fr: 'Ouvrir le conseiller',
+        de: 'Berater öffnen',
+        pt: 'Abrir Conselheiro',
+        la: 'Aperire Consiliarium'
+    },
+    'profile_hub.back': {
+        en: 'Back to Profile Hub',
+        es: 'Volver al Centro de Perfil',
+        fr: 'Retour au Hub Profil',
+        de: 'Zurück zum Profil-Hub',
+        pt: 'Voltar ao Hub do Perfil',
+        la: 'Redire ad Centrum Profili'
+    },
+
+    // Advisor (orientation / cover letter / CV tips) chat
+    'advisor.new_chat': {
+        en: 'New chat',
+        es: 'Nueva conversación',
+        fr: 'Nouvelle conversation',
+        de: 'Neuer Chat',
+        pt: 'Nova conversa',
+        la: 'Novus colloquium'
+    },
+    'advisor.untitled': {
+        en: 'No title',
+        es: 'Sin título',
+        fr: 'Sans titre',
+        de: 'Ohne Titel',
+        pt: 'Sem título',
+        la: 'Sine titulo'
+    },
+    'advisor.no_conversations': {
+        en: 'No conversations yet',
+        es: 'Aún no hay conversaciones',
+        fr: 'Aucune conversation pour l\'instant',
+        de: 'Noch keine Gespräche',
+        pt: 'Nenhuma conversa ainda',
+        la: 'Nondum colloquia'
+    },
+    'advisor.rename': {
+        en: 'Rename',
+        es: 'Renombrar',
+        fr: 'Renommer',
+        de: 'Umbenennen',
+        pt: 'Renomear',
+        la: 'Renominare'
+    },
+    'advisor.delete': {
+        en: 'Delete',
+        es: 'Eliminar',
+        fr: 'Supprimer',
+        de: 'Löschen',
+        pt: 'Excluir',
+        la: 'Delere'
+    },
+    'advisor.delete_confirm': {
+        en: 'Delete this conversation?',
+        es: '¿Eliminar esta conversación?',
+        fr: 'Supprimer cette conversation ?',
+        de: 'Dieses Gespräch löschen?',
+        pt: 'Excluir esta conversa?',
+        la: 'Hoc colloquium delere?'
+    },
+    'advisor.intent.orientation': {
+        en: 'Orientation',
+        es: 'Orientación',
+        fr: 'Orientation',
+        de: 'Orientierung',
+        pt: 'Orientação',
+        la: 'Orientatio'
+    },
+    'advisor.intent.cover_letter': {
+        en: 'Cover letter',
+        es: 'Carta de motivación',
+        fr: 'Lettre de motivation',
+        de: 'Anschreiben',
+        pt: 'Carta de motivação',
+        la: 'Epistula motivationis'
+    },
+    'advisor.intent.cv_tips': {
+        en: 'CV tips',
+        es: 'Consejos de CV',
+        fr: 'Conseils CV',
+        de: 'CV-Tipps',
+        pt: 'Dicas de CV',
+        la: 'Consilia CV'
+    },
+    'advisor.placeholder': {
+        en: 'Type your message...',
+        es: 'Escribe tu mensaje...',
+        fr: 'Écrivez votre message...',
+        de: 'Nachricht eingeben...',
+        pt: 'Digite sua mensagem...',
+        la: 'Scribe nuntium tuum...'
+    },
+    'advisor.send': {
+        en: 'Send',
+        es: 'Enviar',
+        fr: 'Envoyer',
+        de: 'Senden',
+        pt: 'Enviar',
+        la: 'Mittere'
+    },
+    'advisor.cv_feedback': {
+        en: 'You have CV feedback. The advisor can use it for orientation and CV tips.',
+        es: 'Tienes comentarios de CV. El asesor puede usarlos para orientación y consejos de CV.',
+        fr: 'Vous avez des retours sur votre CV. Le conseiller peut les utiliser pour l\'orientation et les conseils CV.',
+        de: 'Sie haben CV-Feedback. Der Berater kann es für Orientierung und CV-Tipps nutzen.',
+        pt: 'Você tem feedback de CV. O conselheiro pode usá-lo para orientação e dicas de CV.',
+        la: 'Habes responsum CV. Consiliarius potest uti ad orientationem et consilia CV.'
+    },
+    'advisor.select_job': {
+        en: 'Select a job for the cover letter',
+        es: 'Selecciona un trabajo para la carta de motivación',
+        fr: 'Choisir une offre pour la lettre de motivation',
+        de: 'Stelle für das Anschreiben auswählen',
+        pt: 'Selecione um emprego para a carta de motivação',
+        la: 'Elige officium pro epistula motivationis'
+    },
+    'advisor.current_job': {
+        en: 'Current job (from link)',
+        es: 'Trabajo actual (desde enlace)',
+        fr: 'Offre actuelle (depuis le lien)',
+        de: 'Aktuelle Stelle (vom Link)',
+        pt: 'Emprego atual (do link)',
+        la: 'Officium actuale (ex link)'
+    },
+    'advisor.cover_letter_help': {
+        en: 'Help with cover letter',
+        es: 'Ayuda con carta de motivación',
+        fr: 'Aide à la lettre',
+        de: 'Hilfe beim Anschreiben',
+        pt: 'Ajuda com carta de motivação',
+        la: 'Auxilium epistulae'
+    },
+    'advisor.intent_label': {
+        en: 'Intent',
+        es: 'Intención',
+        fr: 'Intention',
+        de: 'Absicht',
+        pt: 'Intenção',
+        la: 'Intentio'
+    },
+    'advisor.job_details': {
+        en: 'Job details',
+        es: 'Detalles del trabajo',
+        fr: 'Détails de l\'offre',
+        de: 'Stellendetails',
+        pt: 'Detalhes da vaga',
+        la: 'Details officii'
     },
 
     // Job detail: AI match analysis button

@@ -7,6 +7,6 @@ This package contains specialized routers for different API functionalities:
 - jobs_router: Job search integration with France Travail API
 """
 
-from . import chat_router, profile_router, jobs_router, metiers_router
+from . import chat_router, profile_router, jobs_router, metiers_router, advisor_router
 
-__all__ = ["chat_router", "profile_router", "jobs_router", "metiers_router"]
+__all__ = ["chat_router", "profile_router", "jobs_router", "metiers_router", "advisor_router"]

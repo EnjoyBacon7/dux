@@ -631,7 +631,7 @@ async def update_user_profile(
                 import asyncio
                 db_session = SessionLocal()
                 try:
-                    asyncio.run(generate_optimal_offers_for_user(user.id, db_session))
+                    asyncio.run(generate_optimal_offers_for_user(user.id, db_session, force_refresh=True))
                     logger.info(f"Optimal offers regeneration triggered for user {user.id} after matching_context update")
                 except Exception as e:
                     logger.error(f"Error regenerating optimal offers for user {user.id}: {str(e)}")
