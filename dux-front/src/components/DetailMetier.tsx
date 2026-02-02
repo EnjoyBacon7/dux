@@ -30,6 +30,9 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
   const [err, setErr] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [cvComparisonText, setCvComparisonText] = useState<string>("Loading CV...");
+  const [isFavourited, setIsFavourited] = useState<boolean>(false);
+  const [favouritesLoading, setFavouritesLoading] = useState<boolean>(false);
+  const [favouriteActionLoading, setFavouriteActionLoading] = useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -194,6 +197,42 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
 
   useEffect(() => {
     let cancelled = false;
+    if (!romeCode) return;
+
+    async function loadFavourites() {
+      setFavouritesLoading(true);
+      setIsFavourited(false);
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/metiers/favourites`, {
+          credentials: "include",
+        });
+        if (!res.ok) {
+          if (!cancelled) setFavouritesLoading(false);
+          return;
+        }
+        const data = (await res.json()) as { favourites?: Array<{ romeCode: string }> };
+        const list = Array.isArray(data?.favourites) ? data.favourites : [];
+        if (!cancelled) {
+          setIsFavourited(list.some((r) => r.romeCode === romeCode));
+        }
+      } finally {
+        if (!cancelled) setFavouritesLoading(false);
+      }
+    }
+
+    loadFavourites().catch((e) => {
+      if (!cancelled) {
+        setFavouritesLoading(false);
+        console.error("Failed to load favourites:", e);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [romeCode, apiBaseUrl]);
+
+  useEffect(() => {
+    let cancelled = false;
 
     const buildCvComparisonText = (cvTextValue: string | null) => {
       const cleaned = (cvTextValue ?? "").replace(/\s+/g, " ").trim();
@@ -244,6 +283,46 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
         {index < parts.length - 1 ? <br /> : null}
       </React.Fragment>
     ));
+  };
+
+  const handleToggleFavourite = async () => {
+    if (!data || favouriteActionLoading || favouritesLoading) return;
+    setFavouriteActionLoading(true);
+    try {
+      if (isFavourited) {
+        const res = await fetch(
+          `${apiBaseUrl}/api/metiers/favourites/${encodeURIComponent(data.romeCode)}`,
+          { method: "DELETE", credentials: "include" }
+        );
+        if (res.ok) {
+          setIsFavourited(false);
+        } else {
+          console.error("Failed to remove favourite");
+          // Consider showing user feedback
+        }
+      } else {
+        const res = await fetch(`${apiBaseUrl}/api/metiers/favourites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            romeCode: data.romeCode,
+            romeLibelle: data.romeLibelle ?? null,
+          }),
+        });
+        if (res.ok) {
+          setIsFavourited(true);
+        } else {
+          console.error("Failed to add favourite");
+          // Consider showing user feedback
+        }
+      }
+    } catch (e) {
+      console.error("Favourite toggle error:", e);
+      // Consider showing user feedback
+    } finally {
+      setFavouriteActionLoading(false);
+    }
   };
 
   if (loading) {
@@ -413,8 +492,13 @@ const MetierDetailPanel: React.FC<Props> = ({ romeCode, apiBaseUrl = "" }) => {
               >
                 {t("metiers.detail.action_offers")}
               </button>
-              <button type="button" className={`nb-btn ${styles["wm-action-btn"]}`}>
-                {t("metiers.detail.action_favorite")}
+              <button
+                type="button"
+                className={`nb-btn ${styles["wm-action-btn"]}`}
+                onClick={handleToggleFavourite}
+                disabled={favouritesLoading || favouriteActionLoading}
+              >
+                {isFavourited ? t("metiers.detail.action_unfavorite") : t("metiers.detail.action_favorite")}
               </button>
             </div>
           </section>
