@@ -10,7 +10,7 @@ import logging
 import base64
 from io import BytesIO
 from typing import AsyncIterator, Optional, Dict, Any, List, Union, TYPE_CHECKING
-from openai import OpenAI
+from openai import APIError, OpenAI
 
 from server.config import settings
 from server.utils.openai_client import create_openai_client, create_async_openai_client
@@ -408,6 +408,11 @@ async def stream_llm_messages_async(
                 content = chunk.choices[0].delta.content
                 if content:
                     yield content
-    except Exception as e:
+    except APIError as e:
         logger.exception("LLM stream failed")
         raise ValueError("LLM stream failed") from e
+    except Exception as e:
+        logger.exception("LLM stream failed")
+        raise
+    finally:
+        await client.aclose()

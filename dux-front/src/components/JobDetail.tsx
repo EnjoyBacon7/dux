@@ -3,8 +3,8 @@ import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
 import JobMatchAnalysis from "./JobMatchAnalysis";
-import { useLanguage } from "../contexts/useLanguage";
 import type { JobOffer } from "../types/job";
+import { useLanguage } from "../contexts/useLanguage";
 import styles from "../styles/job-detail.module.css";
 
 // Re-export types for backward compatibility
@@ -132,13 +132,20 @@ const JobDetail: React.FC<JobDetailProps> = ({ job, onClose }) => {
         return exigence;
     };
 
-    const normalizeArray = <T = unknown>(value: unknown, fieldName?: string): T[] => {
+    const normalizeArray = <T = unknown>(
+        value: unknown,
+        fieldName?: string,
+        isItem?: (item: unknown) => item is T
+    ): T[] => {
         if (value === null || value === undefined) return [];
-        if (Array.isArray(value)) return value as T[];
+        if (Array.isArray(value)) {
+            return isItem ? value.filter(isItem) : (value as T[]);
+        }
         if (typeof value === "string") {
             try {
                 const parsed = JSON.parse(value);
-                return (Array.isArray(parsed) ? parsed : []) as T[];
+                if (!Array.isArray(parsed)) return [];
+                return isItem ? parsed.filter(isItem) : (parsed as T[]);
             } catch (error) {
                 console.error(`normalizeArray: failed to parse JSON for ${fieldName ?? 'value'}`, error, value);
                 return [];

@@ -13,6 +13,7 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from server.database import get_db_session, SessionLocal
@@ -169,7 +170,7 @@ def _format_structured_cv_for_prompt(scv: dict[str, Any]) -> str:
             continue
         role = we.get("role") or ""
         company = we.get("company") or ""
-        dates = " – ".join(filter(None, [we.get("start_date"), we.get("end_date")]))
+        dates = " - ".join(filter(None, [we.get("start_date"), we.get("end_date")]))
         lines.append(f"  • {role} @ {company} ({dates})")
         for r in (we.get("responsibilities") or [])[:5]:
             if r:
@@ -183,8 +184,8 @@ def _format_structured_cv_for_prompt(scv: dict[str, Any]) -> str:
         degree = edu.get("degree") or ""
         field = edu.get("field_of_study") or ""
         inst = edu.get("institution") or ""
-        dates = " – ".join(filter(None, [edu.get("start_date"), edu.get("end_date")]))
-        lines.append(f"  • {degree} {field} – {inst} ({dates})")
+        dates = " - ".join(filter(None, [edu.get("start_date"), edu.get("end_date")]))
+        lines.append(f"  • {degree} {field} - {inst} ({dates})")
     if lines and lines[-1]:
         lines.append("")
     lines.append("Compétences :")
@@ -197,7 +198,7 @@ def _format_structured_cv_for_prompt(scv: dict[str, Any]) -> str:
             lines.append(f"  • {cat} : {', '.join(skills_list[:12])}")
     for proj in scv.get("projects") or []:
         if isinstance(proj, dict) and (proj.get("name") or proj.get("description")):
-            lines.append(f"  • Projet : {proj.get('name', '')} – {proj.get('description', '') or ''}")
+            lines.append(f"  • Projet : {proj.get('name', '')} - {proj.get('description', '') or ''}")
     for cert in scv.get("certifications") or []:
         if isinstance(cert, dict) and cert.get("name"):
             lines.append(f"  • Certification : {cert['name']}" + (f" ({cert.get('issuer')})" if cert.get("issuer") else ""))
@@ -462,7 +463,7 @@ async def post_chat(
             logger.warning("Could not load job offer (jobId=%s): %s", payload.context.jobId, e)
 
     intent = payload.context.intent if payload.context else None
-    structured_cv = _latest_structured_cv(db, current_user.id)
+    structured_cv = _latest_structured_cv(db, current_user.id) if intent == "cover_letter" else None
     system_prompt = _build_system_prompt(
         latest_eval, intent, job_summary, structured_cv=structured_cv
     )
@@ -550,7 +551,7 @@ async def post_chat_stream(
             logger.warning("Could not load job offer (jobId=%s): %s", payload.context.jobId, e)
 
     intent = payload.context.intent if payload.context else None
-    structured_cv = _latest_structured_cv(db, current_user.id)
+    structured_cv = _latest_structured_cv(db, current_user.id) if intent == "cover_letter" else None
     system_prompt = _build_system_prompt(
         latest_eval, intent, job_summary, structured_cv=structured_cv
     )
@@ -600,7 +601,11 @@ async def post_chat_stream(
                 if conv_for_update:
                     conv_for_update.updated_at = datetime.now(timezone.utc)
                 error_db.commit()
-            except Exception:
+            except SQLAlchemyError:
+                logger.exception(
+                    "Failed to persist assistant error message",
+                    extra={"conversation_id": conversation_id},
+                )
                 error_db.rollback()
             finally:
                 error_db.close()
@@ -615,8 +620,14 @@ async def post_chat_stream(
             if conv_for_update:
                 conv_for_update.updated_at = datetime.now(timezone.utc)
             fresh_db.commit()
-        except Exception:
+        except SQLAlchemyError:
+            logger.exception(
+                "DB persistence failed for assistant reply",
+                extra={"conversation_id": conversation_id},
+            )
             fresh_db.rollback()
+            yield f"data: {json.dumps({'error': 'db persistence failed'})}\n\n"
+            return
         finally:
             fresh_db.close()
         yield f"data: {json.dumps({'done': True, 'conversationId': conversation_id})}\n\n"
