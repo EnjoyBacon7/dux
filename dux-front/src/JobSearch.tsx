@@ -506,7 +506,7 @@ const JobSearch: React.FC = () => {
                         <JobDetail job={selectedJob} onClose={() => setSelectedJob(null)} />
                     )}
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '1200px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
                         {loading ? (
                             <div className="nb-card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                                 <p style={{ fontSize: '1.125rem', margin: 0, opacity: 0.7 }}>
