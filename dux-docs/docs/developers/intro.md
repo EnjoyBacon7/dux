@@ -33,11 +33,11 @@ Dux provide real-time AI analysis via **agentic LLMs and visual models of your c
     * Handles OAuth2 authentication (Client Credentials flow) with **[France Travail pour les développeurs](https://www.francetravail.io/)**.
     * Manages token rotation and rate limiting automatically.
 4.  **`Profile Match`:**
-    * Analyzes the candidate's CV to identify the top matching jobs .
+    * Analyzes the candidate's CV to identify the top matching jobs.
     * Proactively fetches offers corresponding to these codes via the France Travail API.
     * Generates a "Justification" string to explain *why* the offer is pushed to the user (e.g., "Matches your skill X").
 5.  **`Chatbot Advisor`:**
-    * An AI assistant that can help you to get a better profil.
+    * An AI assistant that can help you to get a better profile.
     * Generates a cover letter based on your CV and a given offer.
 6.  **`Auth`:**
     * Hybrid authentication system supporting standard Sessions and **Passkeys (WebAuthn)**.
