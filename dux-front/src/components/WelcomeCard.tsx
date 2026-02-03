@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/useLanguage";
 import { useAuth } from "../contexts/useAuth";
+import styles from "../styles/Home.module.css";
 
 const WelcomeCard: React.FC = () => {
     const navigate = useNavigate();
@@ -24,7 +25,7 @@ const WelcomeCard: React.FC = () => {
     if (!isFirstLogin) return null;
 
     return (
-        <div className="nb-card home-card welcome-card">
+        <div className={`nb-card ${styles['home__card--welcome']}`}>
             <h1 className="home-title">{t('home.welcome')}</h1>
             <p className="nb-text-dim" style={{ marginBottom: '1rem' }}>{t('home.welcome_intro')}</p>
 
@@ -35,7 +36,7 @@ const WelcomeCard: React.FC = () => {
                 fontSize: '0.9rem'
             }}>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: '1.2rem', minWidth: '1.5rem' }}>📄</span>
+                    <div style={{ fontWeight: 'bold', minWidth: '1.5rem', color: 'var(--nb-accent)' }}>›</div>
                     <div>
                         <strong>{t('home.feature_cv_title')}</strong>
                         <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8 }}>{t('home.feature_cv_desc')}</p>
@@ -43,7 +44,7 @@ const WelcomeCard: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: '1.2rem', minWidth: '1.5rem' }}>🎯</span>
+                    <div style={{ fontWeight: 'bold', minWidth: '1.5rem', color: 'var(--nb-accent)' }}>›</div>
                     <div>
                         <strong>{t('home.feature_jobs_title')}</strong>
                         <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8 }}>{t('home.feature_jobs_desc')}</p>
@@ -51,7 +52,7 @@ const WelcomeCard: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: '1.2rem', minWidth: '1.5rem' }}>⚡</span>
+                    <div style={{ fontWeight: 'bold', minWidth: '1.5rem', color: 'var(--nb-accent)' }}>›</div>
                     <div>
                         <strong>{t('home.feature_analysis_title')}</strong>
                         <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8 }}>{t('home.feature_analysis_desc')}</p>

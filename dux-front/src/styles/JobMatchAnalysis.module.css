@@ -49,6 +49,34 @@
     padding: 0.5rem;
     line-height: 1;
     min-width: auto;
+    background-color: transparent;
+    border: 1px solid var(--nb-fg);
+    color: var(--nb-fg);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.jma__close-btn:hover {
+    background-color: var(--nb-danger);
+    border-color: var(--nb-danger);
+    color: white;
+    transform: scale(1.1);
+}
+
+.jma__close-btn:active {
+    transform: scale(0.95);
+}
+
+.jma__close-btn:focus-visible {
+    outline: 2px solid var(--nb-accent);
+    outline-offset: 2px;
 }
 
 .jma__job-ref {
@@ -77,6 +105,7 @@
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }
