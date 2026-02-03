@@ -34,7 +34,8 @@
     font-weight: 700;
     font-size: 0.95rem;
     cursor: pointer;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-accent-alt);
@@ -189,7 +190,8 @@
     padding: 1rem 1.25rem;
     margin-bottom: 1rem;
     background: var(--nb-card-muted-bg);
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     font-size: 0.95rem;
@@ -207,7 +209,8 @@
 
 .advisor-intent-tab {
     padding: 0.75rem 1.25rem;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-card-bg);
@@ -244,7 +247,8 @@
     width: 100%;
     max-width: 420px;
     padding: 0.85rem 2.5rem 0.85rem 1rem;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-input-bg);
@@ -373,7 +377,8 @@
 
 .advisor-suggestion-btn {
     padding: 0.85rem 1.25rem;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-card-bg);
@@ -392,7 +397,8 @@
 }
 
 .advisor-suggestion-btn:disabled {
-    color: rgba(0, 0, 0, 0.5); /* fallback for older browsers */
+    color: rgba(0, 0, 0, 0.5);
+    /* fallback for older browsers */
     color: color-mix(in srgb, var(--nb-fg) 50%, transparent);
     background: var(--nb-card-bg);
     cursor: not-allowed;
@@ -400,9 +406,11 @@
 
 .advisor-msg {
     max-width: 82%;
-    min-width: 0; /* allow shrink so text wraps inside flex container */
+    min-width: 0;
+    /* allow shrink so text wraps inside flex container */
     padding: 1.25rem 1.5rem;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     align-self: flex-start;
@@ -502,7 +510,8 @@
     min-height: 52px;
     max-height: 200px;
     padding: 0.85rem 1rem;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-input-bg);
@@ -527,7 +536,8 @@
     font-weight: 700;
     font-size: 0.95rem;
     cursor: pointer;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-accent-alt);
@@ -559,7 +569,8 @@
     font-size: 0.95rem;
     color: var(--nb-fg);
     background: var(--nb-alert-danger-bg);
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     margin-bottom: 0.5rem;
@@ -568,7 +579,8 @@
 .advisor-rename-input {
     width: 100%;
     padding: 0.5rem 0.75rem;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     font-size: 0.95rem;
@@ -580,7 +592,8 @@
 .advisor-delete-confirm {
     flex-basis: 100%;
     padding: 1.25rem;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* fallback for older browsers */
     border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-card-bg);
