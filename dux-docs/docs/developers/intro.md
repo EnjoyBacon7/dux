@@ -36,7 +36,10 @@ Dux provide a real-time AI analysis via **agentic LLMs and visual models of your
     * Analyzes the candidate's CV to identify the top matching jobs .
     * Proactively fetches offers corresponding to these codes via the France Travail API.
     * Generates a "Justification" string to explain *why* the offer is pushed to the user (e.g., "Matches your skill X").
-5.  **`Auth`:**
+5.  **`Chatbot Advisor`:**
+    * An AI assistant that can help you to get a better profil.
+    * Generates a cover letter based on your CV and a given offer.
+6.  **`Auth`:**
     * Hybrid authentication system supporting standard Sessions and **Passkeys (WebAuthn)**.
 
 ### Frontend (`dux-front/`)
