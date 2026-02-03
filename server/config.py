@@ -85,6 +85,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = ""
     openai_base_url: str = ""
+    streaming_timeout_seconds: int = 300  # 5 minute timeout for streaming responses
 
     # VLM Configuration (hosted API) — accepts VLM_API_KEY or VLM_KEY from env
     vlm_api_key: str = Field(

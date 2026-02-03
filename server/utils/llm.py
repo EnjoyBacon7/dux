@@ -415,4 +415,4 @@ async def stream_llm_messages_async(
         logger.exception("LLM stream failed")
         raise
     finally:
-        await client.aclose()
+        await client.close()
