@@ -28,7 +28,7 @@ You might wonder how Dux determines if you are a good match. Here is the process
 2.  **One-Time Upload:** Go to your **Profile** and upload your PDF resume. Dux will digitize it immediately.
 3.  **Check Your Health:** Look at your **CV Score** to see if your resume is ready for the market.
 4.  **Analyze & Apply:** Browse jobs and hit **"Analyze"** to get instant feedback before you apply.
-5.  **Profil Match:** Different jobs that may be convenient to you are shown to you with justifications.
+5.  **Profile Match:** Jobs that may be convenient to you are shown with justifications.
 
 ---
 
@@ -87,7 +87,7 @@ Dux creates a virtual interview between your digitized profile and the specific 
 
 1.  **Technical Score:** Do you have the **hard skills** (tools, languages, certifications) required?
 2.  **Culture Fit:** Does the **tone of your profile** match the company's values?
-3.  **The Verdict:** A **clear and short summary** that explain why your profil is relevant or not to the selected job.
+3.  **The Verdict:** A **clear and short summary** that explains why your profile is relevant (or not) to the selected job.
 4.  **Gap Analysis:** Dux highlights exactly **what skills you are missing or should improve in order to match perfectly**.
     * *Use this to customize your cover letter!*
 
@@ -108,10 +108,10 @@ Dux provides specific feedback to correct both the **content** and the **design*
 
 ## Chatbot
 
-Dux also provide an interactive chatbot that can help you to save time.
+Dux also provides an interactive chatbot that can help you save time.
 
-1.  **Cover letter generator:** It check your CV and the selected offer and give you a suitable cover letter that will boost your appliance.
-2.  **AI advisor:** Whenever you are lost or need to be guided, you can ask the assistant what you want and it will consider the offer and what is on your CV to give you the best answers.
+1.  **Cover letter generator:** It checks your CV and the selected offer and generates a suitable cover letter that will boost your application.
+2.  **AI advisor:** Whenever you are lost or need guidance, ask the assistant; it considers the offer and your CV to provide the best answers.
 
 Dux provides specific feedback to correct both the **content** and the **design** of your resume, maximizing your chances of passing both automated filters and human recruiters.
 

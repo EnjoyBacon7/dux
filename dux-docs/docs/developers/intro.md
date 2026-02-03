@@ -8,7 +8,7 @@ description: Technical documentation, architecture, and complete setup for Dux c
 
 Welcome to the Dux engineering documentation. This project is a modern full-stack application combining **[FastAPI](https://fastapi.tiangolo.com/)** for intelligent backend processing and **[React](https://react.dev/)** for a responsive frontend experience.
 
-Dux provide a real-time AI analysis via **agentic LLMs and visual models of your choosing** coupled with official job market data(currently just **[France Travail pour les développeurs](https://www.francetravail.io/)**).
+Dux provide real-time AI analysis via **agentic LLMs and visual models of your choosing** coupled with official job market data(currently just **[France Travail](https://www.francetravail.io/)**).
 
 ---
 
@@ -56,7 +56,7 @@ The project uses **uv** for ultra-fast Python dependency management. It replaces
 
 ### Prerequisites
 * **[Node.js](https://nodejs.org/)** 20+
-* **[PostgreSQL](https://www.postgresql.org/)** 15+
+* **[PostgreSQL](https://www.postgresql.org/)** 16+
 * **[uv](https://docs.astral.sh/uv/)** (Install via `pip install uv` or the official installer)
 * **[Git](https://git-scm.com/)**
 
