@@ -51,7 +51,7 @@ Once logged in, the Dashboard gives you a **Quality Score** (0-100) based on 5 p
 
 Don't want to search manually? Let Dux come to you.
 
-Immediately after analyzing your CV, Dux activates its recommendation engine to populate the **"Profile Match"** section on your dashboard. These are not random ads; they are opportunities where your profile already scores highly.
+Immediately after analyzing your CV, Dux activates its recommendation engine to populate the **"Profile Match"** section on your dashboard. These are not random ads; they are opportunities where your profile already scores highly. You can tell him what you are looking for exactly and it will show you the top 5 most suitable offers.
 
 **Why trust these suggestions?**
 Unlike standard job alerts, Dux provides **Justifications** for every suggestion. It tells you exactly *why* it picked this role for you.
@@ -106,6 +106,17 @@ Dux provides specific feedback to correct both the **content** and the **design*
 
 ---
 
+## Chatbot
+
+Dux also provide an interactive chatbot that can help you to save time.
+
+1.  **Cover letter generator:** It check your CV and the selected offer and give you a suitable cover letter that will boost your appliance.
+2.  **AI advisor:** Whenever you are lost or need to be guided, you can ask the assistant what you want and it will consider the offer and what is on your CV to give you the best answers.
+
+Dux provides specific feedback to correct both the **content** and the **design** of your resume, maximizing your chances of passing both automated filters and human recruiters.
+
+---
+
 ## Privacy & Data
 
 Your career data is personal.
@@ -118,7 +129,7 @@ Your career data is personal.
 ## Coming Soon
 
 We are constantly improving Dux. Look out for:
-* **AI Cover Letter Assistant:** A dedicated chatbot that will write tailored cover letters for you based on your CV and the job offer you selected.
+
 * **Career Pathing:** Visualizing your potential next steps.
 * **Smart Templates:** Downloadable CV templates optimized for our AI.
 * **Job Alerts:** Never miss an opportunity. You will receive automatic notifications for new job postings that perfectly match your profile and skills score.
