@@ -1,13 +1,12 @@
 /* ===== ORIENTATION ADVISOR PAGE (neo-brutalism) ===== */
 
-/* Applied to main.nb-page - override page margin so layout fills viewport */
+/* Fill viewport below header: no top/bottom margin so no page scrollbar */
 .advisor-container {
     display: flex;
     flex-direction: row;
     height: calc(100vh - var(--header-height, 60px));
-    max-width: 1400px;
+    width: min(100% - 2rem, 1200px);
     margin: 0 auto;
-    width: 100%;
     overflow: hidden;
 }
 
@@ -15,7 +14,6 @@
     width: 300px;
     min-width: 300px;
     min-height: 0;
-    border-right: 2px solid var(--nb-fg);
     display: flex;
     flex-direction: column;
     background: var(--nb-card-bg);
@@ -24,7 +22,6 @@
 .advisor-sidebar-header {
     flex-shrink: 0;
     padding: 1.25rem 1rem;
-    border-bottom: 2px solid var(--nb-fg);
 }
 
 .advisor-new-chat-btn {
@@ -37,18 +34,16 @@
     font-weight: 700;
     font-size: 0.95rem;
     cursor: pointer;
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-accent-alt);
     color: #fff;
-    box-shadow: 3px 3px 0 var(--nb-fg);
     transition: var(--nb-transition);
 }
 
 .advisor-new-chat-btn:hover {
     opacity: 0.95;
-    transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0 var(--nb-fg);
 }
 
 .advisor-conversations-list {
@@ -65,13 +60,12 @@
     gap: 0.5rem;
     padding: 1rem 1.25rem;
     margin-bottom: 0.5rem;
-    border: 2px solid var(--nb-fg);
+    border: none;
     border-radius: var(--nb-radius);
     background: var(--nb-bg);
     cursor: pointer;
     transition: var(--nb-transition);
     position: relative;
-    box-shadow: 2px 2px 0 var(--nb-fg);
 }
 
 .advisor-conv-item:hover {
@@ -79,10 +73,8 @@
 }
 
 .advisor-conv-item--active {
-    border-color: var(--nb-fg);
     background: var(--nb-accent);
     color: #fff;
-    box-shadow: 3px 3px 0 var(--nb-fg);
 }
 
 .advisor-conv-item--active .advisor-conv-item-title,
@@ -105,13 +97,14 @@
 }
 
 .advisor-conv-item-title {
-    flex: 1;
+    flex: 1 1 100%;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 600;
     font-size: 0.95rem;
+    order: -1;
 }
 
 .advisor-conv-item-date {
@@ -155,7 +148,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    padding: clamp(1rem, 5vw, 2rem);
+    padding: clamp(1rem, 4vw, 1.5rem);
     overflow: hidden;
 }
 
@@ -196,7 +189,8 @@
     padding: 1rem 1.25rem;
     margin-bottom: 1rem;
     background: var(--nb-card-muted-bg);
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     font-size: 0.95rem;
     font-weight: 500;
@@ -213,14 +207,14 @@
 
 .advisor-intent-tab {
     padding: 0.75rem 1.25rem;
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-card-bg);
     color: var(--nb-fg);
     font-weight: 700;
     font-size: 0.9rem;
     cursor: pointer;
-    box-shadow: 2px 2px 0 var(--nb-fg);
     transition: var(--nb-transition);
 }
 
@@ -231,7 +225,6 @@
 .advisor-intent-tab--active {
     background: var(--nb-accent);
     color: #fff;
-    box-shadow: 3px 3px 0 var(--nb-fg);
 }
 
 .advisor-job-picker {
@@ -251,7 +244,8 @@
     width: 100%;
     max-width: 420px;
     padding: 0.85rem 2.5rem 0.85rem 1rem;
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-input-bg);
     color: var(--nb-fg);
@@ -273,7 +267,6 @@
     border-radius: var(--nb-radius);
     font-size: 0.85rem;
     color: var(--nb-fg);
-    box-shadow: 2px 2px 0 var(--nb-fg);
 }
 
 .advisor-context-pill-line {
@@ -310,14 +303,109 @@
     padding-right: 0.25rem;
 }
 
+/* Centered empty state (reference-style: title, description, intent, suggestions) */
+.advisor-empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 2rem 1rem;
+}
+
+.advisor-empty-state-inner {
+    width: 100%;
+    max-width: 580px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.advisor-empty-state-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+    color: var(--nb-fg);
+}
+
+.advisor-empty-state-desc {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--nb-fg);
+    opacity: 0.9;
+    margin: 0;
+    max-width: 480px;
+}
+
+.advisor-empty-state .advisor-intent-tabs {
+    margin-bottom: 0;
+    justify-content: center;
+}
+
+.advisor-empty-state .advisor-job-picker {
+    margin-bottom: 0;
+    width: 100%;
+    max-width: 420px;
+}
+
+.advisor-empty-state .advisor-job-picker label {
+    text-align: left;
+}
+
+/* Suggested prompts: 2x2 grid for aligned boxes */
+.advisor-suggestions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 520px;
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 480px) {
+    .advisor-suggestions {
+        grid-template-columns: 1fr;
+    }
+}
+
+.advisor-suggestion-btn {
+    padding: 0.85rem 1.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
+    border-radius: var(--nb-radius);
+    background: var(--nb-card-bg);
+    color: var(--nb-fg);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--nb-transition);
+    text-align: left;
+    line-height: 1.35;
+    min-width: 0;
+}
+
+.advisor-suggestion-btn:hover:not(:disabled) {
+    background: var(--nb-bg-muted);
+}
+
+.advisor-suggestion-btn:disabled {
+    color: rgba(0, 0, 0, 0.5); /* fallback for older browsers */
+    color: color-mix(in srgb, var(--nb-fg) 50%, transparent);
+    background: var(--nb-card-bg);
+    cursor: not-allowed;
+}
+
 .advisor-msg {
     max-width: 82%;
     min-width: 0; /* allow shrink so text wraps inside flex container */
     padding: 1.25rem 1.5rem;
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     align-self: flex-start;
-    box-shadow: 2px 2px 0 var(--nb-fg);
     overflow-wrap: break-word;
 }
 
@@ -325,7 +413,6 @@
     align-self: flex-end;
     background: var(--nb-accent);
     color: #fff;
-    box-shadow: 3px 3px 0 var(--nb-fg);
 }
 
 .advisor-msg--assistant {
@@ -392,34 +479,14 @@
     opacity: 0.75;
 }
 
-/* Wrapper for intent overlay + input area so intent options hover over the message box */
+/* Input zone: fixed at bottom, centered (reference-style) */
 .advisor-input-zone {
     flex-shrink: 0;
     position: relative;
-}
-
-/* Intent options overlay: sits over the message box, disappears after first message */
-.advisor-intent-overlay {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 100%;
-    margin-bottom: -0.5rem;
-    padding: 1rem 0 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    pointer-events: auto;
-    z-index: 2;
-    background: linear-gradient(to bottom, transparent, var(--nb-bg) 1rem);
-}
-
-.advisor-intent-overlay .advisor-intent-tabs {
-    margin-bottom: 0;
-}
-
-.advisor-intent-overlay .advisor-job-picker {
-    margin-bottom: 0;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding-top: 0.5rem;
 }
 
 .advisor-input-area {
@@ -427,15 +494,16 @@
     display: flex;
     gap: 0.75rem;
     align-items: flex-end;
-    position: relative;
-    z-index: 1;
+    width: 100%;
 }
 
 .advisor-input-area textarea {
     flex: 1;
-    min-height: 56px;
+    min-height: 52px;
+    max-height: 200px;
     padding: 0.85rem 1rem;
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-input-bg);
     color: var(--nb-fg);
@@ -459,18 +527,16 @@
     font-weight: 700;
     font-size: 0.95rem;
     cursor: pointer;
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-accent-alt);
     color: #fff;
-    box-shadow: 3px 3px 0 var(--nb-fg);
     transition: var(--nb-transition);
 }
 
 .advisor-send-btn:hover:not(:disabled) {
     opacity: 0.95;
-    transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0 var(--nb-fg);
 }
 
 .advisor-send-btn:disabled {
@@ -493,7 +559,8 @@
     font-size: 0.95rem;
     color: var(--nb-fg);
     background: var(--nb-alert-danger-bg);
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     margin-bottom: 0.5rem;
 }
@@ -501,7 +568,8 @@
 .advisor-rename-input {
     width: 100%;
     padding: 0.5rem 0.75rem;
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     font-size: 0.95rem;
     font-family: var(--nb-font-stack);
@@ -512,11 +580,11 @@
 .advisor-delete-confirm {
     flex-basis: 100%;
     padding: 1.25rem;
-    border: 2px solid var(--nb-fg);
+    border: 1px solid rgba(0, 0, 0, 0.3); /* fallback for older browsers */
+    border: 1px solid color-mix(in srgb, var(--nb-fg) 30%, transparent);
     border-radius: var(--nb-radius);
     background: var(--nb-card-bg);
     margin-top: 0.75rem;
-    box-shadow: 2px 2px 0 var(--nb-fg);
 }
 
 .advisor-delete-confirm p {

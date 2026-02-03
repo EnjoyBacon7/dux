@@ -2992,6 +2992,38 @@ const translations: { [key: string]: { [lang: string]: string } } = {
         pt: 'Detalhes da vaga',
         la: 'Details officii'
     },
+    'advisor.suggest_1': {
+        en: 'What jobs match my profile?',
+        es: '¿Qué trabajos coinciden con mi perfil?',
+        fr: 'Quels métiers correspondent à mon profil ?',
+        de: 'Welche Jobs passen zu meinem Profil?',
+        pt: 'Que empregos combinam com meu perfil?',
+        la: 'Quae officia meo profilo conveniunt?'
+    },
+    'advisor.suggest_2': {
+        en: 'Help me write a cover letter for this job',
+        es: 'Ayúdame a redactar una carta de motivación',
+        fr: 'Aide-moi à rédiger une lettre de motivation',
+        de: 'Hilf mir beim Anschreiben für diese Stelle',
+        pt: 'Ajude-me a redigir uma carta de motivação',
+        la: 'Adiuva me epistulam motivationis scribere'
+    },
+    'advisor.suggest_3': {
+        en: 'How can I improve my CV?',
+        es: '¿Cómo puedo mejorar mi CV?',
+        fr: 'Comment améliorer mon CV ?',
+        de: 'Wie kann ich meinen Lebenslauf verbessern?',
+        pt: 'Como posso melhorar meu CV?',
+        la: 'Quomodo CV meum meliorem reddere possum?'
+    },
+    'advisor.suggest_4': {
+        en: 'What are my main strengths for recruiters?',
+        es: '¿Cuáles son mis principales fortalezas?',
+        fr: 'Quels sont mes atouts pour les recruteurs ?',
+        de: 'Was sind meine Stärken für Arbeitgeber?',
+        pt: 'Quais são meus principais pontos fortes?',
+        la: 'Quae sunt mea praecipua bona?'
+    },
 
     // Job detail: AI match analysis button
     'analyze_match_ai': {
